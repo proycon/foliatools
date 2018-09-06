@@ -7,11 +7,7 @@ import getopt
 import sys
 import os
 import glob
-try:
-    from pynlpl.formats import folia
-except:
-    print("ERROR: pynlpl not found, please obtain PyNLPL from the Python Package Manager ($ sudo easy_install pynlpl) or directly from github: $ git clone git://github.com/proycon/pynlpl.git",file=sys.stderr)
-    sys.exit(2)
+import folia.main as folia
 
 def usage():
     print("foliaquery",file=sys.stderr)

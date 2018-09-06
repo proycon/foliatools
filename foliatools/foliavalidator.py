@@ -9,11 +9,7 @@ import os
 import glob
 import traceback
 import lxml.etree
-try:
-    from pynlpl.formats import folia
-except:
-    print("ERROR: pynlpl not found, please obtain PyNLPL from the Python Package Manager ($ sudo pip install pynlpl) or directly from github: $ git clone git://github.com/proycon/pynlpl.git", file=sys.stderr)
-    sys.exit(2)
+import folia.main as folia
 
 def usage():
     print("foliavalidator", file=sys.stderr)

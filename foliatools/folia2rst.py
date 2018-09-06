@@ -22,8 +22,8 @@ import gzip
 import os
 import io
 
-from pynlpl.formats import folia
-from pynlpl.common import u, isstring
+import folia.main as folia
+from folia.helpers import u, isstring
 
 
 ADORNMENT = ['=','-','+','~','`',"'",'#']

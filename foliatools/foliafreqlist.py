@@ -8,13 +8,9 @@ import io
 import sys
 import os
 import glob
-try:
-    from pynlpl.formats import folia
-    from pynlpl.statistics import FrequencyList
-    from pynlpl.textprocessors import Windower
-except:
-    print("ERROR: pynlpl not found, please obtain PyNLPL from the Python Package Manager ($ sudo easy_install pynlpl) or directly from github: $ git clone git://github.com/proycon/pynlpl.git",file=sys.stderr)
-    sys.exit(2)
+import folia.main as folia
+from pynlpl.statistics import FrequencyList
+from pynlpl.textprocessors import Windower
 
 def usage():
     print("foliafreqlist",file=sys.stderr)

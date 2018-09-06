@@ -27,7 +27,7 @@ from copy import copy
 from docutils import writers, nodes
 from docutils.core import publish_cmdline, publish_string, default_description
 
-from pynlpl.formats import folia
+import folia.main as folia
 
 try:
     import locale

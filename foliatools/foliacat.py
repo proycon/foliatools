@@ -6,11 +6,7 @@ from __future__ import print_function, unicode_literals, division, absolute_impo
 
 import getopt
 import sys
-try:
-    from pynlpl.formats import folia
-except:
-    print("ERROR: pynlpl not found, please obtain PyNLPL from the Python Package Manager ($ sudo easy_install pynlpl) or directly from github: $ git clone git://github.com/proycon/pynlpl.git",file=sys.stderr)
-    sys.exit(2)
+import folia.main as folia
 
 def usage():
     print("foliacat",file=sys.stderr)

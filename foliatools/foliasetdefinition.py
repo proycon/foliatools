@@ -23,9 +23,9 @@ import os
 import io
 import json
 import argparse
-
-from pynlpl.formats import folia, foliaset
-from pynlpl.common import u, isstring
+from folia import foliaset
+import folia.main as folia
+from folia.helpers import u, isstring
 
 def printclass(classinfo, args, indent):
     if args.outputuri:

@@ -21,7 +21,7 @@ import sys
 import glob
 import gzip
 import os
-from pynlpl.formats import folia
+import folia.main as folia
 
 CGN_ENCODING = 'iso-8859-15' #not yet used!
 
