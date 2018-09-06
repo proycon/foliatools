@@ -1,30 +1,20 @@
 #!/usr/bin/env python3
 #Generate library specification code (for either Python or C++) on the the basis of folia.yml
-#Used by respectively pynlpl and libfolia
+#Used by respectively foliapy and libfolia
 
-from __future__ import print_function, unicode_literals, division, absolute_import
+from __future__ import print_function, unicode_literals, division, absolute_import #python 2.7 compatibility
 
 import sys
 import datetime
 import os
+import argparse
 from collections import defaultdict
 import yaml
-
-
 
 skip_properties = {
     'c++': ('primaryelement',), #these are not handled in libfolia, or handled differently, don't output these in the source
 }
 
-#Load specification
-specfiles= [  os.path.join(os.path.dirname(__file__) ,'../schemas/folia.yml'), 'folia.yml' ]
-spec = None
-for specfile in specfiles:
-    spec = yaml.load(open(specfile,'r'))
-    break
-
-if spec is None:
-    print("FoLiA Specification file folia.yml could not be found in " + ", ".join(specfiles) ,file=sys.stderr)
 
 
 parents = defaultdict(list)
@@ -543,20 +533,24 @@ def parser(filename):
 
 def usage():
     print("Syntax: foliaspec.py [filename] [filename] ..etc.." ,file=sys.stderr)
-    print("Filenames are Python or C++ files that may contain foliaspec instructions, the files will be updated according to the latest specification in folia.yml",file=sys.stderr)
+    print("",file=sys.stderr)
     sys.exit(0)
 
 def main():
-    if len(sys.argv) == 1:
-        usage()
+    parser = argparse.ArgumentParser(description="Tool to adapt sources according to the latest FoLiA specification. Filenames are Python or C++ files that may contain foliaspec instructions, the files will be updated according to the latest specification", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-s','--specification', type=str,help="Point this to the FoLiA Specification YAML", action='store',default="folia/schemas/folia.yml",required=True)
+    parser.add_argument('-v','--version',help="Output the version of the FoLiA specification", action='store_true',required=False)
+    parser.add_argument('filenames', nargs='+', help='Python or C++ source code files to process (modify!)')
+    args = parser.parse_args()
 
-    for filename in sys.argv[1:]:
-        if filename in ('-h', '--help'):
-            usage()
-        elif filename in ('-v', '--version'):
-            print("FoLiA specification is at version v" + spec['version'],file=sys.stderr)
-            sys.exit(0)
+    if args.version:
+        print("FoLiA specification is at version v" + spec['version'],file=sys.stderr)
+        sys.exit(0)
 
+    #Load specification
+    spec = yaml.load(open(args.specification,'r'))
+
+    for filename in args.filenames:
         parser(filename)
 
 if __name__ == '__main__':
