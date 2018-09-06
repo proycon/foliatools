@@ -11,13 +11,13 @@ def read(fname):
 
 setup(
     name = "FoLiA-tools",
-    version = "1.5.1.60", #point to this from pynlpl/tests/folia.py
+    version = "2.0",
     author = "Maarten van Gompel",
     author_email = "proycon@anaproy.nl",
     description = ("FoLiA-tools contains various Python-based command line tools for working with FoLiA XML (Format for Linguistic Annotation)"),
     license = "GPL",
     keywords = "nlp computational_linguistics search linguistics toolkit folia pynlpl",
-    url = "https://github.com/proycon/folia",
+    url = "https://proycon.github.io/folia",
     packages=['foliatools'],
     long_description=read('README.rst'),
     classifiers=[
@@ -59,6 +59,6 @@ setup(
         ]
     },
     #include_package_data=True,
-    package_data = {'foliatools': ['*.xsl', '../schemas/*.yml','../schemas/*.rng']},
-    install_requires=['pynlpl >= 1.2.5', 'lxml >= 2.2','docutils', 'pyyaml']
+    package_data = {'foliatools': ['*.xsl', '../schemas/*.yml','../schemas/*.rng']}, #TODO: adapt
+    install_requires=['folia >= 1.6', 'lxml >= 2.2','docutils', 'pyyaml']
 )
