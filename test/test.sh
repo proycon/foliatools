@@ -2,9 +2,8 @@
 
 FAILURE=0
 
-
 echo "Validating using RelaxNG stylesheet..." >&2
-xmllint --relaxng ../schemas/folia.rng example.xml
+xmllint --relaxng /tmp/folia.rng test.xml
 if [ $? -ne 0 ]; then
     echo "...FAILED" >&2
     FAILURE=1
@@ -12,16 +11,7 @@ else
     echo "...OK" >&2
 fi
 
-echo "Running validator..." >&2
-foliavalidator example.xml
-if [ $? -ne 0 ]; then
-    echo "...FAILED" >&2
-    FAILURE=1
-else
-    echo "...OK" >&2
-fi
-
-echo "Running validator (2)..." >&2
+echo "Running validator ..." >&2
 foliavalidator test.xml
 if [ $? -ne 0 ]; then
     echo "...FAILED" >&2
