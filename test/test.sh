@@ -2,32 +2,21 @@
 
 FAILURE=0
 
-echo "Validating using RelaxNG stylesheet..." >&2
-xmllint --relaxng /tmp/folia.rng test.xml
-if [ $? -ne 0 ]; then
-    echo "...FAILED" >&2
-    FAILURE=1
-else
-    echo "...OK" >&2
-fi
-
-echo "Running validator ..." >&2
-foliavalidator test.xml
-if [ $? -ne 0 ]; then
-    echo "...FAILED" >&2
-    FAILURE=1
-else
-    echo "...OK" >&2
-fi
-
-echo "Running deep validator (3)..." >&2
-foliavalidator -d example.deep.xml
-if [ $? -ne 0 ]; then
-    echo "...FAILED" >&2
-    FAILURE=1
-else
-    echo "...OK" >&2
-fi
+for f in ../folia/examples/*.folia.xml; do #the example/test data is in a git submodule
+    if [[ $f = *"deep"* ]]; then
+        echo "Running FoLiA validator (DEEP!) on $(basename $f)" >&2
+        foliavalidator -d $f
+    else
+        echo "Running FoLiA validator (shallow) on $(basename $f)" >&2
+        foliavalidator $f
+    fi
+    if [ $? -ne 0 ]; then
+        echo "...FAILED" >&2
+        FAILURE=1
+    else
+        echo "...OK" >&2
+    fi
+done
 
 echo "Running folia2txt" >&2
 folia2txt test.xml > test.tmp
