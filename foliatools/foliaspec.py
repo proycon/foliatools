@@ -8,7 +8,7 @@ import sys
 import datetime
 import os
 import argparse
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import yaml
 
 skip_properties = {
@@ -20,6 +20,7 @@ skip_properties = {
 parents = defaultdict(list)
 
 elementdict = {} #flat (unnested) dictionary
+spec = {}
 
 def getelements(d):
     elements = []
@@ -42,7 +43,7 @@ elementnames = [ e['class'] for e in elements ]
 ################################################################
 
 def addfromparents(elementname, key):
-    value = set(spec['defaultproperties']['accepted_data'])
+    value = set(spec['defaultproperties'][key])
     if 'properties' in elementdict[elementname] and key in elementdict[elementname]['properties'] and elementdict[elementname]['properties'][key]:
         value |= set(elementdict[elementname]['properties'][key])
     else:
@@ -51,6 +52,38 @@ def addfromparents(elementname, key):
         value |= addfromparents(parent, key)
     return value
 
+
+def getbyannotationtype(annotationtype):
+    for element in elements:
+        if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties'] and element['properties']['annotationtype'].upper() == annotationtype.upper():
+            if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
+            return element
+    raise KeyError("No such annotationtype: " + annotationtype)
+
+def annotationtype2xml(annotationtype):
+    """Return the XML tag (str) of the primary element given an annotation type"""
+    element = getbyannotationtype(annotationtype)
+    return element['properties']['xmltag']
+
+def annotationtype2class(annotationtype):
+    """Return the Library Class (str) of the primary element given an annotation type"""
+    element = getbyannotationtype(annotationtype)
+    return element['class']
+
+def annotationtype2category(annotationtype):
+    """Return the category (INLINE, SPAN, MARKUP, HIGHERORDER) given an annotationtype (str)"""
+    abstractclass2category = {}
+    for key, category in spec['categories'].items():
+        if 'class' in category:
+            abstractclass2category[category['class']] = key
+    element = getbyannotationtype(annotationtype)
+    if element['class'] in abstractclass2category:
+        return abstractclass2category[element['class']]
+    else:
+        for parent_class in parents[element['class']]:
+            element = elementdict[parent_class]
+            if element['class'] in abstractclass2category:
+                return abstractclass2category[element['class']]
 
 
 def outputvar(var, value, target, declare = False):
@@ -73,7 +106,7 @@ def outputvar(var, value, target, declare = False):
             value = 'AnnotationType.' + value
 
         if value is None:
-                return var + ' = None'
+            return var + ' = None'
         elif isinstance(value, bool):
             if value:
                 return var + ' = True'
@@ -219,13 +252,15 @@ def flattenclasses(candidates):
 
 
 
-def outputblock(block, target, varname, indent = ""):
+def outputblock(block, target, varname, args, indent = ""):
     """Output the template block (identified by ``block``) for the target language"""
 
     if target == 'python':
         commentsign = '#'
     elif target == 'c++':
         commentsign = '//'
+    elif target == 'rst':
+        commentsign = '.. '
     else:
         raise NotImplementedError("Unknown target language: " + target)
 
@@ -452,6 +487,56 @@ def outputblock(block, target, varname, indent = ""):
             s += indent + "const set<string> AttributeFeatures = { " + ", ".join([ '"' + x + '"' for x in l ]) + " };\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
+    elif block == 'annotationtype_title':
+        if target == 'rst':
+            s += spec['annotationtype_doc'][args[0]]['name'] + "\n"
+            s += "==================================================================\n"
+        elif target in ('c++', 'python'):
+            s += indent + commentsign + " " + spec['annotationtype_doc'][args[0]]['name'] + "\n"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
+    elif block == 'annotationtype_description':
+        if target == 'rst':
+            s += spec['annotationtype_doc'][args[0]]['description'] + "\n"
+        elif target in ('c++', 'python'):
+            s += indent + commentsign + " " + spec['annotationtype_doc'][args[0]]['description'] + "\n"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
+    elif block == 'specification':
+        annotationtype = args[0] #string
+        specdata = OrderedDict()
+        element = getbyannotationtype(annotationtype)
+        specdata["Element Name"] = "``<" + annotationtype2xml(annotationtype) + ">``"
+        category = annotationtype2category(annotationtype)
+        specdata["Category"] = spec['categories'][category]['name']
+        if category == "span":
+            #TODO: find layer
+            layer = ""
+            specdata["Layer"] = layer
+            #TODO: find span roles
+            spanroles = ""
+            specdata["Span Roles"] = spanroles
+        accepted_data = tuple(sorted(addfromparents(element['class'],'accepted_data')))
+        specdata["Accepted Data"] = ", ".join([ "`" + spec['annotationtype_doc'][elementdict[cls]['properties']['annotationtype']]['name'] + "`" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
+        if target == 'rst':
+            for key, value in specdata.items():
+                s += ":" + key + ": " + value + "\n"
+        elif target in ('c++', 'python'):
+            s += indent + commentsign + " Specification:" + "\n"
+            for key, value in specdata.items():
+                s += indent + commentsign + "  " + key + ": " + value + "\n"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
+    elif block == 'toc':
+        if target == 'rst':
+            for category, categorydata in spec['categories'].items():
+                s += "- `" + categorydata['name'] + "` -- " + categorydata['description'] + "\n"
+                for annotationtype in spec['annotationtype']:
+                    element = getbyannotationtype(annotationtype)
+                    if annotationtype2category(annotationtype) == category:
+                        s += "   - `" + spec['annotationtype_doc'][annotationtype]['name'] + "` -- ``" + element['properties']['xmltag'] +  "`` -- " + spec['annotationtype_doc'][annotationtype]['description'] + "\n"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block in spec:
         #simple variable blocks
         s += indent + outputvar(varname, spec[block], target, True)
@@ -468,8 +553,11 @@ def parser(filename):
         target = 'c++' #libfolia
         commentsign = '//'
     elif filename[-3:] == '.py':
-        target = 'python' #pynlpl.formats.folia
+        target = 'python' #foliapy
         commentsign = '#'
+    elif filename[-3:] == '.rst':
+        target = 'rst' #folia documentation
+        commentsign = '.. '
     else:
         raise Exception("No target language could be deduced from the filename " + filename)
 
@@ -511,22 +599,28 @@ def parser(filename):
                     fields = strippedline.split(' ')[-1][len(commentsign):].split(':')
                     blocktype = 'line'
                     blockname = fields[1]
+                    #are there arguments in the blockname?
+                    if blockname[-1] == ')':
+                        args = blockname[blockname.find('(') + 1:-1].split(",")
+                        blockname = blockname[:blockname.find('(')]
+                    else:
+                        args = []
                     try:
                         varname = fields[2]
                     except:
                         varname = blockname
                     if varname != blockname:
-                        out.write( outputblock(blockname, target, varname) + " " + commentsign + "foliaspec:" + blockname + ":" + varname + "\n")
+                        out.write( outputblock(blockname, target, varname, args) + " " + commentsign + "foliaspec:" + blockname + ":" + varname + "\n")
                     else:
-                        out.write( outputblock(blockname, target, varname) + " " + commentsign + "foliaspec:" + blockname + "\n")
+                        out.write( outputblock(blockname, target, varname, args) + " " + commentsign + "foliaspec:" + blockname + "\n")
                 else:
                     out.write(line)
             else:
                 if not strippedline and blocktype == 'implicit':
-                    out.write(outputblock(blockname, target, varname,indent) + "\n")
+                    out.write(outputblock(blockname, target, varname,args,indent) + "\n")
                     inblock = False
                 elif blocktype == 'explicit' and strippedline.startswith(commentsign + 'foliaspec:end:'):
-                    out.write(outputblock(blockname, target, varname,indent) + "\n" + commentsign + "foliaspec:end:" + blockname + "\n")
+                    out.write(outputblock(blockname, target, varname,args, indent) + "\n" + commentsign + "foliaspec:end:" + blockname + "\n")
                     inblock = False
 
     os.rename(filename+'.foliaspec.out', filename)
@@ -537,10 +631,11 @@ def usage():
     sys.exit(0)
 
 def main():
-    parser = argparse.ArgumentParser(description="Tool to adapt sources according to the latest FoLiA specification. Filenames are Python or C++ files that may contain foliaspec instructions, the files will be updated according to the latest specification", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    global spec
+    parser = argparse.ArgumentParser(description="Tool to adapt sources according to the latest FoLiA specification. Filenames are Python, C++ or ReStructuredText files that may contain foliaspec instructions, the files will be updated according to the latest specification", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-s','--specification', type=str,help="Point this to the FoLiA Specification YAML", action='store',default="folia/schemas/folia.yml",required=True)
     parser.add_argument('-v','--version',help="Output the version of the FoLiA specification", action='store_true',required=False)
-    parser.add_argument('filenames', nargs='+', help='Python or C++ source code files to process (modify!)')
+    parser.add_argument('filenames', nargs='+', help='ReStructuredText files or Python or C++ source code files to process (will modify the files!)')
     args = parser.parse_args()
 
     if args.version:
