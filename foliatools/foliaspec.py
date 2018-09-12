@@ -506,18 +506,22 @@ def outputblock(block, target, varname, args, indent = ""):
         annotationtype = args[0] #string
         specdata = OrderedDict()
         element = getbyannotationtype(annotationtype)
-        specdata["Element Name"] = "``<" + annotationtype2xml(annotationtype) + ">``"
+        specdata["Element Name (primary)"] = "``<" + annotationtype2xml(annotationtype) + ">``"
         category = annotationtype2category(annotationtype)
-        specdata["Category"] = spec['categories'][category]['name']
+        specdata["Declaration"] = "``<" + annotationtype.lower() + "-annotation set=\"...\" />``"
+        specdata["Category"] = ":ref:`" + category +  "_annotation_category`"
         if category == "span":
             #TODO: find layer
-            layer = ""
-            specdata["Layer"] = layer
+            layer = "(TODO!)"
+            specdata["Layer Element"] = layer
             #TODO: find span roles
-            spanroles = ""
-            specdata["Span Roles"] = spanroles
+            spanroles = "(TODO!)"
+            specdata["Span Role Elements"] = spanroles
         accepted_data = tuple(sorted(addfromparents(element['class'],'accepted_data')))
-        specdata["Accepted Data"] = ", ".join([ "`" + spec['annotationtype_doc'][elementdict[cls]['properties']['annotationtype']]['name'] + "`" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
+        specdata["Accepted Data (as Annotation Types)"] = ", ".join([ ":ref:`" + elementdict[cls]['properties']['annotationtype'] + "_annotation`" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
+        specdata["Accepted Data (as FoLiA XML Elements)"] = ", ".join([ "``<" + elementdict[cls]['properties']['xmltag'] + ">``" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
+        specdata["Accepted Data (as API Classes)"] = ", ".join([ "``" + cls + "``" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
+        specdata["Version History"] = spec['annotationtype_doc'][annotationtype.lower()]['history']
         if target == 'rst':
             for key, value in specdata.items():
                 s += ":" + key + ": " + value + "\n"
@@ -530,11 +534,26 @@ def outputblock(block, target, varname, args, indent = ""):
     elif block == 'toc':
         if target == 'rst':
             for category, categorydata in spec['categories'].items():
-                s += "- `" + categorydata['name'] + "` -- " + categorydata['description'] + "\n"
-                for annotationtype in spec['annotationtype']:
-                    element = getbyannotationtype(annotationtype)
-                    if annotationtype2category(annotationtype) == category:
-                        s += "   - `" + spec['annotationtype_doc'][annotationtype]['name'] + "` -- ``" + element['properties']['xmltag'] +  "`` -- " + spec['annotationtype_doc'][annotationtype]['description'] + "\n"
+                if not args or (args and category in args):
+                    if not args or len(args) > 1:
+                        s += "- :ref:`" + category + "_annotation_category` -- " + categorydata['description'] + "\n"
+                        for annotationtype in spec['annotationtype']:
+                            element = getbyannotationtype(annotationtype)
+                            if annotationtype2category(annotationtype) == category:
+                                s += "   - `" + spec['annotationtype_doc'][annotationtype]['name'] + "` -- ``<" + element['properties']['xmltag'] +  ">`` -- " + spec['annotationtype_doc'][annotationtype]['description'] + "\n"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
+    elif block == 'category_title':
+        category = args[0]
+        if target == 'rst':
+            s += spec['categories'][category]['name'] + "\n"
+            s += "===================================================================\n"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
+    elif block == 'category_description':
+        category = args[0]
+        if target == 'rst':
+            s += spec['categories'][category]['description'] + "\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block in spec:
