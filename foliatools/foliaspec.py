@@ -186,6 +186,8 @@ def outputvar(var, value, target, declare = False):
             else:
                 if declare: typedeclaration = 'const auto '
                 return typedeclaration + var + ' = ' + value+ ';'
+    elif target == 'rst':
+        return var + ": " + str(value)
 
 #concise description for all available template blocks
 blockhelp = {
@@ -536,11 +538,11 @@ def outputblock(block, target, varname, args, indent = ""):
             for category, categorydata in spec['categories'].items():
                 if not args or (args and category in args):
                     if not args or len(args) > 1:
-                        s += "- :ref:`" + category + "_annotation_category` -- " + categorydata['description'] + "\n"
+                        s += "* :ref:`" + category + "_annotation_category` -- " + categorydata['description'] + "\n"
                         for annotationtype in spec['annotationtype']:
                             element = getbyannotationtype(annotationtype)
                             if annotationtype2category(annotationtype) == category:
-                                s += "   - `" + spec['annotationtype_doc'][annotationtype]['name'] + "` -- ``<" + element['properties']['xmltag'] +  ">`` -- " + spec['annotationtype_doc'][annotationtype]['description'] + "\n"
+                                s += "   - `" + spec['annotationtype_doc'][annotationtype.lower()]['name'] + "` -- ``<" + element['properties']['xmltag'] +  ">`` -- " + spec['annotationtype_doc'][annotationtype.lower()]['description'] + "\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'category_title':
