@@ -17,10 +17,13 @@ skip_properties = {
 
 
 
-parents = defaultdict(list)
 
+#global variables
+parents = defaultdict(list)
 elementdict = {} #flat (unnested) dictionary
 spec = {}
+elements = []
+elementnames = []
 
 def getelements(d):
     elements = []
@@ -35,9 +38,6 @@ def getelements(d):
                     parents[c['class']].append(e['class'])
     return elements
 
-elements = getelements(spec) #gathers all class names
-elements.sort(key=lambda x: x['class'])
-elementnames = [ e['class'] for e in elements ]
 
 
 ################################################################
@@ -518,7 +518,7 @@ def outputblock(block, target, varname, args, indent = ""):
             spanroles = "(TODO!)"
             specdata["Span Role Elements"] = spanroles
         accepted_data = tuple(sorted(addfromparents(element['class'],'accepted_data')))
-        specdata["Accepted Data (as Annotation Types)"] = ", ".join([ ":ref:`" + elementdict[cls]['properties']['annotationtype'] + "_annotation`" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
+        specdata["Accepted Data (as Annotation Types)"] = ", ".join([ ":ref:`" + elementdict[cls]['properties']['annotationtype'].lower() + "_annotation`" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
         specdata["Accepted Data (as FoLiA XML Elements)"] = ", ".join([ "``<" + elementdict[cls]['properties']['xmltag'] + ">``" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
         specdata["Accepted Data (as API Classes)"] = ", ".join([ "``" + cls + "``" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
         specdata["Version History"] = spec['annotationtype_doc'][annotationtype.lower()]['history']
@@ -567,14 +567,14 @@ def outputblock(block, target, varname, args, indent = ""):
     return s
 
 
-def parser(filename):
+def foliaspec_parser(filename):
     if filename[-2:] in ('.h','.c') or filename[-4:] in ('.cxx','.cpp','.hpp'):
         target = 'c++' #libfolia
         commentsign = '//'
     elif filename[-3:] == '.py':
         target = 'python' #foliapy
         commentsign = '#'
-    elif filename[-3:] == '.rst':
+    elif filename[-4:] == '.rst':
         target = 'rst' #folia documentation
         commentsign = '.. '
     else:
@@ -588,6 +588,7 @@ def parser(filename):
 
     inblock = False
     blockname = blocktype = ""
+    args = []
     indent = ""
     with open(filename,'r',encoding='utf-8') as f:
         for line in f:
@@ -612,6 +613,12 @@ def parser(filename):
                             varname = blockname
                     else:
                         raise Exception("Syntax error: " + strippedline)
+                    #are there arguments in the blockname?
+                    if blockname[-1] == ')':
+                        args = blockname[blockname.find('(') + 1:-1].split(",")
+                        blockname = blockname[:blockname.find('(')]
+                    else:
+                        args = []
                     inblock = True
                     out.write(line)
                 elif strippedline.split(' ')[-1].startswith(commentsign + 'foliaspec:'):
@@ -650,7 +657,7 @@ def usage():
     sys.exit(0)
 
 def main():
-    global spec
+    global spec, elements, elementnames
     parser = argparse.ArgumentParser(description="Tool to adapt sources according to the latest FoLiA specification. Filenames are Python, C++ or ReStructuredText files that may contain foliaspec instructions, the files will be updated according to the latest specification", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-s','--specification', type=str,help="Point this to the FoLiA Specification YAML", action='store',default="folia/schemas/folia.yml",required=True)
     parser.add_argument('-v','--version',help="Output the version of the FoLiA specification", action='store_true',required=False)
@@ -664,8 +671,12 @@ def main():
     #Load specification
     spec = yaml.load(open(args.specification,'r'))
 
+    elements = getelements(spec) #gathers all class names
+    elements.sort(key=lambda x: x['class'])
+    elementnames = [ e['class'] for e in elements ]
+
     for filename in args.filenames:
-        parser(filename)
+        foliaspec_parser(filename)
 
 if __name__ == '__main__':
     main()
