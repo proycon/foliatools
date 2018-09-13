@@ -519,6 +519,14 @@ def outputblock(block, target, varname, args, indent = ""):
             #TODO: find span roles
             spanroles = "(TODO!)"
             specdata["Span Role Elements"] = spanroles
+        required_attribs = addfromparents(element['class'],'required_attribs')
+        if "CLASS" in required_attribs: required_attribs.add("SET")
+        if "ANNOTATOR" in required_attribs: required_attribs.add("ANNOTATORTYPE")
+        specdata["Required Attributes"] = outputblock("attributes_doc", target, "attributes_doc", [a.lower() for a in  required_attribs])
+        optional_attribs = addfromparents(element['class'],'optional_attribs')
+        if "CLASS" in optional_attribs: optional_attribs.add("SET")
+        if "ANNOTATOR" in optional_attribs: optional_attribs.add("ANNOTATORTYPE")
+        specdata["Optional Attributes"] = outputblock("attributes_doc", target, "attributes_doc", [a.lower() for a in  optional_attribs])
         accepted_data = tuple(sorted(addfromparents(element['class'],'accepted_data')))
         specdata["Accepted Data (as Annotation Types)"] = ", ".join([ ":ref:`" + elementdict[cls]['properties']['annotationtype'].lower() + "_annotation`" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
         specdata["Accepted Data (as FoLiA XML Elements)"] = ", ".join([ "``<" + elementdict[cls]['properties']['xmltag'] + ">``" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
@@ -531,6 +539,13 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + commentsign + " Specification:" + "\n"
             for key, value in specdata.items():
                 s += indent + commentsign + "  " + key + ": " + value + "\n"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
+    elif block == 'attributes_doc':
+        if target == 'rst':
+            for attribute, attributedata in spec['attributes_doc'].items():
+                if not args or (args and attributedata['group'] in args or attributedata['name'] in args):
+                    s + "* ``" + attributedata['name'] + "`` -- " + attributedata['description'] + "\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'toc':
