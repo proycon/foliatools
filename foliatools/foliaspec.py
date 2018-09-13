@@ -43,7 +43,10 @@ def getelements(d):
 ################################################################
 
 def addfromparents(elementname, key):
-    value = set(spec['defaultproperties'][key])
+    try:
+        value = set(spec['defaultproperties'][key])
+    except TypeError:
+        value = set()
     if 'properties' in elementdict[elementname] and key in elementdict[elementname]['properties'] and elementdict[elementname]['properties'][key]:
         value |= set(elementdict[elementname]['properties'][key])
     else:
@@ -514,15 +517,17 @@ def outputblock(block, target, varname, args, indent = ""):
         required_attribs = addfromparents(element['class'],'required_attribs')
         if "CLASS" in required_attribs: required_attribs.add("SET")
         if "ANNOTATOR" in required_attribs: required_attribs.add("ANNOTATORTYPE")
+        #print("REQUIRED FOR  " + element['class'], " ".join(required_attribs),file=sys.stderr)
         optional_attribs = addfromparents(element['class'],'optional_attribs')
         if "CLASS" in optional_attribs: optional_attribs.add("SET")
         if "ANNOTATOR" in optional_attribs: optional_attribs.add("ANNOTATORTYPE")
+        #print("OPTIONAL FOR  " + element['class'], " ".join(optional_attribs),file=sys.stderr)
         if  "SET" in required_attribs:
             specdata["Declaration"] = "``<" + annotationtype.lower() + "-annotation set=\"...\">``"
         elif  "SET" in optional_attribs:
-            specdata["Declaration"] = "``<" + annotationtype.lower() + "-annotation set=\"...\">`` *(set is optional for this annotation type)"
+            specdata["Declaration"] = "``<" + annotationtype.lower() + "-annotation set=\"...\">`` *(note: ``set`` is optional for this annotation type)*"
         else:
-            specdata["Declaration"] = "``<" + annotationtype.lower() + "-annotation>`` *(set is optional for this annotation type)"
+            specdata["Declaration"] = "``<" + annotationtype.lower() + "-annotation>`` *(note: there is no set associated with this annotation type)"
         accepted_data = tuple(sorted(addfromparents(element['class'],'accepted_data')))
         if category == "span":
             #find Layer
@@ -538,8 +543,8 @@ def outputblock(block, target, varname, args, indent = ""):
                     spanroles.append(elementname)
             spanroles = ", ".join([ "``" + x + "``" for x in spanroles ])
             specdata["Span Role Elements"] = spanroles
-        specdata["Required Attributes"] = outputblock("attributes_doc", target, "attributes_doc", [a.lower() for a in  required_attribs])
-        specdata["Optional Attributes"] = outputblock("attributes_doc", target, "attributes_doc", [a.lower() for a in  optional_attribs])
+        specdata["Required Attributes"] = "\n                      ".join( [ line for line in outputblock("attributes_doc", target, "attributes_doc", ["EMPTY"] + [a.lower() for a in  required_attribs]).split("\n") if line ] )
+        specdata["Optional Attributes"] = "\n                      ".join( [ line for line in outputblock("attributes_doc", target, "attributes_doc", ["EMPTY"] + [a.lower() for a in  optional_attribs]).split("\n") if line ] )
         specdata["Accepted Data (as Annotation Types)"] = ", ".join([ ":ref:`" + elementdict[cls]['properties']['annotationtype'].lower() + "_annotation`" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
         specdata["Accepted Data (as FoLiA XML Elements)"] = ", ".join([ "``<" + elementdict[cls]['properties']['xmltag'] + ">``" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
         specdata["Accepted Data (as API Classes)"] = ", ".join([ "``" + cls + "``" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
@@ -565,8 +570,8 @@ def outputblock(block, target, varname, args, indent = ""):
     elif block == 'attributes_doc':
         if target == 'rst':
             for attribute, attributedata in spec['attributes_doc'].items():
-                if not args or (args and attributedata['group'] in args or attributedata['name'] in args):
-                    s + "* ``" + attributedata['name'] + "`` -- " + attributedata['description'] + "\n"
+                if not args or (args and (('group' in attributedata and attributedata['group'] in args) or attribute.lower() in args)):
+                    s += "* ``" + attributedata['name'] + "`` -- " + attributedata['description'] + "\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'toc':
@@ -578,7 +583,7 @@ def outputblock(block, target, varname, args, indent = ""):
                         for annotationtype in spec['annotationtype']:
                             element = getbyannotationtype(annotationtype)
                             if annotationtype2category(annotationtype) == category:
-                                s += "   - `" + spec['annotationtype_doc'][annotationtype.lower()]['name'] + "` -- ``<" + element['properties']['xmltag'] +  ">`` -- " + spec['annotationtype_doc'][annotationtype.lower()]['description'] + "\n"
+                                s += "   - :ref:`" + annotationtype.lower() + "_annotation` -- ``<" + element['properties']['xmltag'] +  ">`` -- " + spec['annotationtype_doc'][annotationtype.lower()]['description'] + "\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'category_title':
