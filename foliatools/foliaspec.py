@@ -516,11 +516,15 @@ def outputblock(block, target, varname, args, indent = ""):
         specdata["Category"] = ":ref:`" + category +  "_annotation_category`"
         required_attribs = addfromparents(element['class'],'required_attribs')
         if "CLASS" in required_attribs: required_attribs.add("SET")
-        if "ANNOTATOR" in required_attribs: required_attribs.add("ANNOTATORTYPE")
+        if "ANNOTATOR" in required_attribs:
+            required_attribs.add("ANNOTATORTYPE")
+            required_attribs.add("PROCESSOR")
         #print("REQUIRED FOR  " + element['class'], " ".join(required_attribs),file=sys.stderr)
         optional_attribs = addfromparents(element['class'],'optional_attribs')
         if "CLASS" in optional_attribs: optional_attribs.add("SET")
-        if "ANNOTATOR" in optional_attribs: optional_attribs.add("ANNOTATORTYPE")
+        if "ANNOTATOR" in optional_attribs:
+            optional_attribs.add("ANNOTATORTYPE")
+            optional_attribs.add("PROCESSOR")
         #print("OPTIONAL FOR  " + element['class'], " ".join(optional_attribs),file=sys.stderr)
         if  "SET" in required_attribs:
             specdata["Declaration"] = "``<" + annotationtype.lower() + "-annotation set=\"...\">``"
