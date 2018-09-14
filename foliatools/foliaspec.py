@@ -510,58 +510,79 @@ def outputblock(block, target, varname, args, indent = ""):
     elif block == 'specification':
         annotationtype = args[0] #string
         specdata = OrderedDict()
-        element = getbyannotationtype(annotationtype)
-        specdata["Element Name (primary)"] = "``<" + annotationtype2xml(annotationtype) + ">``"
         category = annotationtype2category(annotationtype)
-        specdata["Category"] = ":ref:`" + category +  "_annotation_category`"
+        specdata["Annotation Category"] = ":ref:`" + category +  "_annotation_category`"
+        element = getbyannotationtype(annotationtype) #primary element
         required_attribs = addfromparents(element['class'],'required_attribs')
-        if "CLASS" in required_attribs: required_attribs.add("SET")
-        if "ANNOTATOR" in required_attribs:
-            required_attribs.add("ANNOTATORTYPE")
-            required_attribs.add("PROCESSOR")
-        #print("REQUIRED FOR  " + element['class'], " ".join(required_attribs),file=sys.stderr)
         optional_attribs = addfromparents(element['class'],'optional_attribs')
-        if "CLASS" in optional_attribs: optional_attribs.add("SET")
-        if "ANNOTATOR" in optional_attribs:
-            optional_attribs.add("ANNOTATORTYPE")
-            optional_attribs.add("PROCESSOR")
-        #print("OPTIONAL FOR  " + element['class'], " ".join(optional_attribs),file=sys.stderr)
-        if  "SET" in required_attribs:
+        if  "CLASS" in required_attribs:
             specdata["Declaration"] = "``<" + annotationtype.lower() + "-annotation set=\"...\">``"
-        elif  "SET" in optional_attribs:
+        elif  "CLASS" in optional_attribs:
             specdata["Declaration"] = "``<" + annotationtype.lower() + "-annotation set=\"...\">`` *(note: ``set`` is optional for this annotation type)*"
         else:
             specdata["Declaration"] = "``<" + annotationtype.lower() + "-annotation>`` *(note: there is no set associated with this annotation type)"
-        accepted_data = tuple(sorted(addfromparents(element['class'],'accepted_data')))
-        if category == "span":
-            #find Layer
-            layer = "None"
-            for e in elements:
-                if e['name'].endswith("Layer") and e['properties']['annotationtype'] == annotationtype:
-                    layer = e['properties']['xmltag']
-            specdata["Layer Element"] = layer
-            #Find span roles
-            spanroles = []
-            for elementname in accepted_data:
-                if "AbstractSpanRole" in parents[elementname]:
-                    spanroles.append(elementname)
-            spanroles = ", ".join([ "``" + x + "``" for x in spanroles ])
-            specdata["Span Role Elements"] = spanroles
-        specdata["Required Attributes"] = "\n                      ".join( [ line for line in outputblock("attributes_doc", target, "attributes_doc", ["EMPTY"] + [a.lower() for a in  required_attribs]).split("\n") if line ] )
-        specdata["Optional Attributes"] = "\n                      ".join( [ line for line in outputblock("attributes_doc", target, "attributes_doc", ["EMPTY"] + [a.lower() for a in  optional_attribs]).split("\n") if line ] )
-        specdata["Accepted Data (as Annotation Types)"] = ", ".join([ ":ref:`" + elementdict[cls]['properties']['annotationtype'].lower() + "_annotation`" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
-        specdata["Accepted Data (as FoLiA XML Elements)"] = ", ".join([ "``<" + elementdict[cls]['properties']['xmltag'] + ">``" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
-        specdata["Accepted Data (as API Classes)"] = ", ".join([ "``" + cls + "``" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
-        valid_context = set()
-        for e in elements:
-            e_accepted_data = addfromparents(e['class'],'accepted_data')
-            if element['class'] in e_accepted_data:
-                valid_context.add(e['class'])
-        valid_context = tuple(sorted(valid_context))
-        specdata["Valid Context (as Annotation Types)"] = ", ".join([ ":ref:`" + elementdict[cls]['properties']['annotationtype'].lower() + "_annotation`" for cls in  valid_context if 'annotationtype' in elementdict[cls]['properties']])
-        specdata["Valid Context (as FoLiA XML Elements)"] = ", ".join([ "``<" + elementdict[cls]['properties']['xmltag'] + ">``" for cls in  valid_context if 'annotationtype' in elementdict[cls]['properties']])
-        specdata["Valid Context (as API Classes)"] = ", ".join([ "``" + cls + "``" for cls in  valid_context if 'annotationtype' in elementdict[cls]['properties']])
         specdata["Version History"] = spec['annotationtype_doc'][annotationtype.lower()]['history']
+        if target == 'rst':
+            for key, value in specdata.items():
+                s += ":" + key + ": " + value + "\n"
+            s += outputblock("specification_element", target, "specification_element", [element['class']])
+        elif target in ('c++', 'python'):
+            s += indent + commentsign + " Specification:" + "\n"
+            for key, value in specdata.items():
+                s += indent + commentsign + "  " + key + ": " + value + "\n"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
+    elif block == 'specification_element':
+        specdata = OrderedDict()
+        for elementclass in args:
+            element = elementdict[elementclass] #string
+            try:
+                annotationtype = element['properties']['annotationtype']
+            except KeyError:
+                annotationtype = None
+            specdata["**Element**"] = "``<" + element['properties']['xmltag'] + ">``"
+            specdata["API Class"] = "``" + element['class'] + "``"
+            required_attribs = addfromparents(element['class'],'required_attribs')
+            if "CLASS" in required_attribs: required_attribs.add("SET")
+            if "ANNOTATOR" in required_attribs:
+                required_attribs.add("ANNOTATORTYPE")
+                required_attribs.add("PROCESSOR")
+            #print("REQUIRED FOR  " + element['class'], " ".join(required_attribs),file=sys.stderr)
+            optional_attribs = addfromparents(element['class'],'optional_attribs')
+            if "CLASS" in optional_attribs: optional_attribs.add("SET")
+            if "ANNOTATOR" in optional_attribs:
+                optional_attribs.add("ANNOTATORTYPE")
+                optional_attribs.add("PROCESSOR")
+            #print("OPTIONAL FOR  " + element['class'], " ".join(optional_attribs),file=sys.stderr)
+            accepted_data = tuple(sorted(addfromparents(element['class'],'accepted_data')))
+            if "AbstractSpanRole" in parents[element['class']]:
+                specdata["Category "] = "Span Role Element"
+            if "AbstractAnnotationLayer" in parents[element['class']]:
+                specdata["Category "] = "Layer Element"
+            elif "AbstractSpanAnnotation" in parents[element['class']]:
+                #find Layer
+                layer = "None"
+                for e in elements:
+                    if e['name'].endswith("Layer") and e['properties']['annotationtype'] == annotationtype:
+                        layer = e['properties']['xmltag']
+                specdata["Layer Element"] = layer
+                #Find span roles
+                spanroles = []
+                for elementname in accepted_data:
+                    if "AbstractSpanRole" in parents[elementname]:
+                        spanroles.append(elementname)
+                spanroles = ", ".join([ "``" + x + "``" for x in spanroles ])
+                specdata["Span Role Elements"] = spanroles
+            specdata["Required Attributes"] = "\n                      ".join( [ line for line in outputblock("attributes_doc", target, "attributes_doc", ["EMPTY"] + [a.lower() for a in  required_attribs]).split("\n") if line ] )
+            specdata["Optional Attributes"] = "\n                      ".join( [ line for line in outputblock("attributes_doc", target, "attributes_doc", ["EMPTY"] + [a.lower() for a in  optional_attribs]).split("\n") if line ] )
+            specdata["Accepted Data"] = ", ".join([ "``<" + elementdict[cls]['properties']['xmltag'] + ">`` (:ref:`" + elementdict[cls]['properties']['annotationtype'].lower() + "_annotation`)" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
+            valid_context = set()
+            for e in elements:
+                e_accepted_data = addfromparents(e['class'],'accepted_data')
+                if element['class'] in e_accepted_data:
+                    valid_context.add(e['class'])
+            valid_context = tuple(sorted(valid_context))
+            specdata["Valid Context"] = ", ".join([ "``<" + elementdict[cls]['properties']['xmltag'] + ">`` (:ref:`" + elementdict[cls]['properties']['annotationtype'].lower() + "_annotation`)" for cls in  valid_context if 'annotationtype' in elementdict[cls]['properties']])
         if target == 'rst':
             for key, value in specdata.items():
                 s += ":" + key + ": " + value + "\n"
