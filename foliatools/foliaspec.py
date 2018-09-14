@@ -584,10 +584,9 @@ def outputblock(block, target, varname, args, indent = ""):
             valid_context = tuple(sorted(valid_context))
             specdata["Valid Context"] = ", ".join([ "``<" + elementdict[cls]['properties']['xmltag'] + ">`` (:ref:`" + elementdict[cls]['properties']['annotationtype'].lower() + "_annotation`)" for cls in  valid_context if 'annotationtype' in elementdict[cls]['properties']])
             features = []
-            if features:
-                for elementname in accepted_data:
-                    if elementname.endswith("Feature"):
-                        features.append("* ``" + elementdict[elementname]['properties']['subset'] + "``")
+            for elementname in accepted_data:
+                if elementname.endswith("Feature"):
+                    features.append("* ``" + elementdict[elementname]['properties']['subset'] + "``")
             if features:
                 specdata["Feature subsets (extra attributes)"] = "\n                                   ".join( features )
         if target == 'rst':
