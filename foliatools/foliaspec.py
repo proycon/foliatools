@@ -574,7 +574,12 @@ def outputblock(block, target, varname, args, indent = ""):
                 spanroles = ", ".join([ "``" + x + "``" for x in spanroles ])
                 specdata["Span Role Elements"] = spanroles
             specdata["Required Attributes"] = "\n                      ".join( [ line for line in outputblock("attributes_doc", target, "attributes_doc", ["EMPTY"] + [a.lower() for a in  required_attribs]).split("\n") if line ] )
-            specdata["Optional Attributes"] = "\n                      ".join( [ line for line in outputblock("attributes_doc", target, "attributes_doc", ["EMPTY"] + [a.lower() for a in  optional_attribs]).split("\n") if line ] )
+            if ("xlink" in element["properties"] and element["properties"]["xlink"]) or ("xlink" in parents[element["class"]]["properties"] and parents[element["class"]]["properties"]["xlink"]):
+                xlink  = "\n                      * ``xlink:href`` -- Turns this element into a hyperlink to the specified URL"
+                xlink += "\n                      * ``xlink:type`` -- The type of link (you'll want to use ``simple`` in almost all cases)."
+            else:
+                xlink = ""
+            specdata["Optional Attributes"] = "\n                      ".join( [ line for line in outputblock("attributes_doc", target, "attributes_doc", ["EMPTY"] + [a.lower() for a in  optional_attribs]).split("\n") if line ] ) + xlink
             specdata["Accepted Data"] = ", ".join([ "``<" + elementdict[cls]['properties']['xmltag'] + ">`` (:ref:`" + elementdict[cls]['properties']['annotationtype'].lower() + "_annotation`)" for cls in  accepted_data if 'annotationtype' in elementdict[cls]['properties']])
             valid_context = set()
             for e in elements:
