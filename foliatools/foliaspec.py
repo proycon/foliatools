@@ -574,7 +574,7 @@ def outputblock(block, target, varname, args, indent = ""):
                 spanroles = ", ".join([ "``" + x + "``" for x in spanroles ])
                 specdata["Span Role Elements"] = spanroles
             specdata["Required Attributes"] = "\n                      ".join( [ line for line in outputblock("attributes_doc", target, "attributes_doc", ["EMPTY"] + [a.lower() for a in  required_attribs]).split("\n") if line ] )
-            if ("xlink" in element["properties"] and element["properties"]["xlink"]) or ("xlink" in parents[element["class"]]["properties"] and parents[element["class"]]["properties"]["xlink"]):
+            if ("xlink" in element["properties"] and element["properties"]["xlink"]) or ("xlink" in elementdict[parents[element["class"]][0]]["properties"] and elementdict[parents[element["class"]][0]]["properties"]["xlink"]):
                 xlink  = "\n                      * ``xlink:href`` -- Turns this element into a hyperlink to the specified URL"
                 xlink += "\n                      * ``xlink:type`` -- The type of link (you'll want to use ``simple`` in almost all cases)."
             else:
@@ -755,6 +755,7 @@ def main():
     elementnames = [ e['class'] for e in elements ]
 
     for filename in args.filenames:
+        print("Processing " + filename,file=sys.stderr)
         foliaspec_parser(filename)
 
 if __name__ == '__main__':
