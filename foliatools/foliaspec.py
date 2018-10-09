@@ -563,7 +563,7 @@ def outputblock(block, target, varname, args, indent = ""):
                 #find Layer
                 layer = "None"
                 for e in elements:
-                    if e['name'].endswith("Layer") and e['properties']['annotationtype'] == annotationtype:
+                    if e['class'].endswith("Layer") and 'annotationtype' in e['properties'] and e['properties']['annotationtype'] == annotationtype:
                         layer = e['properties']['xmltag']
                 specdata["Layer Element"] = layer
                 #Find span roles
@@ -590,7 +590,7 @@ def outputblock(block, target, varname, args, indent = ""):
             specdata["Valid Context"] = ", ".join([ "``<" + elementdict[cls]['properties']['xmltag'] + ">`` (:ref:`" + elementdict[cls]['properties']['annotationtype'].lower() + "_annotation`)" for cls in  valid_context if 'annotationtype' in elementdict[cls]['properties']])
             features = []
             for elementclass in accepted_data:
-                if elementclass.endswith("Feature"):
+                if elementclass.endswith("Feature") and elementclass != "Feature":
                     features.append("* ``" + elementdict[elementclass]['properties']['subset'] + "``")
             if features:
                 specdata["Feature subsets (extra attributes)"] = "\n                                   ".join( features )
@@ -669,65 +669,72 @@ def foliaspec_parser(filename):
     blockname = blocktype = ""
     args = []
     indent = ""
+    debuglinenum = 0
+    debugline = ""
     with open(filename,'r',encoding='utf-8') as f:
-        for line in f:
-            strippedline = line.strip()
-            if not inblock:
-                if strippedline.startswith(commentsign + 'foliaspec:'):
-                    indent = line.find(strippedline) * ' '
-                    fields = strippedline[len(commentsign):].split(':')
-                    if fields[1] in ('begin','start'):
-                        blocktype = 'explicit'
-                        blockname = fields[2]
-                        try:
-                            varname = fields[3]
-                        except:
-                            varname = blockname
-                    elif len(fields) >= 2:
-                        blocktype = 'implicit'
+        for linenum, line in enumerate(f):
+            try:
+                strippedline = line.strip()
+                if not inblock:
+                    if strippedline.startswith(commentsign + 'foliaspec:'):
+                        indent = line.find(strippedline) * ' '
+                        fields = strippedline[len(commentsign):].split(':')
+                        if fields[1] in ('begin','start'):
+                            blocktype = 'explicit'
+                            blockname = fields[2]
+                            try:
+                                varname = fields[3]
+                            except:
+                                varname = blockname
+                        elif len(fields) >= 2:
+                            blocktype = 'implicit'
+                            blockname = fields[1]
+                            try:
+                                varname = fields[2]
+                            except:
+                                varname = blockname
+                        else:
+                            raise Exception("Syntax error: " + strippedline)
+                        #are there arguments in the blockname?
+                        if blockname[-1] == ')':
+                            args = blockname[blockname.find('(') + 1:-1].split(",")
+                            blockname = blockname[:blockname.find('(')]
+                        else:
+                            args = []
+                        inblock = True
+                        debuglinenum = linenum #used for generating error messages
+                        debugline = line
+                        out.write(line)
+                    elif strippedline.split(' ')[-1].startswith(commentsign + 'foliaspec:'):
+                        fields = strippedline.split(' ')[-1][len(commentsign):].split(':')
+                        blocktype = 'line'
                         blockname = fields[1]
+                        #are there arguments in the blockname?
+                        if blockname[-1] == ')':
+                            args = blockname[blockname.find('(') + 1:-1].split(",")
+                            blockname = blockname[:blockname.find('(')]
+                        else:
+                            args = []
                         try:
                             varname = fields[2]
                         except:
                             varname = blockname
+                        if varname != blockname:
+                            out.write( outputblock(blockname, target, varname, args) + " " + commentsign + "foliaspec:" + blockname + ":" + varname + "\n")
+                        else:
+                            out.write( outputblock(blockname, target, varname, args) + " " + commentsign + "foliaspec:" + blockname + "\n")
                     else:
-                        raise Exception("Syntax error: " + strippedline)
-                    #are there arguments in the blockname?
-                    if blockname[-1] == ')':
-                        args = blockname[blockname.find('(') + 1:-1].split(",")
-                        blockname = blockname[:blockname.find('(')]
-                    else:
-                        args = []
-                    inblock = True
-                    out.write(line)
-                elif strippedline.split(' ')[-1].startswith(commentsign + 'foliaspec:'):
-                    fields = strippedline.split(' ')[-1][len(commentsign):].split(':')
-                    blocktype = 'line'
-                    blockname = fields[1]
-                    #are there arguments in the blockname?
-                    if blockname[-1] == ')':
-                        args = blockname[blockname.find('(') + 1:-1].split(",")
-                        blockname = blockname[:blockname.find('(')]
-                    else:
-                        args = []
-                    try:
-                        varname = fields[2]
-                    except:
-                        varname = blockname
-                    if varname != blockname:
-                        out.write( outputblock(blockname, target, varname, args) + " " + commentsign + "foliaspec:" + blockname + ":" + varname + "\n")
-                    else:
-                        out.write( outputblock(blockname, target, varname, args) + " " + commentsign + "foliaspec:" + blockname + "\n")
+                        out.write(line)
                 else:
-                    out.write(line)
-            else:
-                if not strippedline and blocktype == 'implicit':
-                    out.write(outputblock(blockname, target, varname,args,indent) + "\n")
-                    inblock = False
-                elif blocktype == 'explicit' and strippedline.startswith(commentsign + 'foliaspec:end:'):
-                    out.write(outputblock(blockname, target, varname,args, indent) + "\n" + commentsign + "foliaspec:end:" + blockname + "\n")
-                    inblock = False
-
+                    if not strippedline and blocktype == 'implicit':
+                        out.write(outputblock(blockname, target, varname,args,indent) + "\n")
+                        inblock = False
+                    elif blocktype == 'explicit' and strippedline.startswith(commentsign + 'foliaspec:end:'):
+                        out.write(outputblock(blockname, target, varname,args, indent) + "\n" + commentsign + "foliaspec:end:" + blockname + "\n")
+                        inblock = False
+            except Exception as e:
+                print("--- Error processing line " + str(debuglinenum) + " in " + filename + ": " + debugline,file=sys.stderr)
+                raise e
     os.rename(filename+'.foliaspec.out', filename)
 
 def usage():
