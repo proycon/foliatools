@@ -614,12 +614,36 @@ def outputblock(block, target, varname, args, indent = ""):
         if target == 'rst':
             for category, categorydata in spec['categories'].items():
                 if not args or (args and category in args):
-                    if not args or len(args) > 1:
-                        s += "* :ref:`" + category + "_annotation_category` -- " + categorydata['description'] + "\n"
-                        for annotationtype in spec['annotationtype']:
-                            element = getbyannotationtype(annotationtype)
-                            if annotationtype2category(annotationtype) == category:
-                                s += "   - :ref:`" + annotationtype.lower() + "_annotation` -- ``<" + element['properties']['xmltag'] +  ">`` -- " + spec['annotationtype_doc'][annotationtype.lower()]['description'] + "\n"
+                    s += "* :ref:`" + category + "_annotation_category` -- " + categorydata['description'] + "\n"
+                    for annotationtype in spec['annotationtype']:
+                        element = getbyannotationtype(annotationtype)
+                        if annotationtype2category(annotationtype) == category:
+                            s += "   - :ref:`" + annotationtype.lower() + "_annotation` -- ``<" + element['properties']['xmltag'] +  ">`` -- " + spec['annotationtype_doc'][annotationtype.lower()]['description'] + "\n"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
+    elif block == 'toctree':
+        if target == 'rst':
+            hidden = 'hidden' in args
+            if hidden: args.remove('hidden')
+            if args:
+                category = args[0]
+                s += '.. toctree::\n'
+                if hidden:
+                    s += '   :hidden:\n'
+                s += '   :maxdepth: 3\n\n'
+                for annotationtype in spec['annotationtype']:
+                    element = getbyannotationtype(annotationtype)
+                    if annotationtype2category(annotationtype) == category:
+                        s += '   ' + annotationtype.lower() + "_annotation\n"
+            else:
+                s += '.. toctree::\n'
+                if hidden:
+                    s += '   :hidden:\n'
+                s += '   :includehidden:\n'
+                s += '   :maxdepth: 3\n\n'
+                for category, categorydata in spec['categories'].items():
+                    if category in args:
+                        s += '   ' + category + "_annotation_category\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'category_title':
