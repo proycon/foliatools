@@ -336,6 +336,7 @@ def outputblock(block, target, varname, args, indent = ""):
         if target == 'python':
             for element in elements:
                 s += commentsign + "------ " + element['class'] + " -------\n"
+                #s += element['class'].__doc__ =
                 if 'properties' in element:
                     for prop, value in sorted(element['properties'].items()):
                         if prop == 'accepted_data':
@@ -436,6 +437,18 @@ def outputblock(block, target, varname, args, indent = ""):
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
                     s += indent + '    "' + element['properties']['xmltag'] + '": ' + element['class'] + ',\n'
             s += indent + "}\n"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
+    elif block == 'oldtags_map':
+        if target == 'python':
+            s += indent + "OLDTAGS = {\n"
+            for old, new in sorted(spec['oldtags'].items()):
+                s += indent + '  "' + old + '": "' + new + '",'
+            s += indent + "}\n"
+        elif target == 'c++':
+            s += indent + "const map<string,string> oldtags = {\n"
+            s += indent + "  { \"" + old + "\", \"" + new + "\" },\n"
+            s += indent + "};"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'annotationtype_layerclass_map':
