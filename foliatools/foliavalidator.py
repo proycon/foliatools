@@ -15,7 +15,7 @@ def usage():
     print("foliavalidator", file=sys.stderr)
     print("  by Maarten van Gompel (proycon)", file=sys.stderr)
     print("  Radboud University Nijmegen", file=sys.stderr)
-    print("  2017 - Licensed under GPLv3", file=sys.stderr)
+    print("  2019 - Licensed under GPLv3", file=sys.stderr)
     print("", file=sys.stderr)
     print("FoLiA " + folia.FOLIAVERSION + ", library version " + folia.LIBVERSION, file=sys.stderr)
     print("", file=sys.stderr)
@@ -31,6 +31,7 @@ def usage():
     print("  -V                           Show version info", file=sys.stderr)
     print("  -t                           Treat text validation errors strictly (recommended and default for FoLiA v1.5+)", file=sys.stderr)
     print("  -i                           Ignore validation failures, always report a successful exit code", file=sys.stderr)
+    print("  -a                           Attempt to automatically declare missing annotations", file=sys.stderr)
     print("  -W                           Suppress warnings", file=sys.stderr)
     print("  -D [level]                   Debug", file=sys.stderr)
 
@@ -40,7 +41,7 @@ def usage():
 
 
 
-def validate(filename, schema = None, quick=False, deep=False, stricttextvalidation=False,warn=True,debug=False):
+def validate(filename, schema = None, quick=False, deep=False, stricttextvalidation=False,autodeclare=False,warn=True,debug=False):
     try:
         folia.validate(filename, schema)
     except Exception as e:
@@ -48,7 +49,7 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
         print(str(e), file=sys.stderr)
         return False
     try:
-        document = folia.Document(file=filename, deepvalidation=deep,textvalidation=True,verbose=True, debug=debug)
+        document = folia.Document(file=filename, deepvalidation=deep,textvalidation=True,verbose=True, autodeclare=autodeclare, debug=debug)
     except folia.DeepValidationError as e:
         print("DEEP VALIDATION ERROR on full parse by library (stage 2/2), in " + filename,file=sys.stderr)
         print(e.__class__.__name__ + ": " + str(e),file=sys.stderr)
@@ -72,21 +73,23 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
         elif warn:
             print("WARNING: there were " + str(document.textvalidationerrors) + " text validation errors but these are currently not counted toward the full validation result (use -t for strict text validation)", file=sys.stderr)
 
+    if autodeclare:
+        print(document.xmlstring())
     print("Validated successfully: " +  filename,file=sys.stderr)
     return True
 
 
 
 
-def processdir(d, schema = None,quick=False,deep=False,stricttextvalidation=False,warn=True,debug=False):
+def processdir(d, schema = None,quick=False,deep=False,stricttextvalidation=False,autodeclare=False,warn=True,debug=False):
     success = False
     print("Searching in  " + d,file=sys.stderr)
     for f in glob.glob(os.path.join(d ,'*')):
         r = True
         if f[-len(settings.extension) - 1:] == '.' + settings.extension:
-            r = validate(f, schema,quick,deep,stricttextvalidation,warn,debug)
+            r = validate(f, schema,quick,deep,stricttextvalidation,autodeclare,warn,debug)
         elif settings.recurse and os.path.isdir(f):
-            r = processdir(f,schema,quick,deep,stricttextvalidation,warn,debug)
+            r = processdir(f,schema,quick,deep,stricttextvalidation,autodeclare,warn,debug)
         if not r: success = False
     return success
 
@@ -97,6 +100,7 @@ class settings:
     encoding = 'utf-8'
     deep = False
     stricttextvalidation = False
+    autodeclare = False
     warn = True
     debug = 0
 
@@ -104,7 +108,7 @@ def main():
     quick = False
     nofail = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "E:D:WsrhdqVit", ["help"])
+        opts, args = getopt.getopt(sys.argv[1:], "E:D:WsrhdqVita", ["help"])
     except getopt.GetoptError as err:
         print(str(err), file=sys.stderr)
         usage()
@@ -123,6 +127,8 @@ def main():
             settings.recurse = True
         elif o == '-t':
             settings.stricttextvalidation = True
+        elif o == '-a':
+            settings.autodeclare = True
         elif o == '-d':
             settings.deep = True
         elif o == '-q':
@@ -149,9 +155,9 @@ def main():
             elif x[0] != '-' and not skipnext:
                 r = False
                 if os.path.isdir(x):
-                    r = processdir(x,schema,quick,settings.deep, settings.stricttextvalidation,settings.warn,settings.debug)
+                    r = processdir(x,schema,quick,settings.deep, settings.stricttextvalidation,settings.autodeclare,settings.warn,settings.debug)
                 elif os.path.isfile(x):
-                    r = validate(x, schema,quick,settings.deep, settings.stricttextvalidation,settings.warn,settings.debug)
+                    r = validate(x, schema,quick,settings.deep, settings.stricttextvalidation,settings.autodeclare,settings.warn,settings.debug)
                 else:
                     print("ERROR: File or directory not found: " + x,file=sys.stderr)
                     sys.exit(3)
