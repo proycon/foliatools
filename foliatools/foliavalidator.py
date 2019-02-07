@@ -32,6 +32,7 @@ def usage():
     print("  -t                           Treat text validation errors strictly (recommended and default for FoLiA v1.5+)", file=sys.stderr)
     print("  -i                           Ignore validation failures, always report a successful exit code", file=sys.stderr)
     print("  -a                           Attempt to automatically declare missing annotations", file=sys.stderr)
+    print("  -o                           Output document to stdout (already implied with -a)", file=sys.stderr)
     print("  -W                           Suppress warnings", file=sys.stderr)
     print("  -D [level]                   Debug", file=sys.stderr)
 
@@ -41,7 +42,7 @@ def usage():
 
 
 
-def validate(filename, schema = None, quick=False, deep=False, stricttextvalidation=False,autodeclare=False,warn=True,debug=False):
+def validate(filename, schema = None, quick=False, deep=False, stricttextvalidation=False,autodeclare=False,output=False,warn=True,debug=False):
     try:
         folia.validate(filename, schema)
     except Exception as e:
@@ -73,7 +74,7 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
         elif warn:
             print("WARNING: there were " + str(document.textvalidationerrors) + " text validation errors but these are currently not counted toward the full validation result (use -t for strict text validation)", file=sys.stderr)
 
-    if autodeclare:
+    if autodeclare or output:
         print(document.xmlstring())
     print("Validated successfully: " +  filename,file=sys.stderr)
     return True
@@ -87,9 +88,9 @@ def processdir(d, schema = None,quick=False,deep=False,stricttextvalidation=Fals
     for f in glob.glob(os.path.join(d ,'*')):
         r = True
         if f[-len(settings.extension) - 1:] == '.' + settings.extension:
-            r = validate(f, schema,quick,deep,stricttextvalidation,autodeclare,warn,debug)
+            r = validate(f, schema,quick,deep,stricttextvalidation,autodeclare,output,warn,debug)
         elif settings.recurse and os.path.isdir(f):
-            r = processdir(f,schema,quick,deep,stricttextvalidation,autodeclare,warn,debug)
+            r = processdir(f,schema,quick,deep,stricttextvalidation,autodeclare,output,warn,debug)
         if not r: success = False
     return success
 
@@ -101,6 +102,7 @@ class settings:
     deep = False
     stricttextvalidation = False
     autodeclare = False
+    output = False
     warn = True
     debug = 0
 
@@ -108,7 +110,7 @@ def main():
     quick = False
     nofail = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "E:D:WsrhdqVita", ["help"])
+        opts, args = getopt.getopt(sys.argv[1:], "E:D:WsrhdqVitao", ["help"])
     except getopt.GetoptError as err:
         print(str(err), file=sys.stderr)
         usage()
@@ -129,6 +131,8 @@ def main():
             settings.stricttextvalidation = True
         elif o == '-a':
             settings.autodeclare = True
+        elif o == '-o':
+            settings.output = True
         elif o == '-d':
             settings.deep = True
         elif o == '-q':
@@ -155,9 +159,9 @@ def main():
             elif x[0] != '-' and not skipnext:
                 r = False
                 if os.path.isdir(x):
-                    r = processdir(x,schema,quick,settings.deep, settings.stricttextvalidation,settings.autodeclare,settings.warn,settings.debug)
+                    r = processdir(x,schema,quick,settings.deep, settings.stricttextvalidation,settings.autodeclare,settings.output,settings.warn,settings.debug)
                 elif os.path.isfile(x):
-                    r = validate(x, schema,quick,settings.deep, settings.stricttextvalidation,settings.autodeclare,settings.warn,settings.debug)
+                    r = validate(x, schema,quick,settings.deep, settings.stricttextvalidation,settings.autodeclare,settings.output,settings.warn,settings.debug)
                 else:
                     print("ERROR: File or directory not found: " + x,file=sys.stderr)
                     sys.exit(3)
