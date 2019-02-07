@@ -76,7 +76,10 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
 
     if autodeclare or output:
         print(document.xmlstring())
-    print("Validated successfully: " +  filename,file=sys.stderr)
+    if autodeclare:
+        print("Validated successfully after applying auto-declarations: " +  filename,file=sys.stderr)
+    else:
+        print("Validated successfully: " +  filename,file=sys.stderr)
     return True
 
 
