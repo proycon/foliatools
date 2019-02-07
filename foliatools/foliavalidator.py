@@ -42,7 +42,7 @@ def usage():
 
 
 
-def validate(filename, schema = None, quick=False, deep=False, stricttextvalidation=False,autodeclare=False,output=False,warn=True,debug=False):
+def validate(filename, schema = None, quick=False, deep=False, stricttextvalidation=False,autodeclare=False,output=False,warn=True,dotraceback=False,debug=False):
     try:
         folia.validate(filename, schema)
     except Exception as e:
@@ -58,9 +58,10 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
     except Exception as e:
         print("VALIDATION ERROR on full parse by library (stage 2/2), in " + filename,file=sys.stderr)
         print(e.__class__.__name__ + ": " + str(e),file=sys.stderr)
-        print("-- Full traceback follows -->",file=sys.stderr)
-        ex_type, ex, tb = sys.exc_info()
-        traceback.print_exception(ex_type, ex, tb)
+        if dotraceback or debug:
+            print("-- Full traceback follows -->",file=sys.stderr)
+            ex_type, ex, tb = sys.exc_info()
+            traceback.print_exception(ex_type, ex, tb)
         return False
     if not document.version:
         print("VALIDATION ERROR: Document does not advertise FoLiA version (" + filename + ")",file=sys.stderr)
@@ -85,15 +86,15 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
 
 
 
-def processdir(d, schema = None,quick=False,deep=False,stricttextvalidation=False,autodeclare=False,warn=True,debug=False):
+def processdir(d, schema = None,quick=False,deep=False,stricttextvalidation=False,autodeclare=False,warn=True,traceback=False,debug=False):
     success = False
     print("Searching in  " + d,file=sys.stderr)
     for f in glob.glob(os.path.join(d ,'*')):
         r = True
         if f[-len(settings.extension) - 1:] == '.' + settings.extension:
-            r = validate(f, schema,quick,deep,stricttextvalidation,autodeclare,output,warn,debug)
+            r = validate(f, schema,quick,deep,stricttextvalidation,autodeclare,output,warn,traceback,debug)
         elif settings.recurse and os.path.isdir(f):
-            r = processdir(f,schema,quick,deep,stricttextvalidation,autodeclare,output,warn,debug)
+            r = processdir(f,schema,quick,deep,stricttextvalidation,autodeclare,output,warn,traceback,debug)
         if not r: success = False
     return success
 
@@ -106,6 +107,7 @@ class settings:
     stricttextvalidation = False
     autodeclare = False
     output = False
+    traceback = False
     warn = True
     debug = 0
 
@@ -113,7 +115,7 @@ def main():
     quick = False
     nofail = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "E:D:WsrhdqVitao", ["help"])
+        opts, args = getopt.getopt(sys.argv[1:], "E:D:WsrhdqVitaob", ["help"])
     except getopt.GetoptError as err:
         print(str(err), file=sys.stderr)
         usage()
@@ -136,6 +138,8 @@ def main():
             settings.autodeclare = True
         elif o == '-o':
             settings.output = True
+        elif o == '-b':
+            settings.traceback = True
         elif o == '-d':
             settings.deep = True
         elif o == '-q':
@@ -162,9 +166,9 @@ def main():
             elif x[0] != '-' and not skipnext:
                 r = False
                 if os.path.isdir(x):
-                    r = processdir(x,schema,quick,settings.deep, settings.stricttextvalidation,settings.autodeclare,settings.output,settings.warn,settings.debug)
+                    r = processdir(x,schema,quick,settings.deep, settings.stricttextvalidation,settings.autodeclare,settings.output,settings.warn,settings.traceback,settings.debug)
                 elif os.path.isfile(x):
-                    r = validate(x, schema,quick,settings.deep, settings.stricttextvalidation,settings.autodeclare,settings.output,settings.warn,settings.debug)
+                    r = validate(x, schema,quick,settings.deep, settings.stricttextvalidation,settings.autodeclare,settings.output,settings.warn,settings.traceback,settings.debug)
                 else:
                     print("ERROR: File or directory not found: " + x,file=sys.stderr)
                     sys.exit(3)
