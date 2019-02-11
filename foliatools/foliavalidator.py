@@ -67,7 +67,10 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
         print("VALIDATION ERROR: Document does not advertise FoLiA version (" + filename + ")",file=sys.stderr)
         return False
     elif folia.checkversion(document.version) == -1 and warn:
-        print("WARNING: Document (" + filename + ") uses an older FoLiA version ("+document.version+") but is validated according to the newer specification (" + folia.FOLIAVERSION+"). You might want to increase the version attribute if this is a document you created and intend to publish.",file=sys.stderr)
+        if document.version.split('.') in ('0','1'):
+            print("WARNING: Document (" + filename + ") uses an older FoLiA version ("+document.version+") but is validated with a newer library (" + folia.FOLIAVERSION+"). If this is a document you created and intend to publish, you may want to upgrade this FoLiA v1 document to FoLiA v2 using the 'foliaupgrade' tool.",file=sys.stderr)
+        else:
+            print("WARNING: Document (" + filename + ") uses an older FoLiA version ("+document.version+") but is validated according to the newer specification (" + folia.FOLIAVERSION+"). You might want to increase the version attribute if this is a document you created and intend to publish.",file=sys.stderr)
     if document.textvalidationerrors:
         if stricttextvalidation:
             print("VALIDATION ERROR because of text validation errors, in " + filename,file=sys.stderr)
@@ -86,7 +89,7 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
 
 
 
-def processdir(d, schema = None,quick=False,deep=False,stricttextvalidation=False,autodeclare=False,warn=True,traceback=False,debug=False):
+def processdir(d, schema = None,quick=False,deep=False,stricttextvalidation=False,autodeclare=False,output=False,warn=True,traceback=False,debug=False):
     success = False
     print("Searching in  " + d,file=sys.stderr)
     for f in glob.glob(os.path.join(d ,'*')):
