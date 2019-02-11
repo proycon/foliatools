@@ -55,9 +55,10 @@ setup(
             'foliatree = foliatools.foliatree:main',
             'foliasetdefinition = foliatools.foliasetdefinition:main',
             'foliaeval = foliatools.foliaeval:main',
+            'foliaupgrade = foliatools.foliaupgrade:main',
         ]
     },
     #include_package_data=True,
     package_data = {'foliatools': ['*.xsl']},
-    install_requires=['folia >= 1.6', 'pynlpl', 'lxml >= 2.2','docutils', 'pyyaml']
+    install_requires=['folia >= 2.0', 'lxml >= 2.2','docutils', 'pyyaml']
 )
