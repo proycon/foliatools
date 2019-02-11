@@ -32,7 +32,7 @@ def usage():
     print("  -t                           Treat text validation errors strictly (recommended and default for FoLiA v1.5+)", file=sys.stderr)
     print("  -i                           Ignore validation failures, always report a successful exit code", file=sys.stderr)
     print("  -a                           Attempt to automatically declare missing annotations", file=sys.stderr)
-    print("  -o                           Output document to stdout (already implied with -a)", file=sys.stderr)
+    print("  -o                           Output document to stdout", file=sys.stderr)
     print("  -W                           Suppress warnings", file=sys.stderr)
     print("  -D [level]                   Debug", file=sys.stderr)
 
@@ -78,15 +78,13 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
         elif warn:
             print("WARNING: there were " + str(document.textvalidationerrors) + " text validation errors but these are currently not counted toward the full validation result (use -t for strict text validation)", file=sys.stderr)
 
-    if autodeclare or output:
+    if output:
         print(document.xmlstring())
     if autodeclare:
-        print("Validated successfully after applying auto-declarations: " +  filename,file=sys.stderr)
-    else:
-        print("Validated successfully: " +  filename,file=sys.stderr)
-    if output:
+        print("Validated successfully **after** applying auto-declarations: " +  filename,file=sys.stderr)
         return document
     else:
+        print("Validated successfully: " +  filename,file=sys.stderr)
         return True
 
 
