@@ -67,7 +67,7 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
         print("VALIDATION ERROR: Document does not advertise FoLiA version (" + filename + ")",file=sys.stderr)
         return False
     elif folia.checkversion(document.version) == -1 and warn:
-        if document.version.split('.') in ('0','1'):
+        if document.version.split('.')[0] in ('0','1'):
             print("WARNING: Document (" + filename + ") uses an older FoLiA version ("+document.version+") but is validated with a newer library (" + folia.FOLIAVERSION+"). If this is a document you created and intend to publish, you may want to upgrade this FoLiA v1 document to FoLiA v2 using the 'foliaupgrade' tool.",file=sys.stderr)
         else:
             print("WARNING: Document (" + filename + ") uses an older FoLiA version ("+document.version+") but is validated according to the newer specification (" + folia.FOLIAVERSION+"). You might want to increase the version attribute if this is a document you created and intend to publish.",file=sys.stderr)
@@ -84,7 +84,10 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
         print("Validated successfully after applying auto-declarations: " +  filename,file=sys.stderr)
     else:
         print("Validated successfully: " +  filename,file=sys.stderr)
-    return True
+    if output:
+        return document
+    else:
+        return True
 
 
 
