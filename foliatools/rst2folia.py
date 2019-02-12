@@ -14,8 +14,6 @@
 #
 #----------------------------------------------------------------
 
-from __future__ import print_function, unicode_literals, division, absolute_import
-
 import sys
 import glob
 import gzip
@@ -24,10 +22,11 @@ import os
 from collections import defaultdict
 from copy import copy
 
-from docutils import writers, nodes
+from docutils import writers, nodes, __version__ as DOCUTILSVERSION
 from docutils.core import publish_cmdline, publish_string, default_description
 
 import folia.main as folia
+from foliatools import VERSION
 
 try:
     import locale
@@ -35,18 +34,21 @@ try:
 except:
     pass
 
-LIBVERSION = "0.1"
-
 class Writer(writers.Writer):
 
     DEFAULTID = "untitled"
     TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
 %(stylesheet)s
-<FoLiA xmlns="http://ilk.uvt.nl/folia" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="%(docid)s" version="1.4" generator="docutils-rst2folia-%(libversion)s">
+<FoLiA xmlns="http://ilk.uvt.nl/folia" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="%(docid)s" version="2.0.0" generator="docutils-rst2folia-%(version)s">
 <metadata type="native">
  <annotations>
 %(declarations)s
  </annotations>
+ <provenance>
+  <processor xml:id="p0.rst2folia" name="rst2folia" type="auto" version="%(version)s">
+    <processor xml:id="p0.rst2folia.generator" name="docutils" type="generator" version="%(docutilsversion)s" folia_version="2.0.0"/>
+  </processor>
+ </provenance>
 %(metadata)s
 </metadata>
 %(content)s
@@ -56,12 +58,15 @@ class Writer(writers.Writer):
     DEFAULTSTYLESHEET = "folia2html.xsl"
 
     DEFAULTSETS = {
+        'text': 'https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/text.foliaset.ttl',
         'division': 'https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/divisions.foliaset.xml',
         'style': 'https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/styles.foliaset.xml',
         'note': 'https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/notes.foliaset.xml',
         'gap': 'https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/gaps.foliaset.xml',
         'term': 'https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/terms.foliaset.xml',
         'definition': 'https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/definitions.foliaset.xml',
+        'paragraph': None,
+        'sentence': None,
         'string': None,
     }
 
@@ -115,7 +120,8 @@ class Writer(writers.Writer):
         for attr in self.visitor_attributes:
             subs[attr] = ''.join(getattr(self, attr)).rstrip('\n')
         subs['encoding'] = self.document.settings.output_encoding
-        subs['libversion'] = LIBVERSION
+        subs['version'] = VERSION
+        subs['docutilsversion'] = DOCUTILSVERSION
         subs['docid'] = self.document.settings.docid
         subs['stylesheet'] =  "<?xml-stylesheet type=\"text/xsl\" href=\"" + self.document.settings.stylesheet + "\"?>"
         return subs
@@ -149,6 +155,8 @@ class FoLiATranslator(nodes.NodeVisitor):
         if document.settings.declare_all:
             for key in self.sets:
                 self.declare(key)
+        else:
+            self.declare('text')
         self.striprellinks = document.settings.strip_relative_links
         self.striplinks = document.settings.strip_links
         self.stripstyle = document.settings.strip_style
@@ -175,9 +183,7 @@ class FoLiATranslator(nodes.NodeVisitor):
 
     def encode(self, text):
         """Encode special characters in `text` & return."""
-        if sys.version < '3' and not isinstance(text, unicode):
-            text = unicode(text, 'utf-8')
-        elif sys.version >= '3' and not isinstance(text, str):
+        if not isinstance(text, str):
             text = str(text, 'utf-8')
         return text.translate({
             ord('&'): '&amp;',
@@ -304,13 +310,19 @@ class FoLiATranslator(nodes.NodeVisitor):
             annotationtype = 'paragraph'
         elif annotationtype == 'def':
             annotationtype = 'definition'
-        if not annotationtype in self.declared:
-            if annotationtype in self.sets:
-                if self.sets[annotationtype]:
-                    self.declarations.append("   <" + annotationtype + "-annotation set=\"" + self.sets[annotationtype] + "\" />\n")
-                else:
-                    self.declarations.append("   <" + annotationtype + "-annotation />\n")
-                self.declared[annotationtype] = True
+        elif annotationtype == 'item':
+            annotationtype = 'list'
+        elif annotationtype in ('caption',):
+            #nothing to declare
+            return
+        if annotationtype not in self.declared:
+            if annotationtype in self.sets and self.sets[annotationtype]:
+                self.declarations.append("   <" + annotationtype + "-annotation set=\"" + self.sets[annotationtype] + "\">\n     <annotator processor=\"p0.rst2folia\" />\n   </" + annotationtype + "-annotation>\n")
+            else:
+                self.declarations.append("   <" + annotationtype + "-annotation>\n     <annotator processor=\"p0.rst2folia\" />\n   </" + annotationtype + "-annotation>\n")
+            self.declared[annotationtype] = True
+            if annotationtype == 'gap':
+                self.declare('rawcontent')
 
     ############# TRANSLATION HOOKS (MAIN STRUCTURE) ################
 

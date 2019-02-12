@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-
-from __future__ import print_function, unicode_literals, division, absolute_import
-
 import getopt
 import sys
+from foliatools import VERSION
 import folia.main as folia
 
 def usage():
@@ -119,6 +117,7 @@ def foliamerge(outputfile, *files, **kwargs):
                 merges += mergechildren(e, outputdoc, asalternative)
 
     if outputfile and merges > 0:
+        outputdoc.provenance.append(folia.Processor.create(name="foliamerge", version=VERSION))
         outputdoc.save(outputfile)
 
     return outputdoc
@@ -158,13 +157,7 @@ def main():
     outputdoc = foliamerge(outputfile, *args, asalternative=asalternative)
     if not outputfile:
         xml = outputdoc.xmlstring()
-        if sys.version < '3':
-            if isinstance(xml, unicode):
-                print(xml.encode('utf-8'))
-            else:
-                print(xml)
-        else:
-            print(xml)
+        print(xml)
 
 
 if __name__ == "__main__":
