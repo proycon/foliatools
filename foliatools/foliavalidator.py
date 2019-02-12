@@ -1,48 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-from __future__ import print_function, unicode_literals, division, absolute_import
-
-import getopt
 import sys
 import os
 import glob
 import traceback
 import lxml.etree
+import argparse
 import folia.main as folia
 
-def usage():
-    print("foliavalidator", file=sys.stderr)
-    print("  by Maarten van Gompel (proycon)", file=sys.stderr)
-    print("  Radboud University Nijmegen", file=sys.stderr)
-    print("  2019 - Licensed under GPLv3", file=sys.stderr)
-    print("", file=sys.stderr)
-    print("FoLiA " + folia.FOLIAVERSION + ", library version " + folia.LIBVERSION, file=sys.stderr)
-    print("", file=sys.stderr)
-    print("Validates FoLiA documents.", file=sys.stderr)
-    print("", file=sys.stderr)
-    print("Usage: foliavalidator [options] file-or-dir1 file-or-dir2 ..etc..", file=sys.stderr)
-    print("", file=sys.stderr)
-    print("Parameters for processing directories:", file=sys.stderr)
-    print("  -d                           Deep validation", file=sys.stderr)
-    print("  -r                           Process recursively", file=sys.stderr)
-    print("  -q                           Quick (more shallow) validation, only validate against RelaxNG schema - do not load document in FoLiA library", file=sys.stderr)
-    print("  -E [extension]               Set extension (default: xml)", file=sys.stderr)
-    print("  -V                           Show version info", file=sys.stderr)
-    print("  -t                           Treat text validation errors strictly (recommended and default for FoLiA v1.5+)", file=sys.stderr)
-    print("  -i                           Ignore validation failures, always report a successful exit code", file=sys.stderr)
-    print("  -a                           Attempt to automatically declare missing annotations", file=sys.stderr)
-    print("  -o                           Output document to stdout", file=sys.stderr)
-    print("  -W                           Suppress warnings", file=sys.stderr)
-    print("  -D [level]                   Debug", file=sys.stderr)
 
-
-
-
-
-
-
-def validate(filename, schema = None, quick=False, deep=False, stricttextvalidation=False,autodeclare=False,output=False,warn=True,dotraceback=False,debug=False):
+def validate(filename, schema = None,**kwargs):
     try:
         folia.validate(filename, schema)
     except Exception as e:
@@ -50,7 +18,7 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
         print(str(e), file=sys.stderr)
         return False
     try:
-        document = folia.Document(file=filename, deepvalidation=deep,textvalidation=True,verbose=True, autodeclare=autodeclare, debug=debug)
+        document = folia.Document(file=filename, deepvalidation=kwargs.get('deep',False),textvalidation=kwargs.get('stricttextvalidation',False),verbose=True, autodeclare=kwargs.get('autodeclare',False), debug=kwargs.get('debug'))
     except folia.DeepValidationError as e:
         print("DEEP VALIDATION ERROR on full parse by library (stage 2/2), in " + filename,file=sys.stderr)
         print(e.__class__.__name__ + ": " + str(e),file=sys.stderr)
@@ -58,7 +26,7 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
     except Exception as e:
         print("VALIDATION ERROR on full parse by library (stage 2/2), in " + filename,file=sys.stderr)
         print(e.__class__.__name__ + ": " + str(e),file=sys.stderr)
-        if dotraceback or debug:
+        if kwargs.get('traceback') or kwargs.get('debug'):
             print("-- Full traceback follows -->",file=sys.stderr)
             ex_type, ex, tb = sys.exc_info()
             traceback.print_exception(ex_type, ex, tb)
@@ -66,21 +34,21 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
     if not document.version:
         print("VALIDATION ERROR: Document does not advertise FoLiA version (" + filename + ")",file=sys.stderr)
         return False
-    elif folia.checkversion(document.version) == -1 and warn:
+    elif folia.checkversion(document.version) == -1 and not kwargs.get('nowarn'):
         if document.version.split('.')[0] in ('0','1'):
             print("WARNING: Document (" + filename + ") uses an older FoLiA version ("+document.version+") but is validated with a newer library (" + folia.FOLIAVERSION+"). If this is a document you created and intend to publish, you may want to upgrade this FoLiA v1 document to FoLiA v2 using the 'foliaupgrade' tool.",file=sys.stderr)
         else:
             print("WARNING: Document (" + filename + ") uses an older FoLiA version ("+document.version+") but is validated according to the newer specification (" + folia.FOLIAVERSION+"). You might want to increase the version attribute if this is a document you created and intend to publish.",file=sys.stderr)
     if document.textvalidationerrors:
-        if stricttextvalidation:
+        if kwargs.get('stricttextvalidation'):
             print("VALIDATION ERROR because of text validation errors, in " + filename,file=sys.stderr)
             return False
-        elif warn:
+        elif not kwargs.get('nowarn'):
             print("WARNING: there were " + str(document.textvalidationerrors) + " text validation errors but these are currently not counted toward the full validation result (use -t for strict text validation)", file=sys.stderr)
 
-    if output:
+    if kwargs.get('output'):
         print(document.xmlstring())
-    if autodeclare:
+    if kwargs.get('autodeclare'):
         print("Validated successfully **after** applying auto-declarations: " +  filename,file=sys.stderr)
         return document
     else:
@@ -90,96 +58,61 @@ def validate(filename, schema = None, quick=False, deep=False, stricttextvalidat
 
 
 
-def processdir(d, schema = None,quick=False,deep=False,stricttextvalidation=False,autodeclare=False,output=False,warn=True,traceback=False,debug=False):
+def processdir(d, schema = None, **kwargs):
     success = False
     print("Searching in  " + d,file=sys.stderr)
+    extension = kwargs.get('extension','xml').strip('.')
     for f in glob.glob(os.path.join(d ,'*')):
         r = True
-        if f[-len(settings.extension) - 1:] == '.' + settings.extension:
-            r = validate(f, schema,quick,deep,stricttextvalidation,autodeclare,output,warn,traceback,debug)
-        elif settings.recurse and os.path.isdir(f):
-            r = processdir(f,schema,quick,deep,stricttextvalidation,autodeclare,output,warn,traceback,debug)
+        if f[-len(extension) - 1:] == '.' + extension:
+            r = validate(f, schema,**kwargs)
+        elif kwargs.get('recurse') and os.path.isdir(f):
+            r = processdir(f,schema,**kwargs)
         if not r: success = False
     return success
 
-
-class settings:
-    extension = 'xml'
-    recurse = False
-    encoding = 'utf-8'
-    deep = False
-    stricttextvalidation = False
-    autodeclare = False
-    output = False
-    traceback = False
-    warn = True
-    debug = 0
+def commandparser(parser):
+    parser.add_argument('-d','--deep',help="Enable deep validation; validated uses classes against provided set definitions", action='store_true', default=False)
+    parser.add_argument('-r','--recurse',help="Process recursively", action='store_true', default=False)
+    parser.add_argument('-a','--autodeclare',help="Attempt to automatically declare missing annotations", action='store_true', default=False)
+    parser.add_argument('-q','--quick',help="Quick and more shallow validation, only validates against RelaxNG schema. This does not constitute a complete enough validation!", action='store_true', default=False)
+    parser.add_argument('-E','--extension', type=str,help="Extension", action='store',default="xml")
+    parser.add_argument('-W','--nowarn',help="Suppress warnings", action='store_true', default=False)
+    parser.add_argument('-i','--ignore',help="Always report a successful exit code, even in case of validation errors", action='store_true', default=False)
+    parser.add_argument('-t','--stricttextvalidation',help="Treat text validation errors strictly (recommended and default for FoLiA v1.5+)", action='store_true', default=False)
+    parser.add_argument('-o','--output',help="Output document to stdout", action='store_true', default=False)
+    parser.add_argument('-D','--debug',type=int,help="Debug level", action='store',default=0)
+    parser.add_argument('-b','--traceback',help="Provide a full traceback on validation errors", action='store_true', default=False)
+    return parser
 
 def main():
-    quick = False
-    nofail = False
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "E:D:WsrhdqVitaob", ["help"])
-    except getopt.GetoptError as err:
-        print(str(err), file=sys.stderr)
-        usage()
-        sys.exit(2)
+    parser = argparse.ArgumentParser(description="Checks whether a FoLiA document is a valid FoLiA document, i.e. whether is properly adheres to the specification. Invalid documents should never be used or published.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-V','--version',help="Show version information", action='store_true', default=False)
+    commandparser(parser)
+    parser.add_argument('files', nargs='+', help='Files (and/or directories) to validate')
+    args = parser.parse_args()
 
-    for o, a in opts:
-        if o == '-h' or o == '--help':
-            usage()
-            sys.exit(0)
-        elif o == '-D':
-            settings.debug = int(a)
-            print("DEBUG level set to " + str(settings.debug),file=sys.stderr)
-        elif o == '-E':
-            settings.extension = a
-        elif o == '-r':
-            settings.recurse = True
-        elif o == '-t':
-            settings.stricttextvalidation = True
-        elif o == '-a':
-            settings.autodeclare = True
-        elif o == '-o':
-            settings.output = True
-        elif o == '-b':
-            settings.traceback = True
-        elif o == '-d':
-            settings.deep = True
-        elif o == '-q':
-            quick = True
-        elif o == '-i':
-            nofail = True
-        elif o == '-W':
-            settings.warn = False
-        elif o == '-V':
-            print("FoLiA " + folia.FOLIAVERSION + ", library version " + folia.LIBVERSION,file=sys.stderr)
-            sys.exit(0)
-        else:
-            raise Exception("No such option: " + o)
+    if args.version:
+        print("FoLiA " + folia.FOLIAVERSION + ", library version " + folia.LIBVERSION,file=sys.stderr)
+        sys.exit(0)
 
     schema  = lxml.etree.RelaxNG(folia.relaxng())
 
-    if len(args) >= 1:
+    if args.files:
         success = True
         skipnext = False
-        for x in sys.argv[1:]:
-            if x in ('-E','-D'):
-                skipnext = True
-                continue
-            elif x[0] != '-' and not skipnext:
-                r = False
-                if os.path.isdir(x):
-                    r = processdir(x,schema,quick,settings.deep, settings.stricttextvalidation,settings.autodeclare,settings.output,settings.warn,settings.traceback,settings.debug)
-                elif os.path.isfile(x):
-                    r = validate(x, schema,quick,settings.deep, settings.stricttextvalidation,settings.autodeclare,settings.output,settings.warn,settings.traceback,settings.debug)
-                else:
-                    print("ERROR: File or directory not found: " + x,file=sys.stderr)
-                    sys.exit(3)
-                if not r: success= False
-            if not success and not nofail:
-                sys.exit(1)
-            skipnext = False
+        for file in args.files:
+            r = False
+            if os.path.isdir(file):
+                r = processdir(file,schema, **args.__dict__)
+            elif os.path.isfile(file):
+                r = validate(file, schema, **args.__dict__)
+            else:
+                print("ERROR: File or directory not found: " + file,file=sys.stderr)
+                sys.exit(3)
+            if not r: success= False
+        if not success and not args.ignore:
+            sys.exit(1)
     else:
         print("ERROR: No files specified",file=sys.stderr)
         sys.exit(2)

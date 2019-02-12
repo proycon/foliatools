@@ -32,14 +32,14 @@ def process(*files, **kwargs):
             if r != 0:
                 success = False
         elif os.path.isfile(file):
-            doc = validate(file,schema=None,quick=False,deep=False, stricttextvalidation=True,autodeclare=True,output=False, warn=False)
+            doc = validate(file,schema=None, stricttextvalidation=True,autodeclare=True,output=False, warn=False, **kwargs)
             doc.provenance.append(folia.Processor.create(name="foliaupgrade", version=VERSION))
             if doc is not False:
                 print("Upgrading " + doc.filename,file=sys.stderr)
                 doc.version = folia.FOLIAVERSION #upgrading involves more than just bumping the number, but that is handled implicitly already by the library when reading the document
                 if not kwargs.get('dryrun'):
                     doc.save(doc.filename + ".upgraded")
-                    if not validate(file + ".upgraded",schema=None,quick=False,deep=False, stricttextvalidation=True,autodeclare=True,output=False):
+                    if not validate(file + ".upgraded",schema=None,stricttextvalidation=True,autodeclare=True,**kwargs):
                         print("Upgrade failed",file=sys.stderr)
                         success = False
                     else:
