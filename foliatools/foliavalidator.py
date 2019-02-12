@@ -89,7 +89,7 @@ def main():
     parser = argparse.ArgumentParser(description="Checks whether a FoLiA document is a valid FoLiA document, i.e. whether is properly adheres to the specification. Invalid documents should never be used or published.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-V','--version',help="Show version information", action='store_true', default=False)
     commandparser(parser)
-    parser.add_argument('files', nargs='+', help='Files (and/or directories) to validate')
+    parser.add_argument('files', nargs='*', help='Files (and/or directories) to validate')
     args = parser.parse_args()
 
     if args.version:
@@ -114,7 +114,7 @@ def main():
         if not success and not args.ignore:
             sys.exit(1)
     else:
-        print("ERROR: No files specified",file=sys.stderr)
+        print("ERROR: No files specified. Add --help for usage details.",file=sys.stderr)
         sys.exit(2)
 
 if __name__ == "__main__":
