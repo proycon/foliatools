@@ -211,6 +211,7 @@ blockhelp = {
         'default_ignore': 'Default ignore list for the select() method, do not descend into these',
         'default_ignore_annotations': 'Default ignore list for token annotation',
         'default_ignore_structure': 'Default ignore list for structure annotation',
+        'wrefables': 'Elements that act as words and can be referable from span annotations',
 }
 
 def setelementproperties_cpp(element,indent, defer,done):
@@ -460,6 +461,13 @@ def outputblock(block, target, varname, args, indent = ""):
                         s += indent + "    AnnotationType." + element['properties']['annotationtype'] + ':  ' + element['class'] + ' ,\n'
             s += indent + "    AnnotationType.PREDICATE:  SemanticRolesLayer\n"
             s += indent + "}"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
+    elif block == 'wrefables':
+        if target == 'c++':
+            s += indent + "const set<ElementType> wrefables = { " + ", ".join([ e + '_t' for e in sorted(flattenclasses(spec['wrefables'])) ]) + " };\n"
+        elif target == 'python':
+            s += indent + "wrefables = ( " + ", ".join(spec['wrefables']) + ",)\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'default_ignore':
