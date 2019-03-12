@@ -635,7 +635,7 @@ def outputblock(block, target, varname, args, indent = ""):
         if target == 'rst':
             for category, categorydata in spec['categories'].items():
                 if not args or (args and category in args):
-                    s += "* :ref:`" + category + "_annotation_category` -- " + categorydata['description'] + "\n"
+                    s += "* :ref:`" + category + "_annotation_category` --\n  " + categorydata['description'] + "\n" #the first \n is needed otherwise sphinx doesn't produce proper LaTeX, it does not render neither in LaTeX nor HTML
                     for annotationtype in spec['annotationtype']:
                         element = getbyannotationtype(annotationtype)
                         if annotationtype2category(annotationtype) == category:
