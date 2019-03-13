@@ -35,7 +35,7 @@ def concat(target, source):
 
 def foliacat(id, outputfile, *files):
     totalmerges = 0
-    outputdoc = folia.Document(id=id)
+    outputdoc = folia.Document(id=id,keepversion=True)
     text = outputdoc.append(folia.Text(outputdoc,id=id + ".text"))
     for i, filename in enumerate(files):
         merges = 0

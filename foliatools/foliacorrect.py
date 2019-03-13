@@ -60,7 +60,7 @@ def replace_current_original(correction):
 def correct(filename,corrected, original, acceptsuggestion, setfilter,classfilter, output):
     changed = False
     try:
-        doc = folia.Document(file=filename)
+        doc = folia.Document(file=filename,keepversion=True)
         for text in doc:
             for correction in list(text.select(folia.Correction, setfilter)):
                 if not classfilter or correction.cls == classfilter:

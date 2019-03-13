@@ -44,7 +44,7 @@ def out(s, outputfile):
 def process(filename, outputfile = None):
     print("Processing " + filename,file=sys.stderr)
     try:
-        doc = folia.Document(file=filename)
+        doc = folia.Document(file=filename,keepversion=True)
         for e in doc.data:
             if e.id is None:
                 e.id = doc.id + '.' + e.XMLTAG + '.1'
