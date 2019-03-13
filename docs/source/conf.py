@@ -147,7 +147,7 @@ latex_documents = [
      'Maarten van Gompel', 'manual'),
 ]
 
-latex_engine = "xelatex"
+latex_engine = "pdflatex"
 
 # -- Options for manual page output ------------------------------------------
 
