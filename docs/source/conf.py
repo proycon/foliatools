@@ -132,7 +132,7 @@ latex_elements = {
 
     # Additional stuff for the LaTeX preamble.
     #
-     'preamble': r'\setmainfont{Latin Modern Sans}', #in package otf-latin-modern on Arch Linux, fonts-lmodern on debian/ubuntu
+    #'preamble': r'\setmainfont{Latin Modern Sans}', #in package otf-latin-modern on Arch Linux, fonts-lmodern on debian/ubuntu
 
     # Latex figure (float) alignment
     #
