@@ -448,7 +448,8 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "}\n"
         elif target == 'c++':
             s += indent + "const map<string,string> oldtags = {\n"
-            s += indent + "  { \"" + old + "\", \"" + new + "\" },\n"
+            for old, new in sorted(spec['oldtags'].items()):
+                s += indent + "  { \"" + old + "\", \"" + new + "\" },\n"
             s += indent + "};"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
