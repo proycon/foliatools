@@ -204,6 +204,7 @@ blockhelp = {
         'instantiateelementproperties': 'Instantiates all element properties for the first time, setting them to the default properties',
         'setelementproperties': 'Sets all element properties for all elements',
         'annotationtype_string_map': 'A mapping from annotation types to strings',
+        'annotationtype_elementtype_map': 'A mapping from annotation types to element types, based on the assumption that there is always only one primary element for an annotation type (and possible multiple secondary ones which are not included in this map,w)',
         'string_annotationtype_map': 'A mapping from strings to annotation types',
         'annotationtype_xml_map': 'A mapping from annotation types to xml tags (strings)',
         'structurescope': 'Structure scope above the sentence level, used by next() and previous() methods',
@@ -389,8 +390,26 @@ def outputblock(block, target, varname, args, indent = ""):
                     if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
                     s += indent + "    AnnotationType." + element['properties']['annotationtype'] + ':  "' + element['properties']['xmltag'] + '" ,\n'
             s += indent + "}"
+        elif target == 'c++':
+            s += indent + "const map<AnnotationType::AnnotationType,string> annotationtype_xml_map = {\n"
+            for element in elements:
+                if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties']:
+                    if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
+                    s += indent + "  {  AnnotationType::" + element['properties']['annotationtype'] + ', "' + element['properties']['xmltag'] + '" },\n'
+            s += indent + "};\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
+    elif block == 'annotationtype_elementtype_map':
+        if target == 'c++':
+            s += indent + "const map<AnnotationType::AnnotationType,ElementType> annotationtype_elementtype_map = {\n"
+            for element in elements:
+                if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties']:
+                    if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
+                    s += indent + "  {  AnnotationType::" + element['properties']['annotationtype'] + ', ' + element['class'] + '_t },\n'
+            s += indent + "};\n"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
+
     elif block == 'elementtype_string_map':
         if target == 'c++':
             s += indent + "const map<ElementType,string> et_s_map = {\n"
