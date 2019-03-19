@@ -36,11 +36,15 @@ def concat(target, source):
 def foliacat(id, outputfile, *files):
     totalmerges = 0
     outputdoc = folia.Document(id=id,keepversion=True)
+    outputdoc.version = "0.0.0"
     text = outputdoc.append(folia.Text(outputdoc,id=id + ".text"))
     for i, filename in enumerate(files):
         merges = 0
         print("Processing " + filename, file=sys.stderr)
-        inputdoc = folia.Document(file=filename)
+        inputdoc = folia.Document(file=filename,keepversion=True)
+        #we take the version of the newest document
+        if folia.checkversion(inputdoc.version, outputdoc.version) > 0:
+            outputdoc.version = inputdoc.version
         print("(merging document)",file=sys.stderr)
 
         for annotationtype,set in inputdoc.annotations:
@@ -52,6 +56,7 @@ def foliacat(id, outputfile, *files):
 
         print("(merged " + str(merges) + " elements, with all elements contained therein)",file=sys.stderr)
         totalmerges += merges
+
 
     print("(TOTAL: merged " + str(totalmerges) + " elements, with all elements contained therein)",file=sys.stderr)
     if outputfile and merges > 0:
