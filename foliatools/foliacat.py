@@ -66,7 +66,7 @@ def main():
         print("WARNING: only one file specified", file=sys.stderr)
 
 
-    outputdoc = foliacat(id, args.output, *args.files, keepversion=not args.upgrade)
+    outputdoc = foliacat(args.id, args.output, *args.files, keepversion=not args.upgrade)
     if not args.output or args.output == '-':
         print(outputdoc.xmlstring())
 
