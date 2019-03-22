@@ -87,7 +87,7 @@ def commandparser(parser):
     return parser
 
 def main():
-    parser = argparse.ArgumentParser(description="Checks whether a FoLiA document is a valid FoLiA document, i.e. whether is properly adheres to the specification. Invalid documents should never be used or published.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description="Checks whether a FoLiA document is a valid FoLiA document, i.e. whether it properly adheres to the FoLiA specification. Invalid documents should never be used or published.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-v','-V','--version',help="Show version information", action='version', version="FoLiA-tools v" + TOOLVERSION + ", using FoLiA v" + folia.FOLIAVERSION + " with library FoLiApy v" + folia.LIBVERSION, default=False)
     commandparser(parser)
     parser.add_argument('files', nargs='*', help='Files (and/or directories) to validate')
