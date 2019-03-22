@@ -4,23 +4,10 @@
 
 from __future__ import print_function, unicode_literals, division, absolute_import
 
-import getopt
+import argparse
 import sys
+from foliatools import VERSION as TOOLVERSION
 import folia.main as folia
-
-def usage():
-    print("foliacat",file=sys.stderr)
-    print("  by Maarten van Gompel (proycon)",file=sys.stderr)
-    print("  Radboud University Nijmegen",file=sys.stderr)
-    print("  2014 - Licensed under GPLv3",file=sys.stderr)
-    print("",file=sys.stderr)
-    print("Concatenates multiple FoLiA documents into one; provided that all IDs are unique.",file=sys.stderr)
-    print("",file=sys.stderr)
-    print("Usage: foliacat [options] file1 file2 file3 ... ",file=sys.stderr)
-    print("",file=sys.stderr)
-    print("Options:",file=sys.stderr)
-    print("  -o [file]                    Output file",file=sys.stderr)
-    print("  -i [id]                      ID for output file (mandatory)",file=sys.stderr)
 
 
 def concat(target, source):
@@ -65,49 +52,20 @@ def foliacat(id, outputfile, *files):
     return outputdoc
 
 def main():
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "o:i:h", ["help"])
-    except getopt.GetoptError as err:
-        print(str(err),file=sys.stderr)
-        usage()
-        sys.exit(2)
+    parser = argparse.ArgumentParser(description="Concatenates two or more FoLiA documents", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-v','--version',help="Show version information", action='version', version="FoLiA-tools v" + TOOLVERSION + ", using FoLiA v" + folia.FOLIAVERSION + " with library FoLiApy v" + folia.LIBVERSION, default=False)
+    parser.add_argument('-i','--id',type=str, help="Set the ID for the output document", action='store', required=True)
+    parser.add_argument('-o','--output',type=str, help="Output file (defaults to stdout if not set)", required=True)
+    parser.add_argument('files', nargs='*', help='Files to concatenate')
+    args = parser.parse_args()
 
-    outputfile = None
-    substitute = False
-
-    id = None
-    for o, a in opts:
-        if o == '-h' or o == '--help':
-            usage()
-            sys.exit(0)
-        elif o == '-o':
-            outputfile = a
-        elif o == '-i':
-            id = a
-        else:
-            raise Exception("No such option: " + o)
-
-    if len(args) < 2:
+    if len(args.files) < 2:
         print("WARNING: only one file specified", file=sys.stderr)
-    if not id:
-        print("ERROR: Please specify an ID for the result document with the -i option",file=sys.stderr)
-        sys.exit(2)
 
 
-    if substitute:
-        outputfile = args[0]
-
-    outputdoc = foliacat(id, outputfile, *args)
-    if not outputfile:
-        xml = outputdoc.xmlstring()
-        if sys.version < '3':
-            if isinstance(xml,unicode):
-                print(xml.encode('utf-8'))
-            else:
-                print(xml)
-        else:
-            print(xml)
-
+    outputdoc = foliacat(id, args.outputfile, *args.files)
+    if not args.outputfile:
+        print(outputdoc.xmlstring())
 
 if __name__ == "__main__":
     main()

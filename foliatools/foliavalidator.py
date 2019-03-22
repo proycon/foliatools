@@ -7,6 +7,7 @@ import glob
 import traceback
 import lxml.etree
 import argparse
+from foliatools import VERSION as TOOLVERSION
 import folia.main as folia
 
 
@@ -87,14 +88,10 @@ def commandparser(parser):
 
 def main():
     parser = argparse.ArgumentParser(description="Checks whether a FoLiA document is a valid FoLiA document, i.e. whether is properly adheres to the specification. Invalid documents should never be used or published.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-V','--version',help="Show version information", action='store_true', default=False)
+    parser.add_argument('-v','-V','--version',help="Show version information", action='version', version="FoLiA-tools v" + TOOLVERSION + ", using FoLiA v" + folia.FOLIAVERSION + " with library FoLiApy v" + folia.LIBVERSION, default=False)
     commandparser(parser)
     parser.add_argument('files', nargs='*', help='Files (and/or directories) to validate')
     args = parser.parse_args()
-
-    if args.version:
-        print("FoLiA " + folia.FOLIAVERSION + ", library version " + folia.LIBVERSION,file=sys.stderr)
-        sys.exit(0)
 
     schema  = lxml.etree.RelaxNG(folia.relaxng())
 
