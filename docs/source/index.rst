@@ -9,8 +9,7 @@ Introduction
 A number of command-line tools are readily available for working with FoLiA, to
 various ends. The following tools are currently available:
 
-* ``foliavalidator`` -- Tests if documents are valid FoLiA XML.
-  \textbf{Always use this to test your documents if you produce your own FoLiA documents!``
+* ``foliavalidator`` -- Tests if documents are valid FoLiA XML. **Always use this to test your documents if you produce your own FoLiA documents!**
 * ``foliaquery`` -- Advanced query tool that searches FoLiA documents for a specified pattern, or modifies a document according to the query. Supports FQL (FoLiA Query Language) and CQL (Corpus Query Language).
 * ``folia2txt`` -- Convert FoLiA XML to plain text (pure text, without any annotations)
 * ``folia2annotatedtxt`` -- Like above, but produces output simple
@@ -19,17 +18,16 @@ various ends. The following tools are currently available:
   and produces a simple columned output format (including CSV) in which each token appears on one line. Note that only simple token annotations are supported and a lot of FoLiA data can not be intuitively expressed in a simple columned format!
 * ``folia2html`` -- Converts a FoLiA document to a semi-interactive HTML document, with limited support for certain token annotations.
 * ``folia2dcoi`` -- Convert FoLiA XML to D-Coi XML (only for annotations supported by D-Coi)
-* ``dcoi2folia`` -- Convert D-Coi XML to FoLiA XML
-* ``rst2folia`` -- Convert ReStructuredText, a lightweight
-  non-intrusive text markup language, to FoLiA, using
-  `docutils <http://docutils.sourceforge.net/>`.
+* ``dcoi2folia`` -- Convert D-Coi XML (a legacy format) to FoLiA XML
+* ``conllu2folia`` -- Convert files in the `CONLL-U format <http://http://universaldependencies.org/format.html>`_ to FoLiA XML.
+* ``rst2folia`` -- Convert `ReStructuredText <http://docutils.sourceforge.net/rst.html>`_, a lightweight non-intrusive text markup language, to FoLiA, using `docutils <http://docutils.sourceforge.net/>`.
 * ``foliatree`` -- Outputs the hierarchy of a FoLiA document.
 * ``foliacat`` -- Concatenates two or more FoLiA documents.
 * ``foliamerge`` -- Merges the annotations of two or more FoLiA documents into one.
 * ``foliatextcontent`` -- A tool for adding or stripping text redundancy, supports adding offset information.
+* ``foliaupgrade`` -- Upgrades a document to the latest FoLiA version.
 
-All of these tools are written in Python, and thus require a Python ($2.7$, $3$
-or higher) installation to run. More tools are added as time progresses.
+All of these tools are written in Python 3. More tools are added as time progresses.
 
 Installation
 ----------------
