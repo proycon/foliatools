@@ -136,6 +136,21 @@ else
   fi
 fi
 
+echo "Running conllu2folia" >&2
+conllu2folia test.fr.conllu
+if [ $? -ne 0 ]; then
+    echo "...${boldred}FAILED${normal}" >&2
+    FAILURE=1
+else
+  foliavalidator test.fr.folia.xml
+  if [ $? -ne 0 ]; then
+      echo "...VALIDATOR ${boldred}FAILED${normal}" >&2
+      FAILURE=1
+  else
+      echo "...${boldgreen}OK${normal}" >&2
+  fi
+fi
+
 exit $FAILURE
 
 

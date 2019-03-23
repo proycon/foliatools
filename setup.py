@@ -11,12 +11,12 @@ def read(fname):
 
 setup(
     name = "FoLiA-tools",
-    version = "2.0.4", #also change in __init__.py
+    version = "2.0.5", #also change in __init__.py
     author = "Maarten van Gompel",
     author_email = "proycon@anaproy.nl",
     description = ("FoLiA-tools contains various Python-based command line tools for working with FoLiA XML (Format for Linguistic Annotation)"),
     license = "GPL",
-    keywords = "nlp computational_linguistics search linguistics toolkit folia pynlpl",
+    keywords = "nlp computational_linguistics search linguistics toolkit folia pynlpl format_for_linguistic_annotation",
     url = "https://proycon.github.io/folia",
     packages=['foliatools'],
     long_description=read('README.rst'),
@@ -43,6 +43,7 @@ setup(
             'foliaquery1 = foliatools.foliaquery1:main', #old version
             'foliatextcontent = foliatools.foliatextcontent:main',
             'dcoi2folia = foliatools.dcoi2folia:main',
+            'conllu2folia = foliatools.conllu2folia:main',
             'rst2folia = foliatools.rst2folia:main',
             'foliacat = foliatools.foliacat:main',
             'folia2rst = foliatools.folia2rst:main',

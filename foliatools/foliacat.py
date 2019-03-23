@@ -23,7 +23,7 @@ def concat(target, source):
 def foliacat(id, outputfile, *files, keepversion=True):
     totalmerges = 0
     processor = folia.Processor.create(name="foliacat",version=TOOLVERSION)
-    outputdoc = folia.Document(id=id,keepversion=keepversion, processor=processor)
+    outputdoc = folia.Document(id=id,keepversion=keepversion, processor=processor, declare=[]) #do not predeclare anything
     if keepversion:
         outputdoc.version = "0.0.0"
     text = outputdoc.append(folia.Text(outputdoc,id=id + ".text"))
@@ -35,7 +35,7 @@ def foliacat(id, outputfile, *files, keepversion=True):
         if keepversion:
             if folia.checkversion(inputdoc.version, outputdoc.version) > 0:
                 outputdoc.version = inputdoc.version
-        print("(merging document)",file=sys.stderr)
+        print("(concatenating document)",file=sys.stderr)
 
         for annotationtype,set in inputdoc.annotations:
             if not outputdoc.declared(annotationtype,set):
@@ -44,11 +44,11 @@ def foliacat(id, outputfile, *files, keepversion=True):
         for d in inputdoc.data:
             merges += concat(text, d)
 
-        print("(merged " + str(merges) + " elements, with all elements contained therein)",file=sys.stderr)
+        print("(concatenating " + str(merges) + " elements, with all elements contained therein)",file=sys.stderr)
         totalmerges += merges
 
 
-    print("(TOTAL: merged " + str(totalmerges) + " elements, with all elements contained therein)",file=sys.stderr)
+    print("(TOTAL: concatenated " + str(totalmerges) + " elements, with all elements contained therein)",file=sys.stderr)
     if outputfile and merges > 0:
         outputdoc.save(outputfile)
 
@@ -59,7 +59,7 @@ def main():
     parser.add_argument('-v','--version',help="Show version information", action='version', version="FoLiA-tools v" + TOOLVERSION + ", using FoLiA v" + folia.FOLIAVERSION + " with library FoLiApy v" + folia.LIBVERSION, default=False)
     parser.add_argument('-i','--id',type=str, help="Set the ID for the output document", action='store', required=True)
     parser.add_argument('-o','--output',type=str, help="Output file (defaults to stdout if not set)", required=True)
-    parser.add_argument('-u','--upgrade', help="Automatically upgrade FoLiA version to the latest version", action='store_true')
+    parser.add_argument('-u','--upgrade', help="Automatically upgrade FoLiA version to the latest version, warning: make sure you validate your document afterwards as this does not always work!", action='store_true')
     parser.add_argument('files', nargs='*', help='Files to concatenate')
     args = parser.parse_args()
 
