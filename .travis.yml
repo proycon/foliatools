@@ -10,7 +10,7 @@ notifications:
       - "%{repository_slug}#%{build_number} %{message} --> %{build_url}"
     skip_join: true
 before_install:
-  - pip install travis
+  - pip install conllu
   - git clone -b master https://github.com/proycon/foliapy
   - cd foliapy
   - pip install .
