@@ -22,7 +22,8 @@ def concat(target, source):
 
 def foliacat(id, outputfile, *files, keepversion=True):
     totalmerges = 0
-    outputdoc = folia.Document(id=id,keepversion=keepversion)
+    processor = folia.Processor.create(name="foliacat",version=TOOLVERSION)
+    outputdoc = folia.Document(id=id,keepversion=keepversion, processor=processor)
     if keepversion:
         outputdoc.version = "0.0.0"
     text = outputdoc.append(folia.Text(outputdoc,id=id + ".text"))
