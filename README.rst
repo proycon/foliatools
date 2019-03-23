@@ -22,6 +22,7 @@ A number of command-line tools are readily available for working with FoLiA, to 
 - ``foliafreqlist`` -- Output a frequency list on tokenised FoLiA documents.
 - ``foliamerge`` -- Merges annotations from two or more FoLiA documents.
 - ``foliatextcontent`` -- A tool for adding or stripping text redundancy, supports adding offset information.
+- ``foliaupgrade`` -- Upgrades a document to the latest FoLiA version.
 - ``alpino2folia`` -- Convert Alpino-DS XML to FoLiA XML
 - ``dcoi2folia`` -- Convert D-Coi XML to FoLiA XML
 - ``rst2folia`` -- Convert ReStructuredText, a lightweight non-intrusive text markup language, to FoLiA, using `docutils <http://docutils.sourceforge.net/>`_.
@@ -35,7 +36,7 @@ The FoLiA tools are published to the Python Package Index and can be installed e
 
   $ pip install folia-tools
 
-Add ``sudo`` to install it globally on your system, if you install locally, we strongly
+You may need to use ``pip3`` to ensure you have the Python 3 version.  Add ``sudo`` to install it globally on your system, but we strongly
 recommend you use virtualenv to make a self-contained Python environment.
 
 The FoLiA tools are also included in our `LaMachine distribution <https://proycon.github.io/lamachine>`_ .
@@ -48,11 +49,11 @@ If ``pip`` is not yet available, install it as follows:
 
 On Debian/Ubuntu-based systems::
 
-  $ sudo apt-get install python-pip
+  $ sudo apt-get install python3-pip
 
 On RedHat-based systems::
 
-  $ yum install python-pip
+  $ yum install python3-pip
 
 On Arch Linux systems::
 
