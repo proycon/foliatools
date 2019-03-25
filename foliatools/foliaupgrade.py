@@ -24,6 +24,31 @@ def main():
     success = process(*args.files, **args.__dict__)
     sys.exit(0 if success else 1)
 
+def annotators2processors(doc, mainprocessor):
+    """Convert FoLiA v1 style annotators to v2 style processors (limited)"""
+    for element in doc.items():
+        if isinstance(element, folia.AbstractElement):
+            if element.annotator:
+                if element.annotatortype == folia.ProcessorType.MANUAL:
+                    annotatortype = folia.ProcessorType.MANUAL
+                else:
+                    annotatortype = folia.ProcessorType.AUTO
+                foundprocessor = None
+                for processor in doc.getprocessors(element.ANNOTATIONTYPE, element.set):
+                    if element.annotator == processor.name and annotatortype == processor.type:
+                        foundprocessor = processor
+                if foundprocessor:
+                    element.processor = foundprocessor
+                else:
+                    #Create a new processor
+                    newprocessor = folia.Processor(element.annotator, type=annotatortype)
+                    mainprocessor.append(newprocessor)
+                    element.setprocessor(newprocessor)
+                #delete the old style annotator
+                element.annotator = None
+                element.annotatortype = None
+
+
 def process(*files, **kwargs):
     success = False
     for file in files:
@@ -32,11 +57,12 @@ def process(*files, **kwargs):
             if r != 0:
                 success = False
         elif os.path.isfile(file):
-            doc = validate(file,schema=None, stricttextvalidation=True,autodeclare=True,output=False, warn=False, **kwargs)
-            doc.provenance.append(folia.Processor.create(name="foliaupgrade", version=VERSION))
+            mainprocessor = folia.Processor.create(name="foliaupgrade", version=VERSION)
+            doc = validate(file,schema=None, stricttextvalidation=True,autodeclare=True,output=False, warn=False,processor=mainprocessor,traceback=True,**kwargs)
             if doc is not False:
                 print("Upgrading " + doc.filename,file=sys.stderr)
                 doc.version = folia.FOLIAVERSION #upgrading involves more than just bumping the number, but that is handled implicitly already by the library when reading the document
+                annotators2processors(doc, mainprocessor)
                 if not kwargs.get('dryrun'):
                     doc.save(doc.filename + ".upgraded")
                     if not validate(file + ".upgraded",schema=None,stricttextvalidation=True,autodeclare=True,**kwargs):
@@ -44,6 +70,8 @@ def process(*files, **kwargs):
                         success = False
                     else:
                         shutil.move(doc.filename + ".upgraded", file)
+                else:
+                    print(doc.xmlstring())
             else:
                 success  = False
     return success
