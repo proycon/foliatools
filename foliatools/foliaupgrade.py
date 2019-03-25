@@ -63,15 +63,17 @@ def process(*files, **kwargs):
                 print("Upgrading " + doc.filename,file=sys.stderr)
                 doc.version = folia.FOLIAVERSION #upgrading involves more than just bumping the number, but that is handled implicitly already by the library when reading the document
                 annotators2processors(doc, mainprocessor)
-                if not kwargs.get('dryrun'):
-                    doc.save(doc.filename + ".upgraded")
-                    if not validate(file + ".upgraded",schema=None,stricttextvalidation=True,autodeclare=True,**kwargs):
-                        print("Upgrade failed",file=sys.stderr)
-                        success = False
+                doc.save(doc.filename + ".upgraded")
+                if not validate(file + ".upgraded",schema=None,stricttextvalidation=True,autodeclare=False,traceback=True,**kwargs):
+                    print("Upgrade failed",file=sys.stderr)
+                    success = False
+                else:
+                    print("Upgrade OK",file=sys.stderr)
+                    if kwargs.get('dryrun'):
+                        os.unlink(doc.filename+".upgraded")
+                        print(doc.xmlstring())
                     else:
                         shutil.move(doc.filename + ".upgraded", file)
-                else:
-                    print(doc.xmlstring())
             else:
                 success  = False
     return success
