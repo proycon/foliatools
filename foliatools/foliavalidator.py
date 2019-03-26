@@ -12,20 +12,21 @@ import folia.main as folia
 
 
 def validate(filename, schema = None,**kwargs):
-    try:
-        folia.validate(filename, schema)
-    except Exception as e:
-        print("VALIDATION ERROR against RelaxNG schema (stage 1/2), in " + filename,file=sys.stderr)
-        print(str(e), file=sys.stderr)
-        return False
+    if not kwargs.get('quick'):
+        try:
+            folia.validate(filename, schema)
+        except Exception as e:
+            print("VALIDATION ERROR against RelaxNG schema (stage 1/3), in " + filename,file=sys.stderr)
+            print(str(e), file=sys.stderr)
+            return False
     try:
         document = folia.Document(file=filename, deepvalidation=kwargs.get('deep',False),textvalidation=kwargs.get('stricttextvalidation',False),verbose=True, autodeclare=kwargs.get('autodeclare',False), processor=kwargs.get('processor'), debug=kwargs.get('debug',0))
     except folia.DeepValidationError as e:
-        print("DEEP VALIDATION ERROR on full parse by library (stage 2/2), in " + filename,file=sys.stderr)
+        print("DEEP VALIDATION ERROR on full parse by library (stage 2/3), in " + filename,file=sys.stderr)
         print(e.__class__.__name__ + ": " + str(e),file=sys.stderr)
         return False
     except Exception as e:
-        print("VALIDATION ERROR on full parse by library (stage 2/2), in " + filename,file=sys.stderr)
+        print("VALIDATION ERROR on full parse by library (stage 2/3), in " + filename,file=sys.stderr)
         print(e.__class__.__name__ + ": " + str(e),file=sys.stderr)
         if kwargs.get('traceback') or kwargs.get('debug'):
             print("-- Full traceback follows -->",file=sys.stderr)
@@ -42,15 +43,25 @@ def validate(filename, schema = None,**kwargs):
             print("WARNING: Document (" + filename + ") uses an older FoLiA version ("+document.version+") but is validated according to the newer specification (" + folia.FOLIAVERSION+"). You might want to increase the version attribute if this is a document you created and intend to publish.",file=sys.stderr)
     if document.textvalidationerrors:
         if kwargs.get('stricttextvalidation'):
-            print("VALIDATION ERROR because of text validation errors, in " + filename,file=sys.stderr)
+            print("VALIDATION ERROR because of text validation errors (stage 2/3), in " + filename,file=sys.stderr)
             return False
         elif not kwargs.get('nowarn'):
             print("WARNING: there were " + str(document.textvalidationerrors) + " text validation errors but these are currently not counted toward the full validation result (use -t for strict text validation)", file=sys.stderr)
-
-    if kwargs.get('output'):
-        print(document.xmlstring())
+    if not kwargs.get('quick'):
+        try:
+            if kwargs.get('output'):
+                print(document.xmlstring())
+            else:
+                document.xmlstring()
+        except Exception as e:
+            print("SERIALISATION ERROR (stage 3/3): Document validated succesfully but failed to serialise! (" + filename + "). This may be indicative of a problem in the underlying library, please submit an issue on https://github.com/proycon/foliapy with the output of this error.",file=sys.stderr)
+            print(e.__class__.__name__ + ": " + str(e),file=sys.stderr)
+            print("-- Full traceback follows -->",file=sys.stderr)
+            ex_type, ex, tb = sys.exc_info()
+            traceback.print_exception(ex_type, ex, tb)
+            return False
     if kwargs.get('autodeclare'):
-        print("Validated successfully **after** applying auto-declarations: " +  filename,file=sys.stderr)
+        print("Validated successfully **after** applying auto-declarations: " +  filename + " (this is not a guarantee that the original file is valid but indicates it can be automatically made valid!)", file=sys.stderr)
         return document
     else:
         print("Validated successfully: " +  filename,file=sys.stderr)
@@ -76,7 +87,7 @@ def commandparser(parser):
     parser.add_argument('-d','--deep',help="Enable deep validation; validated uses classes against provided set definitions", action='store_true', default=False)
     parser.add_argument('-r','--recurse',help="Process recursively", action='store_true', default=False)
     parser.add_argument('-a','--autodeclare',help="Attempt to automatically declare missing annotations", action='store_true', default=False)
-    parser.add_argument('-q','--quick',help="Quick and more shallow validation, only validates against RelaxNG schema. This does not constitute a complete enough validation!", action='store_true', default=False)
+    parser.add_argument('-q','--quick',help="Quicker validation; skips RelaxNG validation and serialisation checks", action='store_true', default=False)
     parser.add_argument('-E','--extension', type=str,help="Extension", action='store',default="xml")
     parser.add_argument('-W','--nowarn',help="Suppress warnings", action='store_true', default=False)
     parser.add_argument('-i','--ignore',help="Always report a successful exit code, even in case of validation errors", action='store_true', default=False)
