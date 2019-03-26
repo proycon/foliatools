@@ -20,7 +20,7 @@ def validate(filename, schema = None,**kwargs):
             print(str(e), file=sys.stderr)
             return False
     try:
-        document = folia.Document(file=filename, deepvalidation=kwargs.get('deep',False),textvalidation=kwargs.get('stricttextvalidation',False),verbose=True, autodeclare=kwargs.get('autodeclare',False), processor=kwargs.get('processor'), debug=kwargs.get('debug',0))
+        document = folia.Document(file=filename, deepvalidation=kwargs.get('deep',False),textvalidation=kwargs.get('stricttextvalidation',False),verbose=True, autodeclare=kwargs.get('autodeclare',False), processor=kwargs.get('processor'), keepversion=kwargs.get('keepversion'), debug=kwargs.get('debug',0))
     except folia.DeepValidationError as e:
         print("DEEP VALIDATION ERROR on full parse by library (stage 2/3), in " + filename,file=sys.stderr)
         print(e.__class__.__name__ + ": " + str(e),file=sys.stderr)
@@ -49,10 +49,13 @@ def validate(filename, schema = None,**kwargs):
             print("WARNING: there were " + str(document.textvalidationerrors) + " text validation errors but these are currently not counted toward the full validation result (use -t for strict text validation)", file=sys.stderr)
     if not kwargs.get('quick'):
         try:
+            xml = document.xmlstring()
             if kwargs.get('output'):
-                print(document.xmlstring())
-            else:
-                document.xmlstring()
+                if folia.checkversion(document.version, "2.0.0") < 0 and not kwargs.get('keepversion') and not kwargs.get('autodeclare'):
+                    print("WARNING: Document is valid but can't output older FoLiA (< v2) document unless you specify either --keepversion or --autodeclare to attempt to upgrade. However, if you really want to upgrade the document, use the 'foliaupgrade' tool instead." , file=sys.stderr)
+                    return False
+                else:
+                    print(xml)
         except Exception as e:
             print("SERIALISATION ERROR (stage 3/3): Document validated succesfully but failed to serialise! (" + filename + "). This may be indicative of a problem in the underlying library, please submit an issue on https://github.com/proycon/foliapy with the output of this error.",file=sys.stderr)
             print(e.__class__.__name__ + ": " + str(e),file=sys.stderr)
@@ -93,6 +96,7 @@ def commandparser(parser):
     parser.add_argument('-i','--ignore',help="Always report a successful exit code, even in case of validation errors", action='store_true', default=False)
     parser.add_argument('-t','--stricttextvalidation',help="Treat text validation errors strictly for FoLiA < v1.5,  it always enabled for for FoLiA v1.5+ regardless of this parameter", action='store_true', default=False)
     parser.add_argument('-o','--output',help="Output document to stdout", action='store_true', default=False)
+    parser.add_argument('-k','--keepversion',help="Attempt to keep an older FoLiA version (not always guaranteed to work)", action='store_true', default=False)
     parser.add_argument('-D','--debug',type=int,help="Debug level", action='store',default=0)
     parser.add_argument('-b','--traceback',help="Provide a full traceback on validation errors", action='store_true', default=False)
     return parser
