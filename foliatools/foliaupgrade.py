@@ -42,11 +42,16 @@ def annotators2processors(doc, mainprocessor):
                 else:
                     #Create a new processor
                     newprocessor = folia.Processor(element.annotator, type=annotatortype)
+                    try:
+                        newprocessor.begindatetime = doc.annotationdefaults[element.ANNOTATIONTYPE][element.set]['datetime']
+                    except: #May likely not exist, that's ok
+                        pass
                     mainprocessor.append(newprocessor)
                     element.setprocessor(newprocessor)
                 #delete the old style annotator
                 element.annotator = None
                 element.annotatortype = None
+    doc.annotationdefaults = {} #not needed anymore
 
 
 def process(*files, **kwargs):
