@@ -24,6 +24,30 @@ def main():
     success = process(*args.files, **args.__dict__)
     sys.exit(0 if success else 1)
 
+def convert_set(annotationtype, annotationset):
+    if annotationset == "undefined":
+        if annotationtype == folia.AnnotationType.TEXT:
+            return folia.DEFAULT_TEXT_SET
+        elif annotationtype == folia.AnnotationType.PHON:
+            return folia.DEFAULT_PHON_SET
+        else:
+            return None
+    else:
+        return annotationset
+
+def convert_undefined_sets(doc):
+    exempt = set()
+    for element in doc.items():
+        if isinstance(element, folia.AbstractElement):
+            if element.set == "undefined" and element.cls:
+                exempt.add(element.ANNOTATIONTYPE)
+    for element in doc.items():
+        if isinstance(element, folia.AbstractElement):
+            if element.set == "undefined" and element.ANNOTATIONTYPE not in exempt:
+                element.set = None
+    doc.annotations = [ (annotationtype, convert_set(annotationtype, annotationset) ) for annotationtype, annotationset in doc.annotations ]
+
+
 def annotators2processors(doc, mainprocessor):
     """Convert FoLiA v1 style annotators to v2 style processors (limited)"""
     for element in doc.items():
@@ -66,8 +90,12 @@ def process(*files, **kwargs):
             doc = validate(file,schema=None, stricttextvalidation=True,autodeclare=True,output=False, warn=False,processor=mainprocessor,traceback=True,**kwargs)
             if doc is not False:
                 print("Upgrading " + doc.filename,file=sys.stderr)
-                doc.version = folia.FOLIAVERSION #upgrading involves more than just bumping the number, but that is handled implicitly already by the library when reading the document
+                #bump the version number
+                doc.version = folia.FOLIAVERSION
+                #convert old style annotators to new style processors
                 annotators2processors(doc, mainprocessor)
+                #convert undefined sets
+                convert_undefined_sets(doc)
                 doc.save(doc.filename + ".upgraded")
                 if not validate(file + ".upgraded",schema=None,stricttextvalidation=True,autodeclare=False,traceback=True,**kwargs):
                     print("Upgrade failed",file=sys.stderr)
