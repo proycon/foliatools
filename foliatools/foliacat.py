@@ -35,6 +35,9 @@ def foliacat(id, outputfile, *files, keepversion=True):
         if keepversion:
             if folia.checkversion(inputdoc.version, outputdoc.version) > 0:
                 outputdoc.version = inputdoc.version
+                outputdoc.FOLIA2 = folia.checkversion(outputdoc.version, "2.0.0") >= 0
+                outputdoc.FOLIA1 = folia.checkversion(outputdoc.version, "2.0.0") < 0
+
         print("(concatenating document)",file=sys.stderr)
 
         for annotationtype,set in inputdoc.annotations:
