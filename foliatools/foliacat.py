@@ -42,6 +42,7 @@ def foliacat(id, outputfile, *files, keepversion=True):
 
         for annotationtype,set in inputdoc.annotations:
             if not outputdoc.declared(annotationtype,set):
+                print("Declaring " + folia.annotationtype2str(annotationtype), repr(set), file=sys.stderr)
                 outputdoc.declare( annotationtype, set)
 
         for d in inputdoc.data:
