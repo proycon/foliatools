@@ -239,7 +239,7 @@ def setelementproperties_cpp(element,indent, defer,done):
                     if ('textcontainer' in element['properties'] and element['properties']['textcontainer']) or ('phoncontainer' in element['properties'] and element['properties']['phoncontainer']):
                         value += ('XmlText',)
                     if 'WordReference' in value:
-                        value += ('Word','Morpheme','Phoneme')
+                        value += tuple( e  for e in sorted(flattenclasses(spec['wrefables'])) )
                 s += indent + outputvar(element['class'] + '::PROPS.' + prop.upper(),  value, target) + '\n'
     done[element['class']] = True
     return s
