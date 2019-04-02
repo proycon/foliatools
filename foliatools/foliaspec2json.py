@@ -10,11 +10,7 @@ import json
 import yaml
 
 #Load specification
-specfiles= [  os.path.join(os.path.dirname(__file__) ,'../schemas/folia.yml'), 'folia.yml' ]
-spec = None
-for specfile in specfiles:
-    spec = yaml.load(open(specfile,'r'))
-    break
+spec = yaml.load(open(sys.argv[1],'r'))
 
 if spec is None:
     print("FoLiA Specification file folia.yml could not be found in " + ", ".join(specfiles) ,file=sys.stderr)
