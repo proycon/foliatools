@@ -5,10 +5,15 @@
 
 <xsl:strip-space elements="*" />
 
-<!-- FoLiA v1.2 -->
+
+<xsl:variable name="folia_version" select="'2.0.2'" />
+<xsl:variable name="version" select="'2.0.5'" />
 
 <xsl:template match="/folia:FoLiA">
   <html>
+   <xsl:comment>
+       HTML generated from FoLiA input through folia2html.xsl v<xsl:value-of select="$version" /> for FoLiA v<xsl:value-of select="$folia_version" />. Note that this viewer is limited! It is client-side only and fully static (there is no scripting, interactive parts are pure CSS). This viewer won't scale well, don't use it for huge FoLiA documents. For a more powerful alternative for visualising and editing FoLiA, see FLAT: https://github.com/proycon/flat
+   </xsl:comment>
   <xsl:if test="folia:metadata/folia:meta[@id='direction'] = 'rtl'">
       <!-- The trick to getting proper right-to-left support for languages such
            as Arabic, Farsi, Hebrew is to set metadata field 'direction' to 'rtl'.
@@ -202,18 +207,19 @@
 					color: black;
 					position: relative;
 					text-decoration: none;
+                    cursor: pointer;
 					z-index: 24;
                 }
-                .sh { 
+                .sh {
                     background: #f4f9ca;
                 }
                 .cor {
                     background: #f9caca;
                 }
-                .s:hover .sh { 
+                .s:hover .sh {
 					background: #cfd0ed;
                 }
-                .s:hover .cor { 
+                .s:hover .cor {
 					background: #cfd0ed;
                 }
                 .word:hover svg.bigtree {
@@ -393,7 +399,7 @@
 </xsl:template>
 
 <xsl:template match="folia:p">
- <p id="{@xml:id}">    
+ <p id="{@xml:id}">
     <xsl:apply-templates />
  </p>
 </xsl:template>
@@ -512,10 +518,15 @@
     <span class="part"><xsl:apply-templates /></span>
 </xsl:template>
 
+<xsl:variable name="ignore_list" select="' original suggestion alternative altlayers foreign-data '" /> <!-- The leading/trailing space is deliberate! -->
+
+<xsl:variable name="ancestors_ok">not(ancestor::folia:original) and not(ancestor::folia:suggestion) and not(ancestor::folia:alt) and not(ancestor::folia:altlayers)</xsl:variable><!-- Checks if all ancestors are authoritative -->
+<xsl:variable name="ancestors_nosubtoken">not(ancestor::folia:morpheme) and not(ancestor::folia:phoneme)</xsl:variable><!-- Checks if all ancestors are authoritative -->
+
 <xsl:template match="folia:w">
     <xsl:variable name="wid" select="@xml:id" />
-    <xsl:if test="not(ancestor::folia:original) and not(ancestor::folia:suggestion) and not(ancestor::folia:alternative) and not(ancestor-or-self::*/auth)">
-        <span id="{@xml:id}"><xsl:attribute name="class">word<xsl:if test="//folia:wref[@id=$wid and not(ancestor::folia:altlayers)]"> sh</xsl:if><xsl:if test=".//folia:correction or .//folia:errordetection"> cor</xsl:if></xsl:attribute><span class="t"><xsl:value-of select="string(.//folia:t[not(ancestor-or-self::*/@auth) and not(ancestor::folia:morpheme) and not(ancestor::folia:str) and not(@class)])"/></span><xsl:call-template name="tokenannotations" /></span>
+    <xsl:if test="$ancestors_ok">
+        <span id="{@xml:id}"><xsl:attribute name="class">word<xsl:if test="//folia:wref[@id=$wid and not(ancestor::folia:altlayers)]"> sh</xsl:if><xsl:if test=".//folia:correction or .//folia:errordetection"> cor</xsl:if></xsl:attribute><span class="t"><xsl:value-of select="string(.//folia:t[$ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str) and (not(@class) or @class = 'current')])"/></span><xsl:call-template name="inlineannotations" /></span>
     <xsl:choose>
        <xsl:when test="@space = 'no'"></xsl:when>
        <xsl:otherwise>
@@ -531,8 +542,8 @@
 <xsl:template match="folia:t">
     <!-- Test presence of text in deeper structure elements, if they exist we don't
          render this text but rely on the text in the deeper structure  -->
-    <!-- Next, check if text element is authoritative and have the proper class -->
-    <xsl:if test="not(following-sibling::*//folia:t[(not(./@class) or ./@class='current') and not(ancestor-or-self::*/@auth) and not(ancestor::folia:suggestion) and not(ancestor::folia:alt) and not(ancestor::folia:altlayers) and not(ancestor::folia:morpheme) and not(ancestor::folia:str)])"><xsl:if test="(not(./@class) or ./@class='current') and not(ancestor-or-self::*/@auth) and not(ancestor::folia:suggestion) and not(ancestor::folia:alt) and not(ancestor::folia:altlayers) and not(ancestor::folia:morpheme) and not(ancestor::folia:str)"><xsl:apply-templates /></xsl:if></xsl:if>
+    <!-- Next, check if text element is authoritative (ancestors_ok) and have the proper class -->
+    <xsl:if test="not(following-sibling::*//folia:t[(not(./@class) or ./@class='current') and $ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str)])"><xsl:if test="(not(./@class) or ./@class='current') and $ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str)"><xsl:apply-templates /></xsl:if></xsl:if>
 </xsl:template>
 
 
@@ -541,8 +552,8 @@
 </xsl:template>
 
 <xsl:template match="folia:t-style">
-    <!-- guess class names that may be indicative of certain styles, we're
-         unaware of any sets here -->
+    <!-- guess class names that may be indicative of certain styles,
+         these are **NOT** defined by FoLiA, we're unaware of any sets here -->
     <xsl:choose>
     <xsl:when test="@class = 'bold' or @class = 'b'">
         <b><xsl:apply-templates /></b>
@@ -580,7 +591,7 @@
 </xsl:template>
 
 
-<xsl:template name="tokenannotation_text">
+<xsl:template name="contentannotation_text">
     <xsl:if test="folia:t">
             <xsl:for-each select="folia:t">
                 <span class="attrlabel">Text
@@ -592,7 +603,7 @@
       </xsl:if>
 </xsl:template>
 
-<xsl:template name="tokenannotation_phon">
+<xsl:template name="contentannotation_phon">
     <xsl:if test="folia:ph">
             <xsl:for-each select="folia:ph">
                 <span class="attrlabel">Phonetics
@@ -606,43 +617,45 @@
 
 
 
-<xsl:template name="tokenannotations">
+<xsl:template name="inlineannotations">
  <span class="attributes">
      <span class="attrlabel">ID</span><span class="attrvalue"><xsl:value-of select="@xml:id" /></span><br />
-        <xsl:call-template name="tokenannotation_text" />
-        <xsl:call-template name="tokenannotation_phon" />
+        <xsl:call-template name="contentannotation_text" />
+        <xsl:call-template name="contentannotation_phon" />
         <xsl:if test=".//folia:pos">
-            <xsl:for-each select=".//folia:pos[not(ancestor-or-self::*/@auth) and not(ancestor-or-self::*/folia:morpheme)]">
+            <xsl:for-each select=".//folia:pos[$ancestors_ok and $ancestors_nosubtoken]">
             	<span class="attrlabel">PoS</span><span class="attrvalue"><xsl:value-of select="@class" /></span><br />
             </xsl:for-each>
         </xsl:if>
         <xsl:if test=".//folia:lemma">
-            <xsl:for-each select=".//folia:lemma[not(ancestor-or-self::*/@auth) and not(ancestor-or-self::*/folia:morpheme)]">
+            <xsl:for-each select=".//folia:lemma[$ancestors_ok and $ancestors_nosubtoken]">
 			    <span class="attrlabel">Lemma</span><span class="attrvalue"><xsl:value-of select="@class" /></span><br />
             </xsl:for-each>
         </xsl:if>
         <xsl:if test=".//folia:sense">
-            <xsl:for-each select=".//folia:sense[not(ancestor-or-self::*/@auth) and not(ancestor-or-self::*/folia:morpheme)]">
+            <xsl:for-each select=".//folia:sense[$ancestors_ok and $ancestors_nosubtoken]">
 			    <span class="attrlabel">Sense</span><span class="attrvalue"><xsl:value-of select="@class" /></span><br />
             </xsl:for-each>
         </xsl:if>
-        <xsl:if test=".//folia:subjectivity[not(ancestor-or-self::*/@auth) and not(ancestor-or-self::*/folia:morpheme)]">
+        <xsl:if test=".//folia:subjectivity[$ancestors_ok and $ancestors_nosubtoken]">
+            <!-- This is a deprecated element!!! -->
             <xsl:for-each select=".//folia:subjectivity">
 			    <span class="attrlabel">Subjectivity</span><span class="attrvalue"><xsl:value-of select="@class" /></span><br />
             </xsl:for-each>
         </xsl:if>
         <xsl:if test=".//folia:metric">
-            <xsl:for-each select=".//folia:metric[not(ancestor-or-self::*/@auth) and not(ancestor-or-self::*/folia:morpheme)]">
+            <xsl:for-each select=".//folia:metric[$ancestors_ok and $ancestors_nosubtoken]">
                 <span class="attrlabel">Metric <xsl:value-of select="@class" /></span><span class="attrvalue"><xsl:value-of select="@value" /></span><br />
             </xsl:for-each>
         </xsl:if>
         <xsl:if test=".//folia:errordetection">
-            <xsl:for-each select=".//folia:errordetection[not(ancestor-or-self::*/@auth) and not(ancestor-or-self::*/folia:morpheme)]">
+            <!-- This is a deprecated element!!! -->
+            <xsl:for-each select=".//folia:errordetection[$ancestors_ok and $ancestors_nosubtoken]">
                 <span class="attrlabel">Error detected</span><span class="attrvalue"><xsl:value-of select="@class" /></span><br />
             </xsl:for-each>
         </xsl:if>
         <xsl:if test="folia:correction">
-            <!-- TODO: Expand to support all token annotations -->
+            <!-- TODO: Expand to support all inline annotations -->
             <xsl:if test="folia:correction/folia:suggestion/folia:t">
             	<span class="attrlabel">Suggestion(s) for text correction</span><span class="attrvalue"><xsl:for-each select="folia:correction/folia:suggestion/folia:t">
                     <em><xsl:value-of select="." /></em><xsl:text> </xsl:text>
@@ -658,8 +671,8 @@
             </xsl:if>
         </xsl:if>
         <xsl:if test=".//folia:morphology">
-            <xsl:for-each select=".//folia:morphology[not(ancestor-or-self::*/@auth)]">
-                <span class="attrlabel">Morphology</span> 
+            <xsl:for-each select=".//folia:morphology[$ancestors_ok]">
+                <span class="attrlabel">Morphology</span>
                 <span class="attrvalue">
                     <xsl:for-each select="folia:morpheme">
                         <span class="morpheme">
@@ -671,12 +684,12 @@
                                 <span class="details">[function=<xsl:value-of select="@function" />]</span>
                             </xsl:if>
                             <xsl:if test=".//folia:pos">
-                                <xsl:for-each select=".//folia:pos[not(ancestor-or-self::*/@auth)]">
+                                <xsl:for-each select=".//folia:pos[$ancestors_ok]">
                                     <span class="details">[pos=<xsl:value-of select="@class" />]</span>
                                 </xsl:for-each>
                             </xsl:if>
                             <xsl:if test=".//folia:lemma">
-                                <xsl:for-each select=".//folia:lemma[not(ancestor-or-self::*/@auth)]">
+                                <xsl:for-each select=".//folia:lemma[$ancestors_ok]">
                                     <span class="details">[lemma=<xsl:value-of select="@class" />]</span>
                                 </xsl:for-each>
                             </xsl:if>
@@ -708,7 +721,7 @@
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:if test="//folia:w[@xml:id=$wrefid]">
-                        <xsl:value-of select="//folia:w[@xml:id=$wrefid]/folia:t[not(ancestor::folia:original) and not(ancestor::folia:suggestion) and not(ancestor::folia:alternative) and not(ancestor-or-self::*/auth)]"/>
+                        <xsl:value-of select="//folia:w[@xml:id=$wrefid]/folia:t[$ancestors_ok]"/>
                     </xsl:if>
                     <xsl:text> </xsl:text>
                 </xsl:otherwise>
@@ -726,6 +739,23 @@
             <xsl:for-each select="folia:entity">
                 <xsl:if test=".//folia:wref[@id=$id]">
                     <span class="attrlabel">Entity</span>
+                    <span class="attrvalue">
+                        <span class="spanclass"><xsl:value-of select="@class" /></span>
+                        <xsl:call-template name="span">
+                            <xsl:with-param name="id" select="$id" />
+                        </xsl:call-template>
+                    </span><br />
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:for-each>
+    </xsl:for-each>
+
+    <xsl:variable name="observations" select="ancestor::*"></xsl:variable>
+    <xsl:for-each select="$observations">
+        <xsl:for-each select="folia:observation">
+            <xsl:for-each select="folia:observation">
+                <xsl:if test=".//folia:wref[@id=$id]">
+                    <span class="attrlabel">Observation</span>
                     <span class="attrvalue">
                         <span class="spanclass"><xsl:value-of select="@class" /></span>
                         <xsl:call-template name="span">
@@ -891,7 +921,7 @@
 
 
 <xsl:template match="folia:su" mode="xml2layout">
- <!-- Enrich SU for conversion to SVG --> 
+ <!-- Enrich SU for conversion to SVG -->
 
   <xsl:param name="id" />
 
@@ -1005,7 +1035,7 @@
             </xsl:when>
             <xsl:otherwise>
                 <xsl:if test="//folia:w[@xml:id=$wrefid]">
-                    <xsl:value-of select="//folia:w[@xml:id=$wrefid]/folia:t[not(ancestor::folia:original) and not(ancestor::folia:suggestion) and not(ancestor::folia:alternative) and not(ancestor-or-self::*/auth)]"/>
+                    <xsl:value-of select="//folia:w[@xml:id=$wrefid]/folia:t[$ancestors_ok]"/>
                 </xsl:if>
                 <xsl:text> </xsl:text>
             </xsl:otherwise>
