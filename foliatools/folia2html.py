@@ -9,7 +9,7 @@ def main():
     usage = """folia2html
   by Maarten van Gompel (proycon)
   Centre for Language and Speech Technology, Radboud University Nijmegen
-  2016 - Licensed under GPLv3
+  2016-2019 - Licensed under GPLv3
 
 
 This conversion script converts one or more FoLiA documents to a semi-interactive HTML document for

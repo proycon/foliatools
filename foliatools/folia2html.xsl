@@ -518,10 +518,9 @@
     <span class="part"><xsl:apply-templates /></span>
 </xsl:template>
 
-<xsl:variable name="ignore_list" select="' original suggestion alternative altlayers foreign-data '" /> <!-- The leading/trailing space is deliberate! -->
-
 <xsl:variable name="ancestors_ok">not(ancestor::folia:original) and not(ancestor::folia:suggestion) and not(ancestor::folia:alt) and not(ancestor::folia:altlayers)</xsl:variable><!-- Checks if all ancestors are authoritative -->
 <xsl:variable name="ancestors_nosubtoken">not(ancestor::folia:morpheme) and not(ancestor::folia:phoneme)</xsl:variable><!-- Checks if all ancestors are authoritative -->
+<xsl:variable name="textclass_current">(not(@class) or (@class='current'))</xsl:variable>
 
 <xsl:template match="folia:w">
     <xsl:variable name="wid" select="@xml:id" />
@@ -543,7 +542,7 @@
     <!-- Test presence of text in deeper structure elements, if they exist we don't
          render this text but rely on the text in the deeper structure  -->
     <!-- Next, check if text element is authoritative (ancestors_ok) and have the proper class -->
-    <xsl:if test="not(following-sibling::*//folia:t[(not(./@class) or ./@class='current') and $ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str)])"><xsl:if test="(not(./@class) or ./@class='current') and $ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str)"><xsl:apply-templates /></xsl:if></xsl:if>
+    <xsl:if test="not(following-sibling::*//folia:t[$textclass_current and $ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str)])"><xsl:if test="$textclass_current and $ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str)"><xsl:apply-templates /></xsl:if></xsl:if>
 </xsl:template>
 
 
@@ -676,7 +675,7 @@
                 <span class="attrvalue">
                     <xsl:for-each select="folia:morpheme">
                         <span class="morpheme">
-                            <xsl:value-of select="./folia:t[not(@class) or @class='current']" />
+                            <xsl:value-of select="./folia:t[$textclass_current]" />
                             <xsl:if test="@class">
                                 <span class="details">(<xsl:value-of select="@class" />)</span>
                             </xsl:if>
@@ -858,6 +857,69 @@
                 <xsl:with-param name="id" select="$id" />
             </xsl:call-template>
         </span><br/>
+    </xsl:for-each>
+    </xsl:for-each>
+
+    <xsl:for-each select="$ancestors">
+    <xsl:for-each select="folia:statements">
+        <xsl:for-each select="folia:statement">
+            <xsl:if test=".//folia:wref[@id=$id]">
+                <span class="attrlabel">Statement</span>
+                <span class="attrvalue">
+                    <span class="spanclass"><xsl:value-of select="@class" /></span><xsl:text> </xsl:text>
+                        <xsl:for-each select="folia:hd">
+                            <strong>Head:</strong>
+                            <xsl:call-template name="span">
+                                <xsl:with-param name="id" select="$id" />
+                            </xsl:call-template>
+                        </xsl:for-each>
+                        <xsl:for-each select="folia:source">
+                            <strong>Source:</strong>
+                            <xsl:call-template name="span">
+                                <xsl:with-param name="id" select="$id" />
+                            </xsl:call-template>
+                        </xsl:for-each>
+                        <xsl:for-each select="folia:rel">
+                            <strong>Relation:</strong>
+                            <xsl:call-template name="span">
+                                <xsl:with-param name="id" select="$id" />
+                            </xsl:call-template>
+                        </xsl:for-each>
+                </span><br />
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:for-each>
+    </xsl:for-each>
+
+
+    <xsl:for-each select="$ancestors">
+    <xsl:for-each select="folia:sentiments">
+        <xsl:for-each select="folia:sentiment">
+            <xsl:if test=".//folia:wref[@id=$id]">
+                <span class="attrlabel">Sentiment</span>
+                <span class="attrvalue">
+                    <span class="spanclass"><xsl:value-of select="@class" /></span><xsl:text> </xsl:text>
+                        <xsl:for-each select="folia:hd">
+                            <strong>Head:</strong>
+                            <xsl:call-template name="span">
+                                <xsl:with-param name="id" select="$id" />
+                            </xsl:call-template>
+                        </xsl:for-each>
+                        <xsl:for-each select="folia:source">
+                            <strong>Source:</strong>
+                            <xsl:call-template name="span">
+                                <xsl:with-param name="id" select="$id" />
+                            </xsl:call-template>
+                        </xsl:for-each>
+                        <xsl:for-each select="folia:target">
+                            <strong>Target:</strong>
+                            <xsl:call-template name="span">
+                                <xsl:with-param name="id" select="$id" />
+                            </xsl:call-template>
+                        </xsl:for-each>
+                </span><br />
+            </xsl:if>
+        </xsl:for-each>
     </xsl:for-each>
     </xsl:for-each>
 </xsl:template>
