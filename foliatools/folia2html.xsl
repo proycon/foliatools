@@ -318,8 +318,8 @@
 					font-weight: 12px;
 					font-family: monospace;
                 }
-                span.spanclass {
-                    color: #990000;
+                span.class {
+                    color: #000099;
                     text-weight: bold;
                 }
                 span.morpheme {
@@ -623,23 +623,23 @@
         <xsl:call-template name="contentannotation_phon" />
         <xsl:if test=".//folia:pos">
             <xsl:for-each select=".//folia:pos[$ancestors_ok and $ancestors_nosubtoken]">
-            	<span class="attrlabel">PoS</span><span class="attrvalue"><xsl:value-of select="@class" /></span><br />
+            	<span class="attrlabel">PoS</span><span class="attrvalue class"><xsl:value-of select="@class" /></span><br />
             </xsl:for-each>
         </xsl:if>
         <xsl:if test=".//folia:lemma">
             <xsl:for-each select=".//folia:lemma[$ancestors_ok and $ancestors_nosubtoken]">
-			    <span class="attrlabel">Lemma</span><span class="attrvalue"><xsl:value-of select="@class" /></span><br />
+			    <span class="attrlabel">Lemma</span><span class="attrvalue class"><xsl:value-of select="@class" /></span><br />
             </xsl:for-each>
         </xsl:if>
         <xsl:if test=".//folia:sense">
             <xsl:for-each select=".//folia:sense[$ancestors_ok and $ancestors_nosubtoken]">
-			    <span class="attrlabel">Sense</span><span class="attrvalue"><xsl:value-of select="@class" /></span><br />
+			    <span class="attrlabel">Sense</span><span class="attrvalue class"><xsl:value-of select="@class" /></span><br />
             </xsl:for-each>
         </xsl:if>
         <xsl:if test=".//folia:subjectivity[$ancestors_ok and $ancestors_nosubtoken]">
             <!-- This is a deprecated element!!! -->
             <xsl:for-each select=".//folia:subjectivity">
-			    <span class="attrlabel">Subjectivity</span><span class="attrvalue"><xsl:value-of select="@class" /></span><br />
+			    <span class="attrlabel">Subjectivity</span><span class="attrvalue class"><xsl:value-of select="@class" /></span><br />
             </xsl:for-each>
         </xsl:if>
         <xsl:if test=".//folia:metric">
@@ -739,7 +739,7 @@
                 <xsl:if test=".//folia:wref[@id=$id]">
                     <span class="attrlabel">Entity</span>
                     <span class="attrvalue">
-                        <span class="spanclass"><xsl:value-of select="@class" /></span>
+                        <span class="class"><xsl:value-of select="@class" /></span>
                         <xsl:call-template name="span">
                             <xsl:with-param name="id" select="$id" />
                         </xsl:call-template>
@@ -756,7 +756,7 @@
                 <xsl:if test=".//folia:wref[@id=$id]">
                     <span class="attrlabel">Observation</span>
                     <span class="attrvalue">
-                        <span class="spanclass"><xsl:value-of select="@class" /></span>
+                        <span class="class"><xsl:value-of select="@class" /></span>
                         <xsl:call-template name="span">
                             <xsl:with-param name="id" select="$id" />
                         </xsl:call-template>
@@ -775,7 +775,7 @@
             <xsl:if test=".//folia:wref[@id=$id]">
                 <span class="attrlabel">Chunk</span>
                 <span class="attrvalue">
-                    <span class="spanclass"><xsl:value-of select="@class" /></span>
+                    <span class="class"><xsl:value-of select="@class" /></span>
                         <xsl:call-template name="span">
                             <xsl:with-param name="id" select="$id" />
                         </xsl:call-template>
@@ -793,7 +793,7 @@
             <xsl:if test=".//folia:wref[@id=$id]">
                 <span class="attrlabel">Semantic Role</span>
                 <span class="attrvalue">
-                    <span class="spanclass"><xsl:value-of select="@class" /></span>
+                    <span class="class"><xsl:value-of select="@class" /></span>
                         <xsl:call-template name="span">
                             <xsl:with-param name="id" select="$id" />
                         </xsl:call-template>
@@ -810,7 +810,7 @@
             <xsl:if test=".//folia:wref[@id=$id]">
                 <span class="attrlabel">Coreference Chain</span>
                 <span class="attrvalue">
-                    <span class="spanclass"><xsl:value-of select="@class" /></span>
+                    <span class="class"><xsl:value-of select="@class" /></span>
                     <xsl:for-each select="folia:coreferencelink">
                         <xsl:call-template name="span">
                             <xsl:with-param name="id" select="$id" />
@@ -830,7 +830,7 @@
             <xsl:if test=".//folia:wref[@id=$id]">
                 <span class="attrlabel">Dependency</span>
                 <span class="attrvalue">
-                    <span class="spanclass"><xsl:value-of select="@class" /></span><xsl:text> </xsl:text>
+                    <span class="class"><xsl:value-of select="@class" /></span><xsl:text> </xsl:text>
                         <xsl:for-each select="folia:hd">
                             <strong>Head:</strong>
                             <xsl:call-template name="span">
@@ -866,7 +866,7 @@
             <xsl:if test=".//folia:wref[@id=$id]">
                 <span class="attrlabel">Statement</span>
                 <span class="attrvalue">
-                    <span class="spanclass"><xsl:value-of select="@class" /></span><xsl:text> </xsl:text>
+                    <span class="class"><xsl:value-of select="@class" /></span><xsl:text> </xsl:text>
                         <xsl:for-each select="folia:hd">
                             <strong>Head:</strong>
                             <xsl:call-template name="span">
@@ -898,7 +898,7 @@
             <xsl:if test=".//folia:wref[@id=$id]">
                 <span class="attrlabel">Sentiment</span>
                 <span class="attrvalue">
-                    <span class="spanclass"><xsl:value-of select="@class" /></span><xsl:text> </xsl:text>
+                    <span class="class"><xsl:value-of select="@class" /></span><xsl:text> </xsl:text>
                         <xsl:for-each select="folia:hd">
                             <strong>Head:</strong>
                             <xsl:call-template name="span">
