@@ -559,7 +559,7 @@ def outputblock(block, target, varname, args, indent = ""):
         if  "CLASS" in required_attribs:
             specdata["Declaration"] = "``<" + annotationtype.lower() + "-annotation set=\"...\">``"
         elif  "CLASS" in optional_attribs:
-            specdata["Declaration"] = "``<" + annotationtype.lower() + "-annotation set=\"...\">`` *(note: ``set`` is optional for this annotation type)*"
+            specdata["Declaration"] = "``<" + annotationtype.lower() + "-annotation set=\"...\">`` *(note: set is optional for this annotation type; if you declare this annotation type to be setless you can not assign classes)*"
         else:
             specdata["Declaration"] = "``<" + annotationtype.lower() + "-annotation>`` *(note: there is no set associated with this annotation type)"
         specdata["Version History"] = spec['annotationtype_doc'][annotationtype.lower()]['history']
@@ -582,7 +582,7 @@ def outputblock(block, target, varname, args, indent = ""):
             except KeyError:
                 annotationtype = None
             specdata["**Element**"] = "``<" + element['properties']['xmltag'] + ">``"
-            specdata["API Class"] = "``" + element['class'] + "``"
+            specdata["API Class"] = "``" + element['class'] + "`` (`FoLiApy API Reference <https://foliapy.readthedocs.io/en/latest/_autosummary/folia.main." + element['class'] + ">`_)"
             required_attribs = addfromparents(element['class'],'required_attribs')
             if "CLASS" in required_attribs: required_attribs.add("SET")
             if "ANNOTATOR" in required_attribs:
@@ -606,13 +606,13 @@ def outputblock(block, target, varname, args, indent = ""):
                 for e in elements:
                     if e['class'].endswith("Layer") and 'annotationtype' in e['properties'] and e['properties']['annotationtype'] == annotationtype:
                         layer = e['properties']['xmltag']
-                specdata["Layer Element"] = layer
+                specdata["Layer Element"] = "``<" + layer + ">``"
                 #Find span roles
                 spanroles = []
                 for elementname in accepted_data:
                     if "AbstractSpanRole" in parents[elementname]:
                         spanroles.append(elementname)
-                spanroles = ", ".join([ "``" + x + "``" for x in spanroles ])
+                spanroles = ", ".join([ "``<" + elementdict[elementname]['properties']['xmltag'] + ">`` (``" + x + "``)"  for x in spanroles ])
                 specdata["Span Role Elements"] = spanroles
             specdata["Required Attributes"] = "\n                      ".join( [ line for line in outputblock("attributes_doc", target, "attributes_doc", ["EMPTY"] + [a.lower() for a in  required_attribs]).split("\n") if line ] )
             if ("xlink" in element["properties"] and element["properties"]["xlink"]) or ("xlink" in elementdict[parents[element["class"]][0]]["properties"] and elementdict[parents[element["class"]][0]]["properties"]["xlink"]):
