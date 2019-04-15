@@ -49,6 +49,9 @@ def validate(filename, schema = None,**kwargs):
             print("WARNING: there were " + str(document.textvalidationerrors) + " text validation errors but these are currently not counted toward the full validation result (use -t for strict text validation)", file=sys.stderr)
     if not kwargs.get('quick'):
         try:
+            if kwargs.get('output'):
+                if not (folia.checkversion(document.version, "2.0.0") < 0 and kwargs.get('keepversion')):
+                    document.provenance.append( folia.Processor.create(name="foliavalidator", version=TOOLVERSION, src="https://github.com/proycon/foliatools") )
             xml = document.xmlstring()
             if kwargs.get('output'):
                 if folia.checkversion(document.version, "2.0.0") < 0 and not kwargs.get('keepversion') and not kwargs.get('autodeclare'):
@@ -95,7 +98,7 @@ def commandparser(parser):
     parser.add_argument('-W','--nowarn',help="Suppress warnings", action='store_true', default=False)
     parser.add_argument('-i','--ignore',help="Always report a successful exit code, even in case of validation errors", action='store_true', default=False)
     parser.add_argument('-t','--stricttextvalidation',help="Treat text validation errors strictly for FoLiA < v1.5,  it always enabled for for FoLiA v1.5+ regardless of this parameter", action='store_true', default=False)
-    parser.add_argument('-o','--output',help="Output document to stdout", action='store_true', default=False)
+    parser.add_argument('-o','--output',help="Output document to stdout. This output contains added proof of validation to the provenance chain (not cryptographically secure though!)", action='store_true', default=False)
     parser.add_argument('-k','--keepversion',help="Attempt to keep an older FoLiA version (not always guaranteed to work)", action='store_true', default=False)
     parser.add_argument('-D','--debug',type=int,help="Debug level", action='store',default=0)
     parser.add_argument('-b','--traceback',help="Provide a full traceback on validation errors", action='store_true', default=False)
