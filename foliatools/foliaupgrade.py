@@ -85,7 +85,7 @@ def upgrade(doc, upgradeprocessor):
 
     if not doc.provenance or (len(doc.provenance) == 1 and doc.provenance.processors[0] == upgradeprocessor):
         #add a datasource processor as the first one
-        doc.provenance.insert(0, folia.Processor(doc.id + ".source", folia_version=doc.version, type=folia.ProcessorType.DATASOURCE))
+        doc.provenance.insert(0, folia.Processor(doc.id + ".pre-upgrade", folia_version=doc.version, type=folia.ProcessorType.DATASOURCE, src=doc.filename, format="text/folia+xml"))
 
     #bump the version number
     doc.version = folia.FOLIAVERSION
