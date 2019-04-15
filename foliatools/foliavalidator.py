@@ -51,7 +51,7 @@ def validate(filename, schema = None,**kwargs):
         try:
             if kwargs.get('output'):
                 if not (folia.checkversion(document.version, "2.0.0") < 0 and kwargs.get('keepversion')):
-                    document.provenance.append( folia.Processor.create(name="foliavalidator", version=TOOLVERSION, src="https://github.com/proycon/foliatools") )
+                    document.provenance.append( folia.Processor.create(name="foliavalidator", version=TOOLVERSION, src="https://github.com/proycon/foliatools", metadata={"valid": "yes"}) )
             xml = document.xmlstring()
             if kwargs.get('output'):
                 if folia.checkversion(document.version, "2.0.0") < 0 and not kwargs.get('keepversion') and not kwargs.get('autodeclare'):
