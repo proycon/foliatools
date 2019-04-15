@@ -52,7 +52,7 @@ def annotators2processors(doc, mainprocessor):
     """Convert FoLiA v1 style annotators to v2 style processors (limited)"""
     for element in doc.items():
         if isinstance(element, folia.AbstractElement):
-            if element.annotator:
+            if element.annotator is not None:
                 if element.annotatortype == folia.ProcessorType.MANUAL:
                     annotatortype = folia.ProcessorType.MANUAL
                 else:
@@ -75,7 +75,24 @@ def annotators2processors(doc, mainprocessor):
                 #delete the old style annotator
                 element.annotator = None
                 element.annotatortype = None
+            elif element.annotatortype is not None:
+                element.annotatortype = None
+                element.annotator = None
     doc.annotationdefaults = {} #not needed anymore
+
+def upgrade(doc, upgradeprocessor):
+    assert doc.autodeclare
+
+    if not doc.provenance or (len(doc.provenance) == 1 and doc.provenance.processors[0] == upgradeprocessor):
+        #add a datasource processor as the first one
+        doc.provenance.insert(0, folia.Processor(doc.id + ".source", folia_version=doc.version, type=folia.ProcessorType.DATASOURCE))
+
+    #bump the version number
+    doc.version = folia.FOLIAVERSION
+    #convert old style annotators to new style processors
+    annotators2processors(doc, upgradeprocessor)
+    #convert undefined sets
+    convert_undefined_sets(doc)
 
 
 def process(*files, **kwargs):
@@ -86,16 +103,11 @@ def process(*files, **kwargs):
             if r != 0:
                 success = False
         elif os.path.isfile(file):
-            mainprocessor = folia.Processor.create(name="foliaupgrade", version=VERSION)
+            mainprocessor = folia.Processor.create(name="foliaupgrade", version=VERSION, src="https://github.com/proycon/foliatools")
             doc = validate(file,schema=None, stricttextvalidation=True,autodeclare=True,output=False, warn=False,processor=mainprocessor,traceback=True,**kwargs)
             if doc is not False:
                 print("Upgrading " + doc.filename,file=sys.stderr)
-                #bump the version number
-                doc.version = folia.FOLIAVERSION
-                #convert old style annotators to new style processors
-                annotators2processors(doc, mainprocessor)
-                #convert undefined sets
-                convert_undefined_sets(doc)
+                upgrade(doc, mainprocessor)
                 doc.save(doc.filename + ".upgraded")
                 if not validate(file + ".upgraded",schema=None,stricttextvalidation=True,autodeclare=False,traceback=True,**kwargs):
                     print("Upgrade failed",file=sys.stderr)
