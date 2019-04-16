@@ -45,8 +45,8 @@ class Writer(writers.Writer):
 %(declarations)s
  </annotations>
  <provenance>
-  <processor xml:id="p0.rst2folia" name="rst2folia" type="auto" version="%(version)s">
-    <processor xml:id="p0.rst2folia.generator" name="docutils" type="generator" version="%(docutilsversion)s" folia_version="2.0.0"/>
+  <processor xml:id="proc.rst2folia" name="rst2folia" type="auto" version="%(version)s" folia_version="2.0.0">
+    <processor xml:id="proc.rst2folia.generator" name="docutils" type="generator" version="%(docutilsversion)s" folia_version="2.0.0"/>
   </processor>
  </provenance>
 %(metadata)s
