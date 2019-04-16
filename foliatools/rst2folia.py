@@ -317,9 +317,9 @@ class FoLiATranslator(nodes.NodeVisitor):
             return
         if annotationtype not in self.declared:
             if annotationtype in self.sets and self.sets[annotationtype]:
-                self.declarations.append("   <" + annotationtype + "-annotation set=\"" + self.sets[annotationtype] + "\">\n     <annotator processor=\"p0.rst2folia\" />\n   </" + annotationtype + "-annotation>\n")
+                self.declarations.append("   <" + annotationtype + "-annotation set=\"" + self.sets[annotationtype] + "\">\n     <annotator processor=\"proc.rst2folia\" />\n   </" + annotationtype + "-annotation>\n")
             else:
-                self.declarations.append("   <" + annotationtype + "-annotation>\n     <annotator processor=\"p0.rst2folia\" />\n   </" + annotationtype + "-annotation>\n")
+                self.declarations.append("   <" + annotationtype + "-annotation>\n     <annotator processor=\"proc.rst2folia\" />\n   </" + annotationtype + "-annotation>\n")
             self.declared[annotationtype] = True
             if annotationtype == 'gap':
                 self.declare('rawcontent')
