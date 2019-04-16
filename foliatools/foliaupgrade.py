@@ -6,8 +6,10 @@ import argparse
 import glob
 import shutil
 import folia.main as folia
+from socket import getfqdn
 from foliatools import VERSION
 from foliatools.foliavalidator import validate
+
 
 def main():
     parser = argparse.ArgumentParser(description="", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -85,7 +87,7 @@ def upgrade(doc, upgradeprocessor):
 
     if not doc.provenance or (len(doc.provenance) == 1 and doc.provenance.processors[0] == upgradeprocessor):
         #add a datasource processor as the first one
-        doc.provenance.insert(0, folia.Processor(doc.id + ".pre-upgrade", folia_version=doc.version, type=folia.ProcessorType.DATASOURCE, src=doc.filename, format="text/folia+xml"))
+        doc.provenance.insert(0, folia.Processor(doc.id + ".pre-upgrade", folia_version=doc.version, type=folia.ProcessorType.DATASOURCE, host=getfqdn(), src="file://" + doc.filename, format="text/folia+xml"))
 
     #bump the version number
     doc.version = folia.FOLIAVERSION
