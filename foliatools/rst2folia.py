@@ -804,5 +804,17 @@ def rst2folia(srcstring, **settings):
     if not settings: settings = None
     return publish_string(srcstring, writer=Writer(), settings=settings, settings_overrides={'output_encoding': 'unicode'})
 
+def flat_convert(filename, targetfilename, *args, **kwargs):
+    """Wrapper function for use by FLAT's converter mechanism"""
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            rstdata = f.read()
+        foliadata = rst2folia(rstdata, **kwargs)
+        with open(targetfilename,'w',encoding='utf-8') as f:
+            f.write(foliadata)
+    except Exception as e:
+        return False, str(e)
+    return True
+
 if __name__ == '__main__':
     main()
