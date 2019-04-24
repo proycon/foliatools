@@ -43,7 +43,7 @@ def main():
         convert(file, **args.__dict__)
 
 def convert(file, **args):
-    if args['id']:
+    if args.get('id'):
         doc_id = makencname(args['id'])
     else:
         doc_id = makencname(os.path.basename(file).replace(".conllu","").replace(".conllu",""))
@@ -89,16 +89,16 @@ def convert(file, **args):
                         for subset, cls in token['feats'].items():
                             pos.add(folia.Feature,subset=subset,cls=cls)
                 if token['xpostag']:
-                    word.append(folia.PosAnnotation, cls=token['xpostag'], set=args['posset'])
+                    word.append(folia.PosAnnotation, cls=token['xpostag'], set=args.get('posset','undefined'))
                     if isinstance(token['feats'], dict) and not token['upostag']:
                         for subset, cls in token['feats'].items():
                             pos.add(folia.Feature,subset=subset,cls=cls)
                 if token['lemma']:
-                    word.add(folia.LemmaAnnotation, cls=token['lemma'], set=args['lemmaset'])
+                    word.add(folia.LemmaAnnotation, cls=token['lemma'], set=args.get('lemmaset','undefined'))
                 hascontent = True
             for token in tokenlist:
                 if token['head'] and token['deprel']:
-                    sentence.add(folia.Dependency(doc, set=args['depset'], cls=token['deprel'], contents=[
+                    sentence.add(folia.Dependency(doc, set=args.get('depset',UDEP_SET), cls=token['deprel'], contents=[
                         folia.DependencyHead(doc, wordindex[token['head']]),
                         folia.DependencyDependent(doc, wordindex[token['id']])
                     ]))
