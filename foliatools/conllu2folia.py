@@ -20,6 +20,7 @@ import sys
 import os
 import argparse
 import conllu
+import traceback
 import folia.main as folia
 from foliatools import VERSION as TOOLVERSION
 from foliatools.common import makencname, set_metadata
@@ -119,6 +120,9 @@ def flat_convert(filename, targetfilename, *args, **kwargs):
         doc = convert(filename, **kwargs)
         set_metadata(doc, **kwargs)
     except Exception as e:
+        print(e,file=sys.stderr)
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_tb(exc_traceback, limit=50, file=sys.stderr)
         return False, str(e)
     return True
 

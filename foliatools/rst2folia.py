@@ -18,6 +18,7 @@ import sys
 import glob
 import gzip
 import os
+import traceback
 
 from collections import defaultdict
 from copy import copy
@@ -800,19 +801,21 @@ def main():
     description = 'Generates FoLiA documents from reStructuredText. ' + default_description
     publish_cmdline(writer=Writer(), writer_name='folia', description=description)
 
-def rst2folia(srcstring, **settings):
-    if not settings: settings = None
-    return publish_string(srcstring, writer=Writer(), settings=settings, settings_overrides={'output_encoding': 'unicode'})
+def rst2folia(srcstring):
+    return publish_string(srcstring, writer=Writer(), settings_overrides={'output_encoding': 'unicode'})
 
 def flat_convert(filename, targetfilename, *args, **kwargs):
     """Wrapper function for use by FLAT's converter mechanism"""
     try:
         with open(filename, 'r', encoding='utf-8') as f:
             rstdata = f.read()
-        foliadata = rst2folia(rstdata, **kwargs)
+        foliadata = rst2folia(rstdata)
         with open(targetfilename,'w',encoding='utf-8') as f:
             f.write(foliadata)
     except Exception as e:
+        print(e,file=sys.stderr)
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_tb(exc_traceback, limit=50, file=sys.stderr)
         return False, str(e)
     return True
 
