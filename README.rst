@@ -18,6 +18,7 @@ A number of command-line tools are readily available for working with FoLiA, to 
 - ``foliacat`` -- Concatenate multiple FoLiA documents.
 - ``foliacount`` -- This script reads a FoLiA XML document and counts certain structure elements.
 - ``foliacorrect`` -- A tool to deal with corrections in FoLiA, can automatically accept suggestions or strip all corrections so parsers that don't know how to handle corrections can process it.
+- ``foliaerase`` -- Erases one or more specified annotation types from the FoLiA document.
 - ``foliaid`` -- Assigns IDs to elements in FoLiA documents
 - ``foliafreqlist`` -- Output a frequency list on tokenised FoLiA documents.
 - ``foliamerge`` -- Merges annotations from two or more FoLiA documents.

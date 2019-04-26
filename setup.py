@@ -36,6 +36,7 @@ setup(
             'foliafreqlist = foliatools.foliafreqlist:main',
             'foliavalidator = foliatools.foliavalidator:main',
             'foliamerge = foliatools.foliamerge:main',
+            'foliaerase = foliatools.foliaerase:main',
             'folia2columns = foliatools.folia2columns:main',
             'folia2dcoi = foliatools.folia2dcoi:main',
             'folia2html = foliatools.folia2html:main',
