@@ -52,6 +52,7 @@ def convert_undefined_sets(doc):
 
 def annotators2processors(doc, mainprocessor):
     """Convert FoLiA v1 style annotators to v2 style processors (limited)"""
+    mapping = {} #annotator (name,type) to processor instance map
     for element in doc.items():
         if isinstance(element, folia.AbstractElement):
             if element.annotator is not None:
@@ -59,12 +60,16 @@ def annotators2processors(doc, mainprocessor):
                     annotatortype = folia.ProcessorType.MANUAL
                 else:
                     annotatortype = folia.ProcessorType.AUTO
-                foundprocessor = None
-                for processor in doc.getprocessors(element.ANNOTATIONTYPE, element.set):
-                    if element.annotator == processor.name and annotatortype == processor.type:
-                        foundprocessor = processor
+                try:
+                    foundprocessor = mapping[(element.annotator, annotatortype)]
+                except KeyError:
+                    foundprocessor = None
+                    for processor in doc.getprocessors(element.ANNOTATIONTYPE, element.set):
+                        if element.annotator == processor.name and annotatortype == processor.type:
+                            foundprocessor = processor
                 if foundprocessor:
                     element.processor = foundprocessor
+                    mapping[(element.annotator,annotatortype)] = foundprocessor
                 else:
                     #Create a new processor
                     newprocessor = folia.Processor(element.annotator, type=annotatortype)
@@ -74,6 +79,7 @@ def annotators2processors(doc, mainprocessor):
                         pass
                     mainprocessor.append(newprocessor)
                     element.setprocessor(newprocessor)
+                    mapping[(element.annotator,annotatortype)] = newprocessor
                 #delete the old style annotator
                 element.annotator = None
                 element.annotatortype = None
