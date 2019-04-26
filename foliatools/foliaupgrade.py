@@ -68,7 +68,7 @@ def annotators2processors(doc, mainprocessor):
                         if element.annotator == processor.name and annotatortype == processor.type:
                             foundprocessor = processor
                 if foundprocessor:
-                    element.processor = foundprocessor
+                    element.setprocessor(foundprocessor)
                     mapping[(element.annotator,annotatortype)] = foundprocessor
                 else:
                     #Create a new processor
