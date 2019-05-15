@@ -46,9 +46,9 @@
   </xsl:if>
 </xsl:template>
 
-<xsl:param name='generateIds'>true</xsl:param>
-<xsl:param name='useCorrectionTags'>true</xsl:param>
+<xsl:param name='generateIds'>true</xsl:param><!-- We actually rarely do this now -->
 
+<!-- Sentence ID -->
 <xsl:template name="setId">
  <xsl:if test="@xml:id or $generateIds='true'">
     <xsl:attribute name="xml:id">
@@ -152,13 +152,23 @@
 </xsl:template>
 
 <xsl:template match="item">
-<item>
-<t>
-<xsl:apply-templates/>
-</t>
-</item>
+ <xsl:choose>
+  <xsl:when test="name(preceding-sibling::*[1]) = 'label'">
+    <item>
+    <xsl:attribute name="n"><xsl:value-of select="string(preceding-sibling::*[1])" /></xsl:attribute>
+    <t><t-gap class="label"><xsl:value-of select="string(preceding-sibling::*[1])" /></t-gap><xsl:text> </xsl:text><xsl:apply-templates/></t>
+    </item>
+  </xsl:when>
+  <xsl:otherwise>
+    <item>
+    <t><xsl:apply-templates/></t>
+    </item>
+ </xsl:otherwise>
+</xsl:choose>
 </xsl:template>
 
+
+<xsl:template match="label"/>
 
 <xsl:template match="list">
 <list>
@@ -352,6 +362,12 @@ met anchors voor de notes (die niet in t mogen)
 
 <xsl:template match="head|docTitle|titlePart[not(ancestor::docTitle)]">
 <head>
+<xsl:attribute name="class">
+<xsl:choose>
+    <xsl:when test="@rend"><xsl:value-of select="@rend"/></xsl:when>
+    <xsl:otherwise>unspecified</xsl:otherwise>
+</xsl:choose>
+</xsl:attribute>
 <xsl:call-template name="textandorstructure"/>
 </head>
 </xsl:template>
@@ -543,58 +559,90 @@ pb n="199" facs="http://resources.huygens.knaw.nl/retroapp/service_declercq/5/im
 
 <xsl:template name="annotations">
  <annotations>
-  <text-annotation processor="proc.tei2folia.xsl"/>
+     <text-annotation>
+         <annotator processor="proc.tei2folia.xsl"/>
+     </text-annotation>
 <!--
  <entity-annotation annotatortype="auto" set="unknown"/>
- <subjectivity-annotation annotatortype="auto" set="unknown"/>
 -->
-  <division-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/division"/>
+  <division-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/division">
+         <annotator processor="proc.tei2folia.xsl"/>
+  </division-annotation>
   <xsl:if test="//p">
-    <paragraph-annotation processor="proc.tei2folia.xsl"/>
+    <paragraph-annotation>
+         <annotator processor="proc.tei2folia.xsl"/>
+    </paragraph-annotation>
   </xsl:if>
   <xsl:if test="//s">
-    <sentence-annotation processor="proc.tei2folia.xsl"/>
+    <sentence-annotation>
+         <annotator processor="proc.tei2folia.xsl"/>
+    </sentence-annotation>
   </xsl:if>
   <xsl:if test="//w">
-    <token-annotation processor="proc.tei2folia.xsl"/>
+    <token-annotation>
+         <annotator processor="proc.tei2folia.xsl"/>
+    </token-annotation>
   </xsl:if>
   <xsl:if test="//list">
-    <list-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/list" processor="proc.tei2folia.xsl" />
+      <list-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/list">
+         <annotator processor="proc.tei2folia.xsl"/>
+      </list-annotation>
   </xsl:if>
   <xsl:if test="//figure">
-    <figure-annotation processor="proc.tei2folia.xsl"/>
+    <figure-annotation>
+         <annotator processor="proc.tei2folia.xsl"/>
+    </figure-annotation>
   </xsl:if>
   <xsl:if test="//table">
-    <table-annotation processor="proc.tei2folia.xsl"/>
+    <table-annotation>
+         <annotator processor="proc.tei2folia.xsl"/>
+    </table-annotation>
   </xsl:if>
-  <xsl:if test="//gap">
-   <gap-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/gap" processor="proc.tei2folia.xsl"/>
+  <xsl:if test="//text//gap|//text//label">
+   <gap-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/gap">
+         <annotator processor="proc.tei2folia.xsl"/>
+   </gap-annotation>
   </xsl:if>
   <xsl:if test="//hi">
-   <style-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/style" processor="proc.tei2folia.xsl"/>
+   <style-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/style">
+         <annotator processor="proc.tei2folia.xsl"/>
+   </style-annotation>
  </xsl:if>
- <part-annotation annotatortype="auto" set="http://rdf.ivdnt.org/nederlab/folia/sets/part" processor="proc.tei2folia.xsl"/>
+ <part-annotation annotatortype="auto" set="http://rdf.ivdnt.org/nederlab/folia/sets/part"> <!-- we can't be sure if we use this, we try to avoid it as much as possible -->
+         <annotator processor="proc.tei2folia.xsl"/>
+ </part-annotation>
  <xsl:if test="//w/@pos">
-  <pos-annotation set="unknown" processor="proc.tei2folia.xsl"/>
+  <pos-annotation set="unknown">
+         <annotator processor="proc.tei2folia.xsl"/>
+  </pos-annotation>
  </xsl:if>
  <xsl:if test="//w/@lemma">
-  <lemma-annotation set="unknown" processor="proc.tei2folia.xsl"/>
+  <lemma-annotation set="unknown">
+         <annotator processor="proc.tei2folia.xsl"/>
+  </lemma-annotation>
  </xsl:if>
-<!--
- <whitespace-annotation annotatortype="auto" set="http://rdf.ivdnt.org/nederlab/folia/sets/whitespace"/>
--->
-<xsl:if test="//cor|//supplied|//del">
- <correction-annotation annotatortype="auto" set="http://rdf.ivdnt.org/nederlab/folia/sets/correction" processor="proc.tei2folia.xsl"/>
+<xsl:if test="//text//cor|//text//supplied|//text//del">
+ <correction-annotation annotatortype="auto" set="http://rdf.ivdnt.org/nederlab/folia/sets/correction">
+         <annotator processor="proc.tei2folia.xsl"/>
+ </correction-annotation>
 </xsl:if>
-<xsl:if test="//note">
- <note-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/note" processor="proc.tei2folia.xsl"/>
+<xsl:if test="//text//note">
+ <note-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/note">
+         <annotator processor="proc.tei2folia.xsl"/>
+ </note-annotation>
 </xsl:if>
- <string-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/string"/>
+ <string-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/string">
+         <annotator processor="proc.tei2folia.xsl"/>
+ </string-annotation>
 <xsl:if test="//sp|//stage">
- <event-annotation annotatortype="auto" set="unknown"/>
+ <event-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/events">
+         <annotator processor="proc.tei2folia.xsl"/>
+ </event-annotation>
 </xsl:if>
 <xsl:if test="//lb|//pb">
- <linebreak-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/linebreak"/>
+ <linebreak-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/linebreak">
+         <annotator processor="proc.tei2folia.xsl"/>
+ </linebreak-annotation>
 </xsl:if>
    </annotations>
 </xsl:template>
@@ -664,7 +712,7 @@ pb n="199" facs="http://resources.huygens.knaw.nl/retroapp/service_declercq/5/im
 </xsl:template>
 
 <xsl:template match="TEI|TEI.2">
-<FoLiA xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://ilk.uvt.nl/folia" version="2.0.3" generator="tei2folia.xsl">
+<FoLiA xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://ilk.uvt.nl/folia" version="2.0.4" generator="tei2folia.xsl">
   <xsl:attribute name="xml:id"><xsl:value-of select="$docid"/></xsl:attribute>
   <metadata>
     <xsl:call-template name="annotations"/>
