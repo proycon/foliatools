@@ -202,33 +202,32 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <!-- ************************** HELPER TEMPLATES  *********************** -->
 
-<!-- figure out if we need a text node -->
+<!-- process underlying text and/or structure-->
 <xsl:template name="textandorstructure">
+    <xsl:variable name="hasstructure"><xsl:choose><xsl:when test="p|div|s|w|lg|sp|table|row|cell|figure|list|item|cell|speaker|head">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
+    <xsl:variable name="hastext"><xsl:choose><xsl:when test="normalize-space(.) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
+    <xsl:variable name="hasmarkup"><xsl:choose><xsl:when test="hi|add|name|note|corr|supplied|add|l">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
+
+    <!--<xsl:comment>DEBUG:<xsl:value-of select="$hasstructure" /><xsl:value-of select="$hastext" /><xsl:value-of select="$hasmarkup" /></xsl:comment>-->
+
     <xsl:choose>
-        <xsl:when test="text()|hi|pb|add|name|note|corr|supplied|add|del">
-            <xsl:choose>
-                <xsl:when test="p|div|s|lg|sp|table|row|cell|figure|list|item">
-                    <!-- there are structural elements as well, we need to make sure they don't end up in <t> -->
-                    <part>
-                        <t><xsl:apply-templates mode="markup" /></t>
-                    </part>
-                    <xsl:apply-templates mode="structure" />
-                </xsl:when>
-                <xsl:otherwise>
-                    <!-- all is text markup, good -->
-                    <t><xsl:apply-templates mode="markup" /></t>
-                </xsl:otherwise>
-            </xsl:choose>
+        <xsl:when test="(number($hasmarkup) = 1 or number($hastext) = 1) and number($hasstructure) = 0">
+            <!-- all is text markup, easy -->
+            <t><xsl:apply-templates mode="markup" /></t>
         </xsl:when>
-        <xsl:when test="p|div|s|lg|sp|table|row|cell|figure|list|item">
-            <!-- structure only, easy -->
+        <xsl:when test="number($hasstructure) = 1 and number($hasmarkup) = 0 and number($hastext) = 0">
+            <!-- all is structure, easy -->
             <xsl:apply-templates mode="structure" />
         </xsl:when>
+        <xsl:otherwise>
+            <!-- fall back to structure, this will wrap things in part which can be resolved by a postprocessor -->
+            <xsl:apply-templates mode="structure" />
+        </xsl:otherwise>
     </xsl:choose>
 </xsl:template>
 
 
-<xsl:template name="pLike">
+<xsl:template name="p">
     <xsl:text>
     </xsl:text>
     <p>
@@ -279,7 +278,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <xsl:template match="p|speaker|trailer|closer|opener|lxx" mode="structure">
-    <xsl:call-template name="pLike"/>
+    <xsl:call-template name="p"/>
 </xsl:template>
 
 
@@ -353,21 +352,78 @@ Heavily adapted by Maarten van Gompel (Radboud University)
  </xsl:element>
 </xsl:template>
 
+<xsl:template match="q|quote" mode="structure">
+    <quote>
+    <xsl:call-template name="textandorstructure" />
+    </quote>
+</xsl:template>
+
+
+<xsl:template match="gap" mode="structure">
+    <gap annotator="{@resp}" class="{@reason}"/>
+</xsl:template>
 
 <!-- Valid both as structural and as markup, easy -->
-<xsl:template match="lb" mode="structure"><br class="linebreak"/></xsl:template>
-<xsl:template match="cb" mode="structure"><br class="columnbreak"/></xsl:template>
-<xsl:template match="pb" mode="structure"><br class="pagebreak" newpage="yes" pagenr="{@n}"/></xsl:template>
+<xsl:template match="lb" mode="structure"><xsl:call-template name="lb" /></xsl:template>
+<xsl:template match="cb" mode="structure"><xsl:call-template name="cb" /></xsl:template>
+<xsl:template match="pb" mode="structure"><xsl:call-template name="pb" /></xsl:template>
+
+<xsl:template match="note" mode="structure">
+    <note>
+        <xsl:choose>
+        <xsl:when test="@type">
+        <xsl:attribute name="class"><xsl:value-of select="@type" /></xsl:attribute>
+        </xsl:when>
+        <xsl:when test="@place = 'foot'">
+        <xsl:attribute name="class">footnote</xsl:attribute>
+        </xsl:when>
+        <xsl:otherwise>unspecified</xsl:otherwise>
+        </xsl:choose>
+        <xsl:if test="@n"><xsl:attribute name="n"><xsl:value-of select="@n" /></xsl:attribute></xsl:if>
+        <xsl:call-template name="textandorstructure" />
+    </note>
+</xsl:template>
+
+<!-- Markup elements in structural mode, wrap in part (to be sorted by postprocessor later)-->
+
+
+<!-- Text structural mode, wrap in part (to be sorted by postprocessor later!)-->
+<xsl:template match="l" mode="structure">
+    <part class="temp-l"><t><xsl:call-template name="l" /></t></part>
+</xsl:template>
+
+<xsl:template match="hi" mode="structure">
+    <part class="temp-hi"><t><xsl:call-template name="hi" /></t></part>
+</xsl:template>
+
+<xsl:template match="add" mode="structure">
+    <part class="temp-add"><t><xsl:call-template name="add" /></t></part>
+</xsl:template>
+
+<xsl:template match="corr" mode="structure">
+    <part class="temp-corr"><t><xsl:call-template name="corr" /></t></part>
+</xsl:template>
+
+<xsl:template match="supplied" mode="structure">
+    <part class="temp-supplied"><t><xsl:call-template name="supplied" /></t></part>
+</xsl:template>
+
+<xsl:template match="del" mode="structure">
+    <part class="temp-del"><t><xsl:call-template name="del" /></t></part>
+</xsl:template>
+
+<xsl:template match="text()" mode="structure">
+<xsl:if test="normalize-space(.)">
+<part class="temp-text"><t><xsl:value-of select="." /></t></part>
+</xsl:if>
+</xsl:template>
+
 
 <!-- ************************** TEMPLATES PRODUCING MARKUP ELEMENTS  *********************** -->
 
-<xsl:template match="p//quote|p//q" mode="markup">
-<t-str class="quote">
-<xsl:apply-templates mode="markup" />
-</t-str>
-</xsl:template>
+<!-- These come in name/match template pairs as they are also referenced by the structural variants -->
 
-<xsl:template match="name" mode="markup">
+<xsl:template name="name">
 <t-str class="name">
 <xsl:choose>
 <xsl:when test="@type">
@@ -381,82 +437,111 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </t-str>
 </xsl:template>
 
-<xsl:template match="add" mode="markup">
+<xsl:template match="name" mode="markup">
+<xsl:call-template name="name" />
+</xsl:template>
+
+
+
+<xsl:template name="add">
 <t-str class="addition">
 <xsl:apply-templates mode="markup" />
 </t-str>
 </xsl:template>
 
+<xsl:template match="add" mode="markup">
+<xsl:call-template name="add" />
+</xsl:template>
+
 <!-- styling (tei:hi) -->
-<xsl:template match="hi" mode="markup">
+<xsl:template name="hi">
 <t-style><xsl:attribute name="class"><xsl:choose><xsl:when test="@rendition"><xsl:value-of select="@rendition"/></xsl:when><xsl:when test="@rend"><xsl:value-of select="@rend"/></xsl:when><xsl:otherwise>unspecified</xsl:otherwise></xsl:choose></xsl:attribute><xsl:apply-templates mode="markup"/></t-style>
+</xsl:template>
+
+<xsl:template match="hi" mode="markup">
+<xsl:call-template name="hi" />
 </xsl:template>
 
 
 <!-- Valid both as structural and as markup, easy -->
-<xsl:template match="lb" mode="markup"><br class="linebreak"/></xsl:template>
-<xsl:template match="cb" mode="markup"><br class="columnbreak"/></xsl:template>
-<xsl:template match="pb" mode="markup"><br class="pagebreak" newpage="yes" pagenr="{@n}"/></xsl:template>
+<xsl:template name="lb"><br class="linebreak"/></xsl:template>
+<xsl:template name="cb"><br class="columnbreak"/></xsl:template>
+<xsl:template name="pb"><br class="pagebreak" newpage="yes" pagenr="{@n}"/></xsl:template>
+
+<xsl:template match="lb" mode="markup"><xsl:call-template name="lb" /></xsl:template>
+<xsl:template match="cb" mode="markup"><xsl:call-template name="cb" /></xsl:template>
+<xsl:template match="pb" mode="markup"><xsl:call-template name="pb" /></xsl:template>
 
 
 <!-- Corrections -->
 <!-- TODO: annotators should be in provenance chain, specifying them here probably fails even now -->
-<xsl:template match="corr"><t-correction class="correction" annotator="{@resp}" original="{@sic}"><xsl:apply-templates mode="markup"/></t-correction></xsl:template>
+<xsl:template name="corr"><t-correction class="correction" annotator="{@resp}" original="{@sic}"><xsl:apply-templates mode="markup"/></t-correction></xsl:template>
 
-<xsl:template match="supplied"><t-correction class="supplied" annotator="{@resp}"><xsl:apply-templates mode="markup"/></t-correction></xsl:template>
+<xsl:template name="supplied"><t-correction class="supplied" annotator="{@resp}"><xsl:apply-templates mode="markup"/></t-correction></xsl:template>
 
-<xsl:template match="del"><t-correction class="deletion" annotator="{@resp}" original="{.//text()}"></t-correction></xsl:template>
+<xsl:template name="del"><t-correction class="deletion" annotator="{@resp}" original="{.//text()}"></t-correction></xsl:template>
+
+<xsl:template match="corr" mode="markup"><xsl:call-template name="corr" /></xsl:template>
+<xsl:template match="supplied" mode="markup"><xsl:call-template name="supplied" /></xsl:template>
+<xsl:template match="del" mode="markup"><xsl:call-template name="del" /></xsl:template>
 
 <!-- Notes -->
-<xsl:template match="note" mode="markup">
-<t-gap class="note" n="{@n}"><xsl:value-of select="text()" /></t-gap>
+<xsl:template name="note">
+    <t-gap><xsl:choose>
+        <xsl:when test="@type">
+        <xsl:attribute name="class">note-<xsl:value-of select="@type" /></xsl:attribute>
+        </xsl:when>
+        <xsl:when test="@place = 'foot'">
+        <xsl:attribute name="class">footnote</xsl:attribute>
+        </xsl:when>
+        <xsl:otherwise>unspecified</xsl:otherwise>
+        </xsl:choose>
+        <xsl:if test="@n"><xsl:attribute name="n"><xsl:value-of select="@n" /></xsl:attribute></xsl:if>
+        <xsl:apply-templates mode="markup" /></t-gap>
 </xsl:template>
 
+<xsl:template match="note" mode="markup"><xsl:call-template name="note" /></xsl:template>
+
+<xsl:template name="quote">
+    <t-str class="quote"><xsl:apply-templates mode="markup" /></t-str>
+</xsl:template>
+<xsl:template match="q|quote" mode="markup"><xsl:call-template name="quote" /></xsl:template>
+
+<xsl:template name="gap">
+    <t-gap annotator="{@resp}" class="{@reason}"/>
+</xsl:template>
+<xsl:template match="gap" mode="markup"><xsl:call-template name="gap" /></xsl:template>
 
 <xsl:template match="note[./table|./figure|./list|./p]" mode="markup">
 <xsl:message>WARNING: There is a table, list or figure or paragraph in a note, the converter can't handle this currently</xsl:message>
 <t-gap class="unprocessable-note" n="{@n}"/>
 </xsl:template>
 
-<!-- ************************** TEMPLATES PRODUCING STRUCTURAL AND MARKUP ELEMENTS, CONDITIONALLY  *********************** -->
 
-<xsl:template match="q|quote" mode="structure">
-    <quote>
-    <xsl:call-template name="textandorstructure" />
-    </quote>
-</xsl:template>
-
-<xsl:template match="q|quote" mode="markup">
-<t-str class="quote"><xsl:apply-templates mode="markup" /></t-str>
-</xsl:template>
-
-<xsl:template match="gap" mode="markup">
-    <t-gap annotator="{@resp}" class="{@reason}"/>
-</xsl:template>
-
-<xsl:template match="gap" mode="structure">
-    <gap annotator="{@resp}" class="{@reason}"/>
+<xsl:template name="l">
+<t-str class="l"><xsl:if test="@n"><xsl:attribute name="n"><xsl:value-of select="@n" /></xsl:attribute></xsl:if><xsl:apply-templates mode="markup"/></t-str><br class='poetic.linebreak'><xsl:if test="@n"><xsl:attribute name="n"><xsl:value-of select="@n" /></xsl:attribute></xsl:if></br>
 </xsl:template>
 
 <xsl:template match="l" mode="markup">
-    <t-str class="l"><xsl:if test="@n"><xsl:attribute name="n"><xsl:value-of select="@n" /></xsl:attribute></xsl:if><xsl:apply-templates mode="markup"/></t-str><br class='poetic.linebreak'><xsl:if test="@n"><xsl:attribute name="n"><xsl:value-of select="@n" /></xsl:attribute></xsl:if></br><xsl:text>&#10;</xsl:text>
+<xsl:call-template name="l" />
 </xsl:template>
 
-
+<!-- default text node behaviour -->
+<xsl:template match="text()" mode="markup">
+<xsl:value-of select="." />
+</xsl:template>
 
 <!-- ************************** TEMPLATES DELETING ELEMENTS  *********************** -->
 
 <!-- Deletion often occurs because the element is already handled elsewhere -->
 
-<xsl:template match="docTitle/titlePart"><xsl:apply-templates/></xsl:template>
-
 <!-- I suppose this cleans up something from some preprocessing step? leaving it in just in case -->
-<xsl:template match="supplied[./text()='leeg']"/>
+<xsl:template match="supplied[./text()='leeg']" mode="markup"/>
+<xsl:template match="supplied[./text()='leeg']" mode="structure"/>
 
 <!-- Handled by item -->
-<xsl:template match="label"/>
+<xsl:template match="label" mode="structure"/>
 
-<xsl:template match="anchor"/>
 
 
 <!-- *********************************** PAGEBREAK MAGIC **************************************************** -->
@@ -556,13 +641,12 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:choose>
 <xsl:when test=".//speaker/hi">
     <xsl:attribute name="actor"><xsl:value-of select="string(.//speaker/hi)" /></xsl:attribute>
-    <xsl:apply-templates select="speaker" mode="structure" />
 </xsl:when>
 <xsl:when test=".//speaker">
     <xsl:attribute name="actor"><xsl:value-of select="string(.//speaker)" /></xsl:attribute>
-    <xsl:apply-templates select="speaker" mode="structure" />
 </xsl:when>
 </xsl:choose>
+<xsl:call-template name="textandorstructure" />
 </event>
 </xsl:template>
 
@@ -584,6 +668,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </t>
 </note>
 </xsl:template>
+
 
 <!-- ********************************** WARNINGS ***************************************************** -->
 
