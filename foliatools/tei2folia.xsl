@@ -104,13 +104,18 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <!--
  <entity-annotation annotatortype="auto" set="unknown"/>
 -->
-  <division-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/division">
+  <division-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/divisions.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
   </division-annotation>
   <xsl:if test="//p">
-    <paragraph-annotation>
+    <paragraph-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/paragraphs.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
     </paragraph-annotation>
+  </xsl:if>
+  <xsl:if test="//head">
+    <head-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/heads.foliaset.xml">
+         <annotator processor="proc.tei2folia.xsl"/>
+    </head-annotation>
   </xsl:if>
   <xsl:if test="//s">
     <sentence-annotation>
@@ -123,7 +128,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </token-annotation>
   </xsl:if>
   <xsl:if test="//list">
-      <list-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/list">
+      <list-annotation>
          <annotator processor="proc.tei2folia.xsl"/>
       </list-annotation>
   </xsl:if>
@@ -138,16 +143,16 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </table-annotation>
   </xsl:if>
   <xsl:if test="//text//gap|//text//label">
-   <gap-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/gap">
+   <gap-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/gaps.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
    </gap-annotation>
   </xsl:if>
   <xsl:if test="//hi">
-   <style-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/style">
+   <style-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/styles.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
    </style-annotation>
  </xsl:if>
- <part-annotation annotatortype="auto" set="http://rdf.ivdnt.org/nederlab/folia/sets/part"> <!-- we can't be sure if we use this, we try to avoid it as much as possible -->
+ <part-annotation annotatortype="auto" set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/parts.foliaset.ttl"> <!-- we use this for parts that the non-XSLT postprocessor processes -->
          <annotator processor="proc.tei2folia.xsl"/>
  </part-annotation>
  <xsl:if test="//w/@pos">
@@ -161,25 +166,25 @@ Heavily adapted by Maarten van Gompel (Radboud University)
   </lemma-annotation>
  </xsl:if>
 <xsl:if test="//text//cor|//text//supplied|//text//del">
- <correction-annotation annotatortype="auto" set="http://rdf.ivdnt.org/nederlab/folia/sets/correction">
+ <correction-annotation annotatortype="auto" set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/corrections.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
  </correction-annotation>
 </xsl:if>
 <xsl:if test="//text//note">
- <note-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/note">
+ <note-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/notes.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
  </note-annotation>
 </xsl:if>
- <string-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/string">
+ <string-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/strings.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
  </string-annotation>
 <xsl:if test="//sp|//stage">
- <event-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/events">
+ <event-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/events.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
  </event-annotation>
 </xsl:if>
 <xsl:if test="//lb|//pb">
- <linebreak-annotation set="http://rdf.ivdnt.org/nederlab/folia/sets/linebreak">
+ <linebreak-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/linebreaks.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
  </linebreak-annotation>
 </xsl:if>
@@ -236,6 +241,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </p>
 </xsl:template>
 
+
 <!-- Sentence ID -->
 <xsl:template name="setId">
  <xsl:if test="@xml:id or $generateIds='true'">
@@ -257,6 +263,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </div>
 </xsl:template>
 
+
 <xsl:template match="head|docTitle|titlePart[not(ancestor::docTitle)]" mode="structure">
     <head>
     <xsl:attribute name="class">
@@ -269,6 +276,15 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </head>
 </xsl:template>
 
+<xsl:template match="table" mode="structure">
+    <xsl:if test="table/head">
+        <!-- move head out of table -->
+        <xsl:apply-templates select="table/head" mode="structure" />
+    </xsl:if>
+    <table>
+    <xsl:apply-templates mode="structure" />
+    </table>
+</xsl:template>
 
 <xsl:template match="cell" mode="structure">
     <cell>
@@ -281,6 +297,17 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:call-template name="p"/>
 </xsl:template>
 
+<!-- we can't have tables, figures or lists inside paragraphs -->
+<xsl:template match="p[./table|./figure|./list]|xcloser[./list]|xcloser[./signed/list]" mode="structure">
+    <!-- just forget about the P and handle everything inside directly: -->
+    <xsl:apply-templates mode="structure" />
+</xsl:template>
+
+<!-- we can't have breaks in lists or table (rows)-->
+<xsl:template match="table/pb|list/pb|row/pb|figure/pb" mode="structure">
+    <xsl:message>WARNING: Skipped over pagebreak in table/list/row/figure</xsl:message>
+    <xsl:comment>[tei2folia WARNING] Skipped over pagebreak here</xsl:comment>
+</xsl:template>
 
 <xsl:template match="figure" mode="structure">
     <figure>
@@ -542,6 +569,8 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <!-- Handled by item -->
 <xsl:template match="label" mode="structure"/>
 
+<!-- Handled by table -->
+<xsl:template match="table/head" mode="structure"/>
 
 
 <!-- *********************************** PAGEBREAK MAGIC **************************************************** -->
