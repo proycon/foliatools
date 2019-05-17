@@ -155,6 +155,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
  <part-annotation annotatortype="auto" set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/parts.foliaset.ttl"> <!-- we use this for parts that the non-XSLT postprocessor processes -->
          <annotator processor="proc.tei2folia.xsl"/>
  </part-annotation>
+ <comment-annotation>  <!-- We produce FoLiA comments to report where there were things that couldn't be converted -->
+         <annotator processor="proc.tei2folia.xsl"/>
+ </comment-annotation>
  <xsl:if test="//w/@pos">
   <pos-annotation set="unknown">
          <annotator processor="proc.tei2folia.xsl"/>
@@ -306,7 +309,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <!-- we can't have breaks in lists or table (rows)-->
 <xsl:template match="table/pb|list/pb|row/pb|figure/pb" mode="structure">
     <xsl:message>WARNING: Skipped over pagebreak in table/list/row/figure</xsl:message>
-    <xsl:comment>[tei2folia WARNING] Skipped over pagebreak here</xsl:comment>
+    <comment>[tei2folia WARNING] Skipped over pagebreak here</comment>
 </xsl:template>
 
 <xsl:template match="figure" mode="structure">
@@ -602,7 +605,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template name="haalPbBinnen">
 <xsl:for-each select="preceding-sibling::*[1]">
 <xsl:if test="self::pb and (not(ancestor::div)) and (not(ancestor::div1))  and (not(ancestor::titlePage))">
-<xsl:comment>opgeviste pagebreak:</xsl:comment>
+<comment>opgeviste pagebreak:</comment>
 <xsl:call-template name="pb"/>
 </xsl:if>
 </xsl:for-each>
@@ -614,14 +617,14 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:for-each select="..">
 <xsl:for-each select="preceding-sibling::*[1]">
 <xsl:if test="self::pb">
-<xsl:comment>opgeviste pagebreak naar cel</xsl:comment>
+<comment>opgeviste pagebreak naar cel</comment>
 <xsl:call-template name="pb"/>
 </xsl:if>
 </xsl:for-each>
 </xsl:for-each>
 </xsl:template>
 
-<xsl:template match="text/pb|table/pb|row/pb|list/lb"><xsl:comment>Deze pagebreak doen we mooi niet hoor!</xsl:comment></xsl:template>
+<xsl:template match="text/pb|table/pb|row/pb|list/lb"><comment>Deze pagebreak doen we mooi niet hoor!</comment></xsl:template>
 
 <!-- ********************************* CRUFT ****************************************************** -->
 
@@ -705,17 +708,17 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template match="*" mode="structure">
     <xsl:message>WARNING: Unknown tag in structure context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</xsl:message>
-    <xsl:comment>[tei2folia WARNING] Unhandled tag in structure context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</xsl:comment>
+    <comment>[tei2folia WARNING] Unhandled tag in structure context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</comment>
 </xsl:template>
 
 <xsl:template match="*" mode="markup">
-<xsl:message>WARNING: Unknown tag in markup context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</xsl:message>
-<xsl:comment>[tei2folia WARNING] Unhandled tag in markup context: tei:<xsl:value-of select="name(.)"/> (in tei:<xsl:value-of select="name(parent::node())" />)</xsl:comment>
+    <xsl:message>WARNING: Unknown tag in markup context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</xsl:message>
+    <comment>[tei2folia WARNING] Unhandled tag in markup context: tei:<xsl:value-of select="name(.)"/> (in tei:<xsl:value-of select="name(parent::node())" />)</comment>
 </xsl:template>
 
 <xsl:template match="*">
-<xsl:message>WARNING: Unknown tag: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</xsl:message>
-<xsl:comment>[tei2folia WARNING] Unhandled tag: tei:<xsl:value-of select="name(.)"/> (in tei:<xsl:value-of select="name(parent::node())" />)</xsl:comment>
+    <xsl:message>WARNING: Unknown tag: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</xsl:message>
+    <comment>[tei2folia WARNING] Unhandled tag: tei:<xsl:value-of select="name(.)"/> (in tei:<xsl:value-of select="name(parent::node())" />)</comment>
 </xsl:template>
 
 
