@@ -193,7 +193,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template name="provenance">
    <provenance>
-    <processor xml:id="proc.tei2folia" name="tei2folia" version="0.7.7" host="${host}" user="${user}" src="https://github.com/proycon/foliatools">
+    <processor xml:id="proc.tei2folia" name="tei2folia" src="https://github.com/proycon/foliatools">
         <processor xml:id="proc.tei2folia.xsl" name="tei2folia.xsl" />
     </processor>
    </provenance>
@@ -546,7 +546,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 <xsl:template name="l">
+<xsl:if test="normalize-spaces(string(.))">
 <t-str class="l"><xsl:if test="@n"><xsl:attribute name="n"><xsl:value-of select="@n" /></xsl:attribute></xsl:if><xsl:apply-templates mode="markup"/></t-str><br class='poetic.linebreak'><xsl:if test="@n"><xsl:attribute name="n"><xsl:value-of select="@n" /></xsl:attribute></xsl:if></br>
+</xsl:if>
 </xsl:template>
 
 <xsl:template match="l" mode="markup">
