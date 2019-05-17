@@ -107,16 +107,39 @@ def loadxslt():
 
 def main():
     parser = argparse.ArgumentParser(description="Convert *SOME VARIANTS* of TEI to FoLiA XML. Because of the great diversity in TEI formats, it is not guaranteed to work in all circumstances.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-o','--outputdir',type=str, help="Output directory", action="store",default=".",required=False)
+    parser.add_argument('-o','--outputdir',type=str, help="Output directory, set to - for stdout", action="store",default=".",required=False)
     parser.add_argument('--dtddir',type=str, help="Directory where DTDs are stored (tei2folia will actively try to obtain the DTDs)", action="store",default=".",required=False)
     parser.add_argument('-D','--debug',type=int,help="Debug level", action='store',default=0)
     parser.add_argument('-b','--traceback',help="Provide a full traceback on validation errors", action='store_true', default=False)
     parser.add_argument('files', nargs='+', help='TEI Files to process')
     args = parser.parse_args()
+    print("Instantiating XML parser",file=sys.stderr)
     xmlparser = lxml.etree.XMLParser(load_dtd=True,no_network=False)
     xmlparser.resolvers.add( CustomResolver(args.dtddir) )
     for filename in args.files:
+        print("Converting", filename,file=sys.stderr)
         doc = convert(filename, loadxslt(), xmlparser, **args.__dict__)
+        if doc is False: return False #an error occured
+        try:
+            if args.outputdir == "-":
+                print(doc.xmlstring())
+            else:
+                filename = os.path.basename(filename)
+                if filename[-4:] == '.xml':
+                    filename = filename[:-4] + '.folia.xml'
+                else:
+                    filename += '.folia.xml'
+                print("   Writing", filename,file=sys.stderr)
+                doc.save(os.path.join(args.outputdir, filename))
+        except Exception as e:
+            print("SERIALISATION ERROR for " + filename + ". This should not happen.",file=sys.stderr)
+            print(e.__class__.__name__ + ": " + str(e),file=sys.stderr)
+            print("-- Full traceback follows -->",file=sys.stderr)
+            ex_type, ex, tb = sys.exc_info()
+            traceback.print_exception(ex_type, ex, tb)
+            return False
+
+
 
 
 if __name__ == '__main__':
