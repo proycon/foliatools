@@ -10,16 +10,17 @@ import os
 import glob
 from collections import Counter
 import folia.main as folia
+from foliatools import VERSION as TOOLVERSION
 
 def usage():
     print("foliaid",file=sys.stderr)
     print("  by Maarten van Gompel (proycon)",file=sys.stderr)
     print("  Centre for Language and Speech Technology, Radboud University Nijmegen",file=sys.stderr)
-    print("  2017 - Licensed under GPLv3",file=sys.stderr)
+    print("  2017-2019 - Licensed under GPLv3",file=sys.stderr)
     print("",file=sys.stderr)
     print("Assign IDs to structural elements that have none yet", file=sys.stderr)
     print("",file=sys.stderr)
-    print("Usage: foliacount [options] file-or-dir1 file-or-dir2 ..etc..",file=sys.stderr)
+    print("Usage: foliaid [options] file-or-dir1 file-or-dir2 ..etc..",file=sys.stderr)
     print("",file=sys.stderr)
     print("Parameters for processing directories:",file=sys.stderr)
     print("  -r                           Process recursively",file=sys.stderr)
@@ -45,25 +46,9 @@ def process(filename, outputfile = None):
     print("Processing " + filename,file=sys.stderr)
     try:
         doc = folia.Document(file=filename,keepversion=True)
-        for e in doc.data:
-            if e.id is None:
-                e.id = doc.id + '.' + e.XMLTAG + '.1'
-                doc[e.id] = e
-                print(" /-> ", e.id,file=sys.stderr)
-
-        for e in doc.select(folia.AbstractStructureElement):
-            if e.id is None:
-                if not settings.types or e.XMLTAG in settings.types:
-                    parent = e.parent
-                    while not parent.id:
-                        parent = parent.parent
-                    try:
-                        e.id = parent.generate_id(e.__class__)
-                    except folia.GenerateIDException:
-                        print(repr(e), repr(parent), parent.id, file=sys.stderr)
-                        raise
-                    print(" --> ", e.id,file=sys.stderr)
-
+        processor = folia.Processor.create(name="foliaid",version=TOOLVERSION)
+        assignids(doc, settings.types, True)
+        doc.provenance.append(processor)
     except Exception as e:
         if settings.ignoreerrors:
             print("ERROR: An exception was raised whilst processing " + filename + ":", e, file=sys.stderr)
@@ -72,6 +57,25 @@ def process(filename, outputfile = None):
 
     doc.save()
 
+def assignids(doc, types=None, verbose=False):
+    for e in doc.data:
+        if e.id is None:
+            e.id = doc.id + '.' + e.XMLTAG + '.1'
+            doc[e.id] = e
+            if verbose: print(" /-> ", e.id,file=sys.stderr)
+
+    for e in doc.select(folia.AbstractStructureElement):
+        if e.id is None:
+            if not types or e.XMLTAG in types:
+                parent = e.parent
+                while not parent.id:
+                    parent = parent.parent
+                try:
+                    e.id = parent.generate_id(e.__class__)
+                except folia.GenerateIDException:
+                    if verbose: print(repr(e), repr(parent), parent.id, file=sys.stderr)
+                    raise
+                if verbose: print(" --> ", e.id,file=sys.stderr)
 
 
 

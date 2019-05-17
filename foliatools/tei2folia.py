@@ -23,11 +23,11 @@ import lxml.etree
 import traceback
 from socket import getfqdn
 from datetime import datetime
-from foliatools import VERSION as TOOLVERSION
 from urllib.parse import  urlparse
 from urllib.request import urlretrieve
 import folia.main as folia
-import foliatools.xslt as xslt
+from foliatools import VERSION as TOOLVERSION
+from foliatools.foliaid import assignids
 
 class CustomResolver(lxml.etree.Resolver):
     #adapted from http://www.hoboes.com/Mimsy/hacks/caching-dtds-using-lxml-and-etree/
@@ -60,7 +60,7 @@ def convert(filename, transformer, parser=None, **kwargs):
         parsedsource = lxml.etree.parse(f, parser)
     transformed = transformer(parsedsource)
     try:
-        doc = folia.Document(tree=transformed)
+        doc = folia.Document(tree=transformed, debug=kwargs.get('debug',0))
     except folia.DeepValidationError as e:
         print("DEEP VALIDATION ERROR on full parse by library in " + filename,file=sys.stderr)
         print(e.__class__.__name__ + ": " + str(e),file=sys.stderr)
@@ -91,7 +91,72 @@ def convert(filename, transformer, parser=None, **kwargs):
         doc.provenance.processors[-1].user = os.environ['USER']
     #add subprocessor for validation
     doc.provenance.processors[-1].append( folia.Processor.create(name="foliavalidator", version=TOOLVERSION, src="https://github.com/proycon/foliatools", metadata={"valid": "yes"}) )
+    if not kwargs.get('leaveparts'):
+        postprocess_tempparts(doc)
+    if not kwargs.get('leavenotes'):
+        postprocess_notes(doc)
+    if kwargs.get('ids'):
+        assignids(doc)
+        doc.provenance.processors[-1].append( folia.Processor.create(name="foliaid", version=TOOLVERSION, src="https://github.com/proycon/foliatools") )
+
     return doc
+
+
+
+def mergeparts(sequence):
+    """Merges a sequence of temporary parts, following the assumption that each only has one textcontent element which will be concatenated with the others"""
+    try:
+        sequence[0].ancestor(folia.Paragraph, folia.Sentence)
+        Mergedclass = folia.Part
+    except folia.NoSuchAnnotation:
+        Mergedclass = folia.Paragraph
+
+    parent = sequence[0].parent
+    index = parent.getindex(sequence[0])
+    newtextcontent = []
+    for part in sequence:
+        parent.remove(part)
+        newtextcontent += part.textcontent().data
+    mergedelement = parent.insert(index, Mergedclass, cls="aggregated")
+    newtextcontent = mergedelement.append(folia.TextContent, *newtextcontent)
+    return mergedelement
+
+
+def postprocess_tempparts(doc):
+    """Resolve temporary parts"""
+    sequences = []
+    buffer = []
+    for part in doc.select(folia.Part, "https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/parts.foliaset.ttl"):
+        if part.cls[:4] == "temp":
+            if buffer:
+                insequence = buffer[-1] is part.previous(folia.Part) and buffer[-1].parent is part.parent
+            else:
+                insequence = True #new sequence
+
+            if not insequence and buffer:
+                #process the buffer
+                sequences.append(buffer)
+                buffer = [part] #new buffer
+            else:
+                if insequence:
+                    buffer.append(part)
+                else:
+                    buffer = []
+
+    if buffer:
+        sequences.append(buffer)
+
+    for sequence in sequences:
+        mergeparts(sequence)
+
+
+    #TODO
+    pass
+
+def postprocess_notes(doc):
+    #TODO
+    pass
+
 
 
 def loadxslt():
@@ -111,6 +176,9 @@ def main():
     parser.add_argument('--dtddir',type=str, help="Directory where DTDs are stored (tei2folia will actively try to obtain the DTDs)", action="store",default=".",required=False)
     parser.add_argument('-D','--debug',type=int,help="Debug level", action='store',default=0)
     parser.add_argument('-b','--traceback',help="Provide a full traceback on validation errors", action='store_true', default=False)
+    parser.add_argument('-P','--leaveparts',help="Do *NOT* resolve temporary parts", action='store_true', default=False)
+    parser.add_argument('-N','--leavenotes',help="Do *NOT* resolve inline notes (t-gap)", action='store_true', default=False)
+    parser.add_argument('-i','--ids',help="Generate IDs for all structural elements", action='store_true', default=False)
     parser.add_argument('files', nargs='+', help='TEI Files to process')
     args = parser.parse_args()
     print("Instantiating XML parser",file=sys.stderr)
@@ -119,7 +187,9 @@ def main():
     for filename in args.files:
         print("Converting", filename,file=sys.stderr)
         doc = convert(filename, loadxslt(), xmlparser, **args.__dict__)
-        if doc is False: return False #an error occured
+        if doc is False:
+            print("Unable to convert ", filename,file=sys.stderr)
+            sys.exit(1) #an error occured
         try:
             if args.outputdir == "-":
                 print(doc.xmlstring())
@@ -137,9 +207,9 @@ def main():
             print("-- Full traceback follows -->",file=sys.stderr)
             ex_type, ex, tb = sys.exc_info()
             traceback.print_exception(ex_type, ex, tb)
-            return False
-
-
+            print("Unable to convert ", filename,file=sys.stderr)
+            sys.exit(1) #an error occured
+    sys.exit(0)
 
 
 if __name__ == '__main__':
