@@ -24,14 +24,40 @@ import traceback
 from socket import getfqdn
 from datetime import datetime
 from foliatools import VERSION as TOOLVERSION
+from urllib.parse import  urlparse
+from urllib.request import urlretrieve
 import folia.main as folia
 import foliatools.xslt as xslt
 
-def convert(filename, transformer, **kwargs):
+class CustomResolver(lxml.etree.Resolver):
+    #adapted from http://www.hoboes.com/Mimsy/hacks/caching-dtds-using-lxml-and-etree/
+    def __init__(self, dtddir):
+        self.dtddir = dtddir
+        super().__init__()
+
+    def resolve(self, url, id, context):
+        #determine cache path
+        filename = os.path.basename(url)
+        dtdfile = os.path.join(self.dtddir, filename)
+        print("(obtaining dtd for", url, " in ", self.dtddir, ")",file=sys.stderr)
+        if not os.path.exists(self.dtddir):
+            os.makedirs(self.dtddir)
+        #cache if necessary
+        if not os.path.exists(dtdfile):
+            filename, headers = urlretrieve(url, dtdfile)
+        #resolve the cached file
+        return self.resolve_file(open(dtdfile), context, base_url=url)
+
+
+def convert(filename, transformer, parser=None, **kwargs):
     if not os.path.exists(filename):
         raise Exception("File not found: " + filename)
     begindatetime = datetime.now()
-    parsedsource = lxml.etree.parse(filename)
+    if parser is None:
+        parser = lxml.etree.XMLParser(load_dtd=True)
+        parser.resolvers.add( CustomResolver(kwargs.get('dtddir','.')) )
+    with open(filename,'rb') as f:
+        parsedsource = lxml.etree.parse(f, parser)
     transformed = transformer(parsedsource)
     try:
         doc = folia.Document(tree=transformed)
@@ -69,6 +95,7 @@ def convert(filename, transformer, **kwargs):
 
 
 def loadxslt():
+    xsltfilename = "tei2folia.xsl"
     xsldir = os.path.dirname(__file__)
     if xsltfilename[0] != '/': xsltfilename = os.path.join(xsldir, xsltfilename)
     if not os.path.exists(xsltfilename):
@@ -81,12 +108,15 @@ def loadxslt():
 def main():
     parser = argparse.ArgumentParser(description="Convert *SOME VARIANTS* of TEI to FoLiA XML. Because of the great diversity in TEI formats, it is not guaranteed to work in all circumstances.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-o','--outputdir',type=str, help="Output directory", action="store",default=".",required=False)
+    parser.add_argument('--dtddir',type=str, help="Directory where DTDs are stored (tei2folia will actively try to obtain the DTDs)", action="store",default=".",required=False)
     parser.add_argument('-D','--debug',type=int,help="Debug level", action='store',default=0)
     parser.add_argument('-b','--traceback',help="Provide a full traceback on validation errors", action='store_true', default=False)
     parser.add_argument('files', nargs='+', help='TEI Files to process')
     args = parser.parse_args()
+    xmlparser = lxml.etree.XMLParser(load_dtd=True,no_network=False)
+    xmlparser.resolvers.add( CustomResolver(args.dtddir) )
     for filename in args.files:
-        doc = convert(filename, loadxslt(), **args.__dict__)
+        doc = convert(filename, loadxslt(), xmlparser, **args.__dict__)
 
 
 if __name__ == '__main__':

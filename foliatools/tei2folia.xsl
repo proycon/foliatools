@@ -546,7 +546,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 <xsl:template name="l">
-<xsl:if test="normalize-spaces(string(.))">
+<xsl:if test="normalize-space(string(.))">
 <t-str class="l"><xsl:if test="@n"><xsl:attribute name="n"><xsl:value-of select="@n" /></xsl:attribute></xsl:if><xsl:apply-templates mode="markup"/></t-str><br class='poetic.linebreak'><xsl:if test="@n"><xsl:attribute name="n"><xsl:value-of select="@n" /></xsl:attribute></xsl:if></br>
 </xsl:if>
 </xsl:template>
