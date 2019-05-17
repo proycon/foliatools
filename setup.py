@@ -63,5 +63,5 @@ setup(
     },
     #include_package_data=True,
     package_data = {'foliatools': ['*.xsl']},
-    install_requires=['folia >= 2.0.8', 'lxml >= 2.2','docutils', 'pyyaml']
+    install_requires=['folia >= 2.0.9', 'lxml >= 2.2','docutils', 'pyyaml']
 )
