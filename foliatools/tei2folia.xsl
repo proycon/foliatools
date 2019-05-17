@@ -134,7 +134,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </paragraph-annotation>
   </xsl:if>
   <xsl:if test="//head">
-    <head-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/heads.foliaset.xml">
+    <head-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/heads.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
     </head-annotation>
   </xsl:if>
