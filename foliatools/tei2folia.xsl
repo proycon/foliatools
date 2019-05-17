@@ -71,7 +71,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <!-- *************************************************** DOCUMENT & METADATA ************************************************** -->
 
 <xsl:template match="TEI|TEI.2">
-<FoLiA xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://ilk.uvt.nl/folia" version="2.0.4" generator="tei2folia.xsl">
+<FoLiA xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://ilk.uvt.nl/folia" version="2.1.0" generator="tei2folia.xsl">
   <xsl:attribute name="xml:id"><xsl:value-of select="$docid"/></xsl:attribute>
   <metadata>
     <xsl:call-template name="annotations"/>
@@ -141,6 +141,11 @@ Heavily adapted by Maarten van Gompel (Radboud University)
    <gap-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/gaps.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
    </gap-annotation>
+  </xsl:if>
+  <xsl:if test="//text//note">
+   <reference-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/references.foliaset.ttl">
+         <annotator processor="proc.tei2folia.xsl"/>
+   </reference-annotation>
   </xsl:if>
   <xsl:if test="//hi">
    <style-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/styles.foliaset.ttl">
@@ -501,7 +506,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <!-- Notes -->
 <xsl:template name="note">
-    <t-gap><xsl:choose>
+    <t-ref><xsl:choose>
         <xsl:when test="@type">
         <xsl:attribute name="class">note-<xsl:value-of select="@type" /></xsl:attribute>
         </xsl:when>
@@ -511,7 +516,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <xsl:otherwise>unspecified</xsl:otherwise>
         </xsl:choose>
         <xsl:if test="@n"><xsl:attribute name="n"><xsl:value-of select="@n" /></xsl:attribute></xsl:if>
-        <xsl:apply-templates mode="markup" /></t-gap>
+        <xsl:apply-templates mode="markup" /></t-ref>
 </xsl:template>
 
 <xsl:template match="note" mode="markup"><xsl:call-template name="note" /></xsl:template>

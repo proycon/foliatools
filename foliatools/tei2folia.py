@@ -170,15 +170,20 @@ def postprocess_tempparts(doc):
     for sequence in sequences:
         mergeparts(sequence)
 
-
-    #TODO
-    pass
-
 def postprocess_notes(doc):
-    #TODO
-    pass
-
-
+    for i, noteref in enumerate(doc.select(folia.TextMarkupReference, "https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/references.foliaset.ttl")):
+        if noteref.cls == "footnote" or noteref.cls[:4] == "note":
+            #we treat all notes as footnotes and move them to the end of the parent division, with a proper reference in place
+            div = noteref.ancestor(folia.Division) #these will hold the footnotes
+            note_id = noteref.doc.id+".note."+str(i)
+            #add the note
+            if noteref.data:
+                div.append(folia.Note, folia.TextContent(doc,*noteref.data), id=note_id, cls=noteref.cls)
+            else:
+                div.append(folia.Note, id=note_id, cls=noteref.cls)
+            noteref.data = [] #clear data
+            noteref.type = "note"
+            noteref.idref = note_id
 
 def loadxslt():
     xsltfilename = "tei2folia.xsl"
