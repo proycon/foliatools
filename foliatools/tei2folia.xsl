@@ -73,9 +73,35 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template match="TEI|TEI.2">
 <FoLiA xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://ilk.uvt.nl/folia" version="2.1.0" generator="tei2folia.xsl">
   <xsl:attribute name="xml:id"><xsl:value-of select="$docid"/></xsl:attribute>
-  <metadata>
+  <metadata type="native">
     <xsl:call-template name="annotations"/>
     <xsl:call-template name="provenance"/>
+    <xsl:if test="teiHeader/fileDesc/titleStmt/title">
+    i<meta id="title"><xsl:value-of select="string(teiHeader/fileDesc/titleStmt/title)" /></meta>
+    </xsl:if>
+    <xsl:if test="teiHeader/fileDesc//editionStmt/edition">
+     <meta id="edition"><xsl:value-of select="string(teiHeader/fileDesc//editionStmt/edition)" /></meta>
+    </xsl:if>
+    <xsl:if test="teiHeader/fileDesc//respStmt/resp">
+     <meta id="responsibility"><xsl:value-of select="string(teiHeader/fileDesc//respStmt/resp)" /></meta>
+    </xsl:if>
+    <!-- the following meta fields are probably very DBNL specific -->
+    <xsl:if test="teiHeader/fileDesc//publicationStmt/idno[@type='titelcode']">
+     <meta id="titelcode"><xsl:value-of select="string(teiHeader/fileDesc//publicationStmt/idno[@type='titelcode'])" /></meta>
+    </xsl:if>
+    <xsl:if test="teiHeader/fileDesc//publicationStmt/idno[@type='format']">
+     <meta id="original_format"><xsl:value-of select="string(teiHeader/fileDesc//publicationStmt/idno[@type='format'])" /></meta>
+    </xsl:if>
+    <xsl:if test="teiHeader/fileDesc//publicationStmt/availability">
+     <meta id="availability"><xsl:value-of select="string(teiHeader/fileDesc//publicationStmt/availability)" /></meta>
+    </xsl:if>
+    <xsl:if test="teiHeader/fileDesc//notesStmt/note">
+     <meta id="note"><xsl:value-of select="string(teiHeader/fileDesc//notesStmt/note)" /></meta>
+    </xsl:if>
+    <xsl:if test="teiHeader/revisionDesc/change">
+     <meta id="note"><xsl:value-of select="string(teiHeader/revisionDesc/change)" /></meta>
+    </xsl:if>
+    <!-- these we intherited, not sure what it does -->
     <xsl:for-each select=".//listBibl[@xml:id='inlMetadata']//interpGrp"><meta id="{./@type}"><xsl:apply-templates mode="meta"/></meta></xsl:for-each>
     <xsl:for-each select=".//listBibl[not(@xml:id='inlMetadata')]">
         <submetadata>
