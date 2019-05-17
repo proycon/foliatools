@@ -175,6 +175,9 @@ def postprocess_notes(doc):
         if noteref.cls == "footnote" or noteref.cls[:4] == "note":
             #we treat all notes as footnotes and move them to the end of the parent division, with a proper reference in place
             div = noteref.ancestor(folia.Division) #these will hold the footnotes
+            if div.hastext(strict=True):
+                #this won't do, go one level higher
+                div = div.ancestor(folia.Division) #these will hold the footnotes
             note_id = noteref.doc.id+".note."+str(i)
             #add the note
             if noteref.data:

@@ -65,7 +65,7 @@ def assignids(doc, types=None, verbose=False):
             if verbose: print(" /-> ", e.id,file=sys.stderr)
 
     for e in doc.select(folia.AbstractStructureElement):
-        if e.id is None:
+        if e.id is None and not isinstance(e, (folia.Linebreak, folia.Whitespace)):
             if not types or e.XMLTAG in types:
                 parent = e.parent
                 while not parent.id:
