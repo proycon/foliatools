@@ -27,11 +27,6 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:strip-space elements="l p interp meta interpGrp"/>
 <xsl:param name="docid"><xsl:value-of select="//publicationStmt/idno/text()"/></xsl:param>
 
-<!-- TEI elements that translate to FoLiA markup elements -->
-<xsl:variable name="teimarkupelements">hi|pb|add|name|note|corr|supplied|add|del</xsl:variable>
-<!-- TEI elements that translate to FoLiA structure elements -->
-<xsl:variable name="teistructureelements">p|div|s|lg|sp|table|row|cell|figure|list|item</xsl:variable>
-
 <xsl:template name="note-resp">
 <xsl:if test="@resp">
 <xsl:attribute name="class">resp_<xsl:value-of select="@resp"/></xsl:attribute>
@@ -398,21 +393,6 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template match="cb" mode="structure"><xsl:call-template name="cb" /></xsl:template>
 <xsl:template match="pb" mode="structure"><xsl:call-template name="pb" /></xsl:template>
 
-<xsl:template match="note" mode="structure">
-    <note>
-        <xsl:choose>
-        <xsl:when test="@type">
-        <xsl:attribute name="class"><xsl:value-of select="@type" /></xsl:attribute>
-        </xsl:when>
-        <xsl:when test="@place = 'foot'">
-        <xsl:attribute name="class">footnote</xsl:attribute>
-        </xsl:when>
-        <xsl:otherwise>unspecified</xsl:otherwise>
-        </xsl:choose>
-        <xsl:if test="@n"><xsl:attribute name="n"><xsl:value-of select="@n" /></xsl:attribute></xsl:if>
-        <xsl:call-template name="textandorstructure" />
-    </note>
-</xsl:template>
 
 <!-- Markup elements in structural mode, wrap in part (to be sorted by postprocessor later)-->
 
@@ -440,6 +420,10 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template match="del" mode="structure">
     <part class="temp-del"><t><xsl:call-template name="del" /></t></part>
+</xsl:template>
+
+<xsl:template match="note" mode="structure">
+    <part class="temp-note"><t><xsl:call-template name="note" /></t></part> <!-- this deliberately does not resolve to notes yet, our postprocessor creates the notes -->
 </xsl:template>
 
 <xsl:template match="text()" mode="structure">
@@ -694,14 +678,6 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template match="add[@resp='transcriber']"/>
 
-<xsl:template match="p//add">
-<xsl:message>JAWEL, HET KOMT WEL VOOR!!!!</xsl:message>
-<note class="add" annotator="@resp">
-<t>
-<xsl:apply-templates/>
-</t>
-</note>
-</xsl:template>
 
 
 <!-- ********************************** WARNINGS ***************************************************** -->

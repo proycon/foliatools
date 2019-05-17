@@ -116,10 +116,30 @@ def mergeparts(sequence):
     newtextcontent = []
     for part in sequence:
         parent.remove(part)
-        newtextcontent += part.textcontent().data
+        if isinstance(part, folia.Part):
+            newtextcontent += part.textcontent().data
+        else: #intermediate elements (linebreaks and such), add as-is
+            newtextcontent.append(part)
     mergedelement = parent.insert(index, Mergedclass, cls="aggregated")
     newtextcontent = mergedelement.append(folia.TextContent, *newtextcontent)
     return mergedelement
+
+
+def insequence(prevpart, nextpart):
+    """Determines if two parts are in sequence and if there are any intermediate structures which may be subsumed (like linebreaks and comments)"""
+    sequence = [] #intermediate sequence
+    result = False
+    e = prevpart
+    while True:
+        e = e.next((folia.Part, folia.Linebreak, folia.Comment))
+        if e is nextpart:
+            return True, sequence
+        elif e is None:
+            return False, []
+        elif e is not prevpart:
+            sequence.append(e)
+
+
 
 
 def postprocess_tempparts(doc):
@@ -129,16 +149,17 @@ def postprocess_tempparts(doc):
     for part in doc.select(folia.Part, "https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/parts.foliaset.ttl"):
         if part.cls[:4] == "temp":
             if buffer:
-                insequence = buffer[-1] is part.previous(folia.Part) and buffer[-1].parent is part.parent
+                isinsequence, intermediatesequence = insequence(buffer[-1], part)
+                buffer += intermediatesequence #add stuff in between (linebreaks, comments, notes) which we can subsume
             else:
-                insequence = True #new sequence
+                isinsequence = True #new sequence
 
-            if not insequence and buffer:
+            if not isinsequence and buffer:
                 #process the buffer
                 sequences.append(buffer)
                 buffer = [part] #new buffer
             else:
-                if insequence:
+                if isinsequence:
                     buffer.append(part)
                 else:
                     buffer = []
