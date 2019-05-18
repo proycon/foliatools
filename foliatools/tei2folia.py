@@ -194,12 +194,12 @@ def postprocess_notes(doc):
                 div = div.ancestor(folia.Division) #these will hold the footnotes
             note_id = noteref.doc.id+".note."+str(i)
             #add the note
-            if noteref.data:
-                try:
+            try:
+                if noteref.data and noteref.text().strip():
                     div.append(folia.Note, folia.TextContent(doc,*noteref.data), id=note_id, cls=noteref.cls if noteref.cls else "unspecified")
-                except folia.NoSuchText:
-                    div.append(folia.Note, id=note_id, cls=noteref.cls if noteref.cls else "unspecified")
-            else:
+                else:
+                    raise folia.NoSuchText
+            except folia.NoSuchText:
                 div.append(folia.Note, id=note_id, cls=noteref.cls if noteref.cls else "unspecified")
             noteref.data = [] #clear data
             noteref.type = "note"
