@@ -478,31 +478,45 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <!-- Text structural mode, wrap in part (to be sorted by postprocessor later!)-->
 <xsl:template match="l" mode="structure">
+    <xsl:if test="normalize-space(string(.))">
     <part class="temp-l"><t><xsl:call-template name="l" /></t></part>
+    </xsl:if>
 </xsl:template>
 
 <xsl:template match="hi" mode="structure">
+    <xsl:if test="normalize-space(string(.))">
     <part class="temp-hi"><t><xsl:call-template name="hi" /></t></part>
+    </xsl:if>
 </xsl:template>
 
 <xsl:template match="add" mode="structure">
+    <xsl:if test="normalize-space(string(.))">
     <part class="temp-add"><t><xsl:call-template name="add" /></t></part>
+    </xsl:if>
 </xsl:template>
 
 <xsl:template match="corr" mode="structure">
+    <xsl:if test="normalize-space(string(.))">
     <part class="temp-corr"><t><xsl:call-template name="corr" /></t></part>
+    </xsl:if>
 </xsl:template>
 
 <xsl:template match="supplied" mode="structure">
+    <xsl:if test="normalize-space(string(.))">
     <part class="temp-supplied"><t><xsl:call-template name="supplied" /></t></part>
+    </xsl:if>
 </xsl:template>
 
 <xsl:template match="del" mode="structure">
+    <xsl:if test="normalize-space(string(.))">
     <part class="temp-del"><t><xsl:call-template name="del" /></t></part>
+    </xsl:if>
 </xsl:template>
 
 <xsl:template match="note" mode="structure">
+    <xsl:if test="normalize-space(string(.))">
     <part class="temp-note"><t><xsl:call-template name="note" /></t></part> <!-- this deliberately does not resolve to notes yet, our postprocessor creates the notes -->
+    </xsl:if>
 </xsl:template>
 
 <xsl:template match="text()" mode="structure">
@@ -517,6 +531,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <!-- These come in name/match template pairs as they are also referenced by the structural variants -->
 
 <xsl:template name="name">
+<xsl:if test="normalize-space(string(.))">
 <t-str class="name">
 <xsl:choose>
 <xsl:when test="@type">
@@ -528,6 +543,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:choose>
 <xsl:apply-templates mode="markup"/>
 </t-str>
+</xsl:if>
 </xsl:template>
 
 <xsl:template match="name" mode="markup">
@@ -548,7 +564,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <!-- styling (tei:hi) -->
 <xsl:template name="hi">
+<xsl:if test="normalize-space(string(.))">
 <t-style><xsl:attribute name="class"><xsl:choose><xsl:when test="@rendition"><xsl:value-of select="@rendition"/></xsl:when><xsl:when test="@rend"><xsl:value-of select="@rend"/></xsl:when><xsl:otherwise>unspecified</xsl:otherwise></xsl:choose></xsl:attribute><xsl:apply-templates mode="markup"/></t-style>
+</xsl:if>
 </xsl:template>
 
 <xsl:template match="hi" mode="markup">
@@ -596,7 +614,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template match="note" mode="markup"><xsl:call-template name="note" /></xsl:template>
 
 <xsl:template name="quote">
+    <xsl:if test="normalize-space(string(.))">
     <t-str class="quote"><xsl:apply-templates mode="markup" /></t-str>
+    </xsl:if>
 </xsl:template>
 <xsl:template match="q|quote" mode="markup"><xsl:call-template name="quote" /></xsl:template>
 
