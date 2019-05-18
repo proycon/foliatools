@@ -165,7 +165,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
          <annotator processor="proc.tei2folia.xsl"/>
     </table-annotation>
   </xsl:if>
-  <xsl:if test="//text//gap|//text//label">
+  <xsl:if test="//text//gap|//text//label|//text//note">
    <gap-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/gaps.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
    </gap-annotation>
