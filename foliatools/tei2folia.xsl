@@ -421,7 +421,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:text>
     </xsl:text>
     <xsl:choose>
-    <xsl:when select="ancestor::figDesc|ancestor::item">
+    <xsl:when test="ancestor::figDesc|ancestor::item">
         <!-- no divisions allowed under captions, just descend into substructures -->
         <xsl:apply-templates mode="structure" />
     </xsl:when>
