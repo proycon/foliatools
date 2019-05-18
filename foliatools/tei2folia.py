@@ -130,7 +130,10 @@ def mergeparts(sequence):
     index = parent.getindex(sequence[0])
     newtextcontent = []
     for part in sequence:
-        parent.remove(part)
+        try:
+            parent.remove(part)
+        except ValueError:
+            print("WARNING: Unable to remove part " + repr(part) + " from parent " + repr(parent) + " as it does not exist",file=sys.stderr)
         if isinstance(part, folia.Part):
             newtextcontent += part.textcontent().data
         else: #intermediate elements (linebreaks and such), add as-is
