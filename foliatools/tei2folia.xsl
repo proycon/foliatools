@@ -79,7 +79,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:call-template name="annotations"/>
     <xsl:call-template name="provenance"/>
     <xsl:if test="teiHeader/fileDesc/titleStmt/title">
-    <meta id="title"><xsl:value-of select="string(teiHeader/fileDesc/titleStmt/title)" /></meta>
+     <meta id="title"><xsl:value-of select="string(teiHeader/fileDesc/titleStmt/title)" /></meta>
     </xsl:if>
     <xsl:if test="teiHeader/fileDesc//editionStmt/edition">
      <meta id="edition"><xsl:value-of select="string(teiHeader/fileDesc//editionStmt/edition)" /></meta>
@@ -169,6 +169,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
    <gap-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/gaps.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
    </gap-annotation>
+   <rawcontent-annotation>
+         <annotator processor="proc.tei2folia.xsl"/>
+   </rawcontent-annotation>
   </xsl:if>
   <xsl:if test="//text//note">
    <reference-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/references.foliaset.ttl">
