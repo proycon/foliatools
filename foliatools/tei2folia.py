@@ -44,7 +44,19 @@ class CustomResolver(lxml.etree.Resolver):
             os.makedirs(self.dtddir)
         #cache if necessary
         if not os.path.exists(dtdfile):
+            lockfile = os.path.join(self.dtddir,".tei2folia.lock") #implementing a locking mechanism in case of concurrency
+            waited = 0
+            while os.path.exists(lockfile):
+                print("(waiting for lock file to go away)", file=sys.stderr)
+                waited += 1
+                time.sleep(1)
+                if waited > 60:
+                    print("ERROR: Unable to get a lock for obtaining DTD files",file=sys.stderr)
+                    sys.exit(2)
+            with open(lockfile,'w', encoding='utf-8') as f:
+                print(url, file=f)
             filename, headers = urlretrieve(url, dtdfile)
+            os.unlink(lockfile)
         #resolve the cached file
         return self.resolve_file(open(dtdfile), context, base_url=url)
 
