@@ -438,9 +438,18 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <xsl:template match="q|quote" mode="structure">
-    <quote>
-    <xsl:call-template name="textandorstructure" />
-    </quote>
+    <xsl:choose>
+      <xsl:when test="list|figure">
+         <!-- having quotes here makes no sense, just process children as structure -->
+        <xsl:apply-templates mode="structure" />
+      </xsl:when>
+      <xsl:otherwise>
+         <!-- normal behaviour -->
+        <quote>
+        <xsl:call-template name="textandorstructure" />
+        </quote>
+      </xsl:otherwise>
+     </xsl:choose>
 </xsl:template>
 
 
