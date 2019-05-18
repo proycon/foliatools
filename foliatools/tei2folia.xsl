@@ -731,6 +731,12 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 <!-- ********************************** WARNINGS ***************************************************** -->
+<xsl:template match="item/figure" mode="structure">
+    <xsl:if test="$quiet = 'false'">
+    <xsl:message terminate="no">WARNING: skipping figure in item! (not allowed)</xsl:message>
+    </xsl:if>
+    <comment>[tei2folia WARNING] skipping figure in item! (not allowed)</comment>
+</xsl:template>
 
 <xsl:template match="*" mode="structure">
     <xsl:if test="$quiet = 'false'">
