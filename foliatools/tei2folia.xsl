@@ -420,10 +420,18 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template match="lg" mode="structure">
     <xsl:text>
     </xsl:text>
-    <div>
-    <xsl:attribute name="class"><xsl:choose><xsl:when test="@type"><xsl:value-of select="@type" /></xsl:when><xsl:otherwise>linegroup</xsl:otherwise></xsl:choose></xsl:attribute>
-    <xsl:call-template name="textandorstructure" />
-    </div>
+    <xsl:choose>
+    <xsl:when select="ancestor::figDesc|ancestor::item">
+        <!-- no divisions allowed under captions, just descend into substructures -->
+        <xsl:apply-templates mode="structure" />
+    </xsl:when>
+    <xsl:otherwise>
+        <div>
+        <xsl:attribute name="class"><xsl:choose><xsl:when test="@type"><xsl:value-of select="@type" /></xsl:when><xsl:otherwise>linegroup</xsl:otherwise></xsl:choose></xsl:attribute>
+        <xsl:call-template name="textandorstructure" />
+        </div>
+    </xsl:otherwise>
+    </xsl:choose>
 </xsl:template>
 
 <xsl:template match="epigraph" mode="structure">
