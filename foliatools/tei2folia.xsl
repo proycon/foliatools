@@ -394,7 +394,17 @@ Heavily adapted by Maarten van Gompel (Radboud University)
       <xsl:when test="name(preceding-sibling::*[1]) = 'label'">
         <item>
         <xsl:attribute name="n"><xsl:value-of select="string(preceding-sibling::*[1])" /></xsl:attribute>
+        <xsl:choose>
+        <xsl:when test="list|p|s|w">
+        <gap class="label">
+        <content><xsl:value-of select="string(preceding-sibling::*[1])" /></content>
+        </gap>
+        <xsl:apply-templates mode="structure" />
+        </xsl:when>
+        <xsl:otherwise>
         <t><t-gap class="label"><xsl:value-of select="string(preceding-sibling::*[1])" /></t-gap><xsl:text> </xsl:text> <xsl:apply-templates mode="markup"/></t>
+        </xsl:otherwise>
+        </xsl:choose>
         </item>
       </xsl:when>
       <xsl:otherwise>
@@ -757,12 +767,23 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 <!-- ********************************** WARNINGS ***************************************************** -->
-<xsl:template match="item/figure" mode="structure">
+
+<xsl:template match="item/figure|item/table" mode="structure">
     <xsl:if test="$quiet = 'false'">
-    <xsl:message terminate="no">WARNING: skipping figure in item! (not allowed)</xsl:message>
+    <xsl:message terminate="no">WARNING: skipping <xsl:value-of select="name()" /> in item! (not allowed)</xsl:message>
     </xsl:if>
-    <comment>[tei2folia WARNING] skipping figure in item! (not allowed)</comment>
+    <comment>[tei2folia WARNING] skipping <xsl:value-of select="name()" /> in item! (not allowed)</comment>
 </xsl:template>
+
+<xsl:template match="caption/figure|caption/list|caption/table" mode="structure">
+    <xsl:if test="$quiet = 'false'">
+    <xsl:message terminate="no">WARNING: skipping <xsl:value-of select="name()" /> in caption! (not allowed)</xsl:message>
+    </xsl:if>
+    <comment>[tei2folia WARNING] skipping <xsl:value-of select="name()" /> in caption! (not allowed)</comment>
+</xsl:template>
+
+
+<!-- generic fallbacks -->
 
 <xsl:template match="*" mode="structure">
     <xsl:if test="$quiet = 'false'">
