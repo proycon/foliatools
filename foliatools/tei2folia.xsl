@@ -536,7 +536,8 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <!-- Notes -->
 <xsl:template name="note">
-    <t-ref><xsl:choose>
+        <t-ref><xsl:if test="@n"><xsl:attribute name="n"><xsl:value-of select="@n" /></xsl:attribute></xsl:if>
+        <xsl:choose>
         <xsl:when test="@type">
         <xsl:attribute name="class">note-<xsl:value-of select="@type" /></xsl:attribute>
         </xsl:when>
@@ -545,7 +546,6 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         </xsl:when>
         <xsl:otherwise>unspecified</xsl:otherwise>
         </xsl:choose>
-        <xsl:if test="@n"><xsl:attribute name="n"><xsl:value-of select="@n" /></xsl:attribute></xsl:if>
         <xsl:apply-templates mode="markup" /></t-ref>
 </xsl:template>
 
