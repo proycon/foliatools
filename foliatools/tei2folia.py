@@ -21,6 +21,7 @@ import argparse
 import os.path
 import lxml.etree
 import traceback
+import time
 from socket import getfqdn
 from datetime import datetime
 from urllib.parse import  urlparse
