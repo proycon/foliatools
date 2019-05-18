@@ -174,7 +174,7 @@ def postprocess_tempparts(doc):
 
 def postprocess_notes(doc):
     for i, noteref in enumerate(doc.select(folia.TextMarkupReference, "https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/references.foliaset.ttl")):
-        if noteref.cls == "footnote" or noteref.cls[:4] == "note":
+        if noteref.cls and (noteref.cls == "footnote" or noteref.cls[:4] == "note"):
             #we treat all notes as footnotes and move them to the end of the parent division, with a proper reference in place
             div = noteref.ancestor(folia.Division) #these will hold the footnotes
             if div.hastext(strict=True):
