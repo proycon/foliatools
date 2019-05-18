@@ -767,19 +767,26 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 <xsl:template match="sp" mode="structure">
-<xsl:text>
-</xsl:text>
-<event class="speakerturn">
-<xsl:choose>
-<xsl:when test=".//speaker/hi">
-    <xsl:attribute name="actor"><xsl:value-of select="string(.//speaker/hi)" /></xsl:attribute>
-</xsl:when>
-<xsl:when test=".//speaker">
-    <xsl:attribute name="actor"><xsl:value-of select="string(.//speaker)" /></xsl:attribute>
-</xsl:when>
-</xsl:choose>
-<xsl:call-template name="textandorstructure" />
-</event>
+    <xsl:choose>
+    <xsl:when test="ancestor::figDesc|ancestor::item|ancestor::quote|ancestor::q">
+        <!-- no events allowed under these elements, just descend into substructures -->
+        <xsl:apply-templates mode="structure" />
+    </xsl:when>
+    <xsl:otherwise>
+        <!-- normal behaviour -->
+        <event class="speakerturn">
+        <xsl:choose>
+        <xsl:when test=".//speaker/hi">
+            <xsl:attribute name="actor"><xsl:value-of select="string(.//speaker/hi)" /></xsl:attribute>
+        </xsl:when>
+        <xsl:when test=".//speaker">
+            <xsl:attribute name="actor"><xsl:value-of select="string(.//speaker)" /></xsl:attribute>
+        </xsl:when>
+        </xsl:choose>
+        <xsl:call-template name="textandorstructure" />
+        </event>
+    </xsl:otherwise>
+    </xsl:choose>
 </xsl:template>
 
 <xsl:template match="stage" mode="structure">
