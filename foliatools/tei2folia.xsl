@@ -25,7 +25,10 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 -->
 
 <xsl:strip-space elements="l p interp meta interpGrp"/>
+
 <xsl:param name="docid"><xsl:value-of select="//publicationStmt/idno/text()"/></xsl:param>
+<xsl:param name='generateIds'>true</xsl:param><!-- We actually rarely do this now -->
+<xsl:param name="quiet">false</xsl:param>
 
 <xsl:template name="note-resp">
 <xsl:if test="@resp">
@@ -41,7 +44,6 @@ Heavily adapted by Maarten van Gompel (Radboud University)
   </xsl:if>
 </xsl:template>
 
-<xsl:param name='generateIds'>true</xsl:param><!-- We actually rarely do this now -->
 
 
 
@@ -334,7 +336,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <!-- we can't have breaks in lists or table (rows)-->
 <xsl:template match="table/pb|list/pb|row/pb|figure/pb" mode="structure">
+    <xsl:if test="$quiet = 'false'">
     <xsl:message>WARNING: Skipped over pagebreak in table/list/row/figure</xsl:message>
+    </xsl:if>
     <comment>[tei2folia WARNING] Skipped over pagebreak here</comment>
 </xsl:template>
 
@@ -558,7 +562,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template match="gap" mode="markup"><xsl:call-template name="gap" /></xsl:template>
 
 <xsl:template match="note[./table|./figure|./list|./p]" mode="markup">
+<xsl:if test="$quiet = 'false'">
 <xsl:message>WARNING: There is a table, list or figure or paragraph in a note, the converter can't handle this currently</xsl:message>
+</xsl:if>
 <t-gap class="unprocessable-note" n="{@n}"/>
 </xsl:template>
 
@@ -714,17 +720,23 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <!-- ********************************** WARNINGS ***************************************************** -->
 
 <xsl:template match="*" mode="structure">
+    <xsl:if test="$quiet = 'false'">
     <xsl:message terminate="no">WARNING: Unknown tag in structure context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</xsl:message>
+    </xsl:if>
     <comment>[tei2folia WARNING] Unhandled tag in structure context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</comment>
 </xsl:template>
 
 <xsl:template match="*" mode="markup">
+    <xsl:if test="$quiet = 'false'">
     <xsl:message terminate="no">WARNING: Unknown tag in markup context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</xsl:message>
+    </xsl:if>
     <comment>[tei2folia WARNING] Unhandled tag in markup context: tei:<xsl:value-of select="name(.)"/> (in tei:<xsl:value-of select="name(parent::node())" />)</comment>
 </xsl:template>
 
 <xsl:template match="*">
+    <xsl:if test="$quiet = 'false'">
     <xsl:message terminate="no">WARNING: Unknown tag: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</xsl:message>
+    </xsl:if>
     <comment>[tei2folia WARNING] Unhandled tag: tei:<xsl:value-of select="name(.)"/> (in tei:<xsl:value-of select="name(parent::node())" />)</comment>
 </xsl:template>
 
