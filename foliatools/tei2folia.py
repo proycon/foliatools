@@ -191,7 +191,7 @@ def postprocess_notes(doc):
             noteref.idref = note_id
 
 def postprocess_warnings(doc):
-    for comment in enumerate(doc.select(folia.Comment)):
+    for comment in doc.select(folia.Comment):
         if comment.value.find("tei2folia") != -1:
             print(comment.value, file=sys.stderr)
 
