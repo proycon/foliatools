@@ -79,7 +79,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:call-template name="annotations"/>
     <xsl:call-template name="provenance"/>
     <xsl:if test="teiHeader/fileDesc/titleStmt/title">
-    i<meta id="title"><xsl:value-of select="string(teiHeader/fileDesc/titleStmt/title)" /></meta>
+    <meta id="title"><xsl:value-of select="string(teiHeader/fileDesc/titleStmt/title)" /></meta>
     </xsl:if>
     <xsl:if test="teiHeader/fileDesc//editionStmt/edition">
      <meta id="edition"><xsl:value-of select="string(teiHeader/fileDesc//editionStmt/edition)" /></meta>
