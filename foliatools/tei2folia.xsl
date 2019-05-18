@@ -775,7 +775,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <comment>[tei2folia WARNING] skipping <xsl:value-of select="name()" /> in item! (not allowed)</comment>
 </xsl:template>
 
-<xsl:template match="caption/figure|caption/list|caption/table" mode="structure">
+<xsl:template match="figDesc/figure|figDesc/list|figDesc/table" mode="structure">
     <xsl:if test="$quiet = 'false'">
     <xsl:message terminate="no">WARNING: skipping <xsl:value-of select="name()" /> in caption! (not allowed)</xsl:message>
     </xsl:if>
