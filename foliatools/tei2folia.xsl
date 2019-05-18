@@ -339,7 +339,6 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template match="cell" mode="structure">
     <cell>
-        <xsl:call-template name="haalPbBinnenInCel"/>
         <xsl:call-template name="textandorstructure"/>
     </cell>
 </xsl:template>
@@ -453,7 +452,6 @@ Heavily adapted by Maarten van Gompel (Radboud University)
  <xsl:element name="div">
     <xsl:attribute name="class"><xsl:choose><xsl:when test="@type"><xsl:value-of select="@type" /></xsl:when><xsl:otherwise>unspecified</xsl:otherwise></xsl:choose></xsl:attribute>
     <xsl:call-template name="metadata_link"/>
-    <xsl:call-template name="haalPbNietBinnen"/>
     <xsl:apply-templates mode="structure" />
  </xsl:element>
 </xsl:template>
@@ -700,8 +698,6 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:if>
 </xsl:template>
 -->
-
-<xsl:template name="haalPbNietBinnen"/>
 
 <xsl:template name="haalPbBinnen">
 <xsl:for-each select="preceding-sibling::*[1]">
