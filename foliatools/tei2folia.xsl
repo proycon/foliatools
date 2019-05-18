@@ -296,15 +296,32 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 <xsl:template match="head|docTitle|titlePart[not(ancestor::docTitle)]" mode="structure">
-    <head>
-    <xsl:attribute name="class">
     <xsl:choose>
-        <xsl:when test="@rend"><xsl:value-of select="@rend"/></xsl:when>
-        <xsl:otherwise>unspecified</xsl:otherwise>
+     <xsl:when test="list|figure">
+         <!-- render head as p because of incompatible subelements-->
+        <p>
+        <xsl:attribute name="class">
+        <xsl:choose>
+            <xsl:when test="@rend"><xsl:value-of select="@rend"/></xsl:when>
+            <xsl:otherwise>unspecified</xsl:otherwise>
+        </xsl:choose>
+        </xsl:attribute>
+        <xsl:call-template name="textandorstructure"/>
+        </p>
+     </xsl:when>
+     <xsl:otherwise>
+         <!-- normal situation -->
+        <head>
+        <xsl:attribute name="class">
+        <xsl:choose>
+            <xsl:when test="@rend"><xsl:value-of select="@rend"/></xsl:when>
+            <xsl:otherwise>unspecified</xsl:otherwise>
+        </xsl:choose>
+        </xsl:attribute>
+        <xsl:call-template name="textandorstructure"/>
+        </head>
+     </xsl:otherwise>
     </xsl:choose>
-    </xsl:attribute>
-    <xsl:call-template name="textandorstructure"/>
-    </head>
 </xsl:template>
 
 <xsl:template match="table" mode="structure">
