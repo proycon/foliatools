@@ -183,9 +183,9 @@ def postprocess_notes(doc):
             note_id = noteref.doc.id+".note."+str(i)
             #add the note
             if noteref.data:
-                div.append(folia.Note, folia.TextContent(doc,*noteref.data), id=note_id, cls=noteref.cls)
+                div.append(folia.Note, folia.TextContent(doc,*noteref.data), id=note_id, cls=noteref.cls if noteref.cls else "unspecified")
             else:
-                div.append(folia.Note, id=note_id, cls=noteref.cls)
+                div.append(folia.Note, id=note_id, cls=noteref.cls if noteref.cls else "unspecified")
             noteref.data = [] #clear data
             noteref.type = "note"
             noteref.idref = note_id

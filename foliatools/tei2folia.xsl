@@ -343,6 +343,10 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <xsl:template match="figure" mode="structure">
+    <xsl:if test="figure/head">
+        <!-- move head out of figure -->
+        <xsl:apply-templates select="figure/head" mode="structure" />
+    </xsl:if>
     <figure>
         <xsl:if test="xptr">
         <xsl:attribute name="src"><xsl:value-of select="xptr/@to" /></xsl:attribute>
@@ -358,6 +362,10 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <xsl:template match="list" mode="structure">
+    <xsl:if test="list/head">
+        <!-- move head out of list -->
+        <xsl:apply-templates select="table/list" mode="structure" />
+    </xsl:if>
     <list>
         <xsl:apply-templates mode="structure"/>
     </list>
@@ -598,6 +606,11 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <!-- Handled by table -->
 <xsl:template match="table/head" mode="structure"/>
 
+<!-- Handled by list -->
+<xsl:template match="list/head" mode="structure"/>
+
+<!-- Handled by figure -->
+<xsl:template match="figure/head" mode="structure"/>
 
 <!-- *********************************** PAGEBREAK MAGIC **************************************************** -->
 
