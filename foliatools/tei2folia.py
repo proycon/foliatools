@@ -58,7 +58,7 @@ def convert(filename, transformer, parser=None, **kwargs):
         parser.resolvers.add( CustomResolver(kwargs.get('dtddir','.')) )
     with open(filename,'rb') as f:
         parsedsource = lxml.etree.parse(f, parser)
-    transformed = transformer(parsedsource)
+    transformed = transformer(parsedsource,quiet="true")
     try:
         doc = folia.Document(tree=transformed, debug=kwargs.get('debug',0))
     except folia.DeepValidationError as e:
@@ -91,6 +91,8 @@ def convert(filename, transformer, parser=None, **kwargs):
         doc.provenance.processors[-1].user = os.environ['USER']
     #add subprocessor for validation
     doc.provenance.processors[-1].append( folia.Processor.create(name="foliavalidator", version=TOOLVERSION, src="https://github.com/proycon/foliatools", metadata={"valid": "yes"}) )
+    if not kwargs.get('quiet'):
+        postprocess_warnings(doc)
     if not kwargs.get('leaveparts'):
         postprocess_tempparts(doc)
     if not kwargs.get('leavenotes'):
@@ -188,6 +190,11 @@ def postprocess_notes(doc):
             noteref.type = "note"
             noteref.idref = note_id
 
+def postprocess_warnings(doc):
+    for comment in enumerate(doc.select(folia.Comment)):
+        if comment.value.find("tei2folia") != -1:
+            print(comment.value, file=sys.stderr)
+
 def loadxslt():
     xsltfilename = "tei2folia.xsl"
     xsldir = os.path.dirname(__file__)
@@ -204,6 +211,7 @@ def main():
     parser.add_argument('-o','--outputdir',type=str, help="Output directory, set to - for stdout", action="store",default=".",required=False)
     parser.add_argument('--dtddir',type=str, help="Directory where DTDs are stored (tei2folia will actively try to obtain the DTDs)", action="store",default=".",required=False)
     parser.add_argument('-D','--debug',type=int,help="Debug level", action='store',default=0)
+    parser.add_argument('-q','--quiet',help="Do not output warnings", action='store_true',default=False)
     parser.add_argument('-b','--traceback',help="Provide a full traceback on validation errors", action='store_true', default=False)
     parser.add_argument('-P','--leaveparts',help="Do *NOT* resolve temporary parts", action='store_true', default=False)
     parser.add_argument('-N','--leavenotes',help="Do *NOT* resolve inline notes (t-gap)", action='store_true', default=False)
