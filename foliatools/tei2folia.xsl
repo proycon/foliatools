@@ -37,7 +37,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 
-<xsl:template name="metadata_link">
+<xsl:template name="metadata_link"><!-- might be specific for INT collections -->
   <xsl:variable name="inst"><xsl:value-of select="./@xml:id"/></xsl:variable>
   <xsl:if test="//interpGrp[@inst=concat('#',$inst)]">
    <xsl:attribute name="metadata"><xsl:value-of select="./@xml:id"/></xsl:attribute>
@@ -46,7 +46,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 
-<xsl:template match="interpGrp/interp" mode="structure"><comment>interp[<xsl:value-of select="@type"/>]: <xsl:value-of select="string()" /></comment></xsl:template>
+<xsl:template match="interpGrp/interp" mode="structure"><comment>interp[<xsl:value-of select="@type"/>]: <xsl:value-of select="@value" /></comment></xsl:template>
 
 <!--
  text nodes, inline tags en ignorable tagging binnen t.
@@ -469,7 +469,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template match="div|div0|div1|div2|div3|div4|div5|div6|div7|titlePage|argument" mode="structure">
  <xsl:element name="div">
     <xsl:attribute name="class"><xsl:choose><xsl:when test="@type"><xsl:value-of select="@type" /></xsl:when><xsl:otherwise>unspecified</xsl:otherwise></xsl:choose></xsl:attribute>
-    <xsl:call-template name="metadata_link"/>
+    <xsl:call-template name="metadata_link"/><!-- for INT collections? -->
     <xsl:apply-templates mode="structure" />
  </xsl:element>
 </xsl:template>
