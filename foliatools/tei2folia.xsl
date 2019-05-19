@@ -721,7 +721,8 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:for-each>
 </xsl:template>
 
-<xsl:template match="text/pb|table/pb|row/pb|list/lb"><comment>Deze pagebreak doen we mooi niet hoor!</comment></xsl:template>
+<xsl:template match="text/pb|table/pb|row/pb|list/pb"><comment>Skipping pagebreak here</comment></xsl:template>
+<xsl:template match="list/lb"><comment>Skipping linebreak here</comment></xsl:template>
 
 <!-- ********************************* CRUFT ****************************************************** -->
 
