@@ -701,9 +701,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <!-- *********************************** PAGEBREAK MAGIC **************************************************** -->
 
 <xsl:template match="text/pb|table/pb|row/pb|list/pb" mode="structure"><comment>Skipping pagebreak here</comment></xsl:template>
-<xsl:template match="list/lb" mode="structure"><comment>Skipping linebreak here</comment></xsl:template>
+<xsl:template match="list/lb|row/lb|table/lb" mode="structure"><comment>Skipping linebreak here</comment></xsl:template>
 <xsl:template match="text/pb|table/pb|row/pb|list/pb" mode="markup"><comment>Skipping pagebreak here</comment></xsl:template>
-<xsl:template match="list/lb" mode="markup"><comment>Skipping linebreak here</comment></xsl:template>
+<xsl:template match="list/lb|row/lb|table/lb" mode="markup"><comment>Skipping linebreak here</comment></xsl:template>
 
 <!-- I'm not entirely sure what this does but it looks well thought out (proycon) -->
 
