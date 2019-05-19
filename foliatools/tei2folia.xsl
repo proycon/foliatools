@@ -46,7 +46,6 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 
-<xsl:template match="interpGrp/interp" mode="structure"><comment>interp[<xsl:value-of select="@type"/>]: <xsl:value-of select="@value" /></comment></xsl:template>
 
 <!--
  text nodes, inline tags en ignorable tagging binnen t.
@@ -492,6 +491,14 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template match="gap" mode="structure">
     <gap annotator="{@resp}" class="{@reason}"/>
+</xsl:template>
+
+<xsl:template match="interpGrp" mode="structure">
+<comment>
+<xsl:for-each select="./interp">
+    interp[<xsl:value-of select="@type"/>]: <xsl:value-of select="@value" />
+</xsl:for-each>
+</comment>
 </xsl:template>
 
 <!-- Valid both as structural and as markup, easy -->
