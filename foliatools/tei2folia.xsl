@@ -384,11 +384,11 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <xsl:apply-templates select="figure/head" mode="structure" />
     </xsl:if>
     <xsl:choose>
-    <xsl:when test="ancestor::list">
+    <xsl:when test="ancestor::list|ancestor::quote|ancestor::q">
         <xsl:if test="$quiet = 'false'">
-        <xsl:message>WARNING: Skipped over figure in list</xsl:message>
+        <xsl:message>WARNING: Skipped over figure in list/quote</xsl:message>
         </xsl:if>
-        <comment>[tei2folia WARNING] Skipped over figure in list</comment>
+        <comment>[tei2folia WARNING] Skipped over figure in list/quote</comment>
     </xsl:when>
     <xsl:otherwise>
         <!-- normal behaviour -->
