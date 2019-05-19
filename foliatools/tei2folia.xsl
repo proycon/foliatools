@@ -486,7 +486,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template match="q|quote" mode="structure">
     <xsl:choose>
-      <xsl:when test="list|figure|table">
+      <xsl:when test="list|table">
          <!-- having quotes here makes no sense, just process children as structure -->
         <xsl:apply-templates mode="structure" />
       </xsl:when>
@@ -868,6 +868,13 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:message terminate="no">WARNING: skipping <xsl:value-of select="name()" /> in item! (not allowed)</xsl:message>
     </xsl:if>
     <comment>[tei2folia WARNING] skipping <xsl:value-of select="name()" /> in item! (not allowed)</comment>
+</xsl:template>
+
+<xsl:template match="quote/figure" mode="structure">
+    <xsl:if test="$quiet = 'false'">
+    <xsl:message terminate="no">WARNING: skipping <xsl:value-of select="name()" /> in quote! (not allowed)</xsl:message>
+    </xsl:if>
+    <comment>[tei2folia WARNING] skipping <xsl:value-of select="name()" /> in quote! (not allowed)</comment>
 </xsl:template>
 
 <xsl:template match="figDesc/figure|figDesc/list|figDesc/table" mode="structure">
