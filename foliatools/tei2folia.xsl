@@ -333,7 +333,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <xsl:apply-templates select="table/head" mode="structure" />
     </xsl:if>
     <xsl:choose>
-    <xsl:when test="ancestor::cell|ancestor::table|ancestor::list">
+    <xsl:when test="ancestor::cell|ancestor::table|ancestor::item|ancestor::list">
         <!-- nested tables? what are we? HTML in the late nineties? let's just flatten the nested table instead -->
         <comment>[tei2folia WARNING] Nested table occurs here, we flattened it. Results may be unexpected</comment>
         <xsl:for-each select="table/row/cell/*">
@@ -839,7 +839,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <!-- ********************************** WARNINGS ***************************************************** -->
 
-<xsl:template match="item/figure|item/table" mode="structure">
+<xsl:template match="item/figure" mode="structure">
     <xsl:if test="$quiet = 'false'">
     <xsl:message terminate="no">WARNING: skipping <xsl:value-of select="name()" /> in item! (not allowed)</xsl:message>
     </xsl:if>
