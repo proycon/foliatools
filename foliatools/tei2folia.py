@@ -135,7 +135,11 @@ def mergeparts(sequence):
         except ValueError:
             print("WARNING: Unable to remove part " + repr(part) + " from parent " + repr(parent) + " as it does not exist",file=sys.stderr)
         if isinstance(part, folia.Part):
-            newtextcontent += part.textcontent().data
+            try:
+                newtextcontent += part.textcontent().data
+            except folia.NoSuchText:
+                #ok, no biggie
+                pass
         else: #intermediate elements (linebreaks and such), add as-is
             newtextcontent.append(part)
     mergedelement = parent.insert(index, Mergedclass, cls="aggregated")
