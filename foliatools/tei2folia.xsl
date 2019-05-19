@@ -300,8 +300,8 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template match="head|docTitle|titlePart[not(ancestor::docTitle)]" mode="structure">
     <xsl:choose>
-     <xsl:when test="list|figure|item">
-         <!-- render head as p because of incompatible subelements-->
+     <xsl:when test="list|figure|ancestor::item">
+         <!-- render head as p because of incompatible subelements or super-elements -->
         <p>
         <xsl:attribute name="class">
         <xsl:choose>
