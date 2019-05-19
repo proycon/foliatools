@@ -414,7 +414,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <item>
         <xsl:attribute name="n"><xsl:value-of select="string(preceding-sibling::*[1])" /></xsl:attribute>
         <xsl:choose>
-        <xsl:when test="list|p|s|w">
+        <xsl:when test="list|table|p|s|w">
         <gap class="label">
         <content><xsl:value-of select="string(preceding-sibling::*[1])" /></content>
         </gap>
