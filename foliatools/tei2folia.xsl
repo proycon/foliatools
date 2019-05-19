@@ -339,6 +339,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <xsl:for-each select=".//cell/*">
             <xsl:if test="name() != 'table' and name() != 'row' and name() != 'cell'">
              <xsl:apply-templates match="." mode="structure" />
+             <xsl:text> </xsl:text>
             </xsl:if>
         </xsl:for-each>
     </xsl:when>
