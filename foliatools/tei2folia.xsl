@@ -383,12 +383,23 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <!-- move head out of figure -->
         <xsl:apply-templates select="figure/head" mode="structure" />
     </xsl:if>
+    <xsl:choose>
+    <xsl:when test="ancestor::list">
+        <xsl:if test="$quiet = 'false'">
+        <xsl:message>WARNING: Skipped over figure in list</xsl:message>
+        </xsl:if>
+        <comment>[tei2folia WARNING] Skipped over figure in list</comment>
+    </xsl:when>
+    <xsl:otherwise>
+        <!-- normal behaviour -->
     <figure>
         <xsl:if test="xptr">
         <xsl:attribute name="src"><xsl:value-of select="xptr/@to" /></xsl:attribute>
         </xsl:if>
         <xsl:apply-templates select="figDesc" mode="structure"/>
     </figure>
+    </xsl:otherwise>
+    </xsl:choose>
 </xsl:template>
 
 <xsl:template match="figDesc" mode="structure">
