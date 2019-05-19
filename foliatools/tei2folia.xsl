@@ -333,12 +333,12 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <xsl:apply-templates select="table/head" mode="structure" />
     </xsl:if>
     <xsl:choose>
-    <xsl:when test="ancestor::cell">
+    <xsl:when test="ancestor::cell|ancestor::table|ancestor::list">
         <!-- nested tables? what are we? HTML in the late nineties? let's just flatten the nested table instead -->
         <comment>[tei2folia WARNING] Nested table occurs here, we flattened it. Results may be unexpected</comment>
-        <xsl:foreach select="table/row/cell/*">
+        <xsl:for-each select="table/row/cell/*">
             <xsl:apply-templates match="." mode="structure" />
-        </xsl:foreach>
+        </xsl:for-each>
     </xsl:when>
     <xsl:otherwise>
         <!-- normal behaviour -->
@@ -454,10 +454,10 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </div>
 </xsl:template>
 
-<xsl:template match="table|row" mode="structure">
-    <xsl:element name="{name(.)}">
+<xsl:template match="row" mode="structure">
+    <row>
     <xsl:apply-templates mode="structure" />
-    </xsl:element>
+    </row>
 </xsl:template>
 
 <xsl:template match="div|div0|div1|div2|div3|div4|div5|div6|div7|titlePage|argument" mode="structure">
