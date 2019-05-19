@@ -46,6 +46,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 
+<xsl:template match="interpGrp/interp" mode="structure"><comment>interp[<xsl:value-of select="@type"/>]: <xsl:value-of select="string()" /></comment></xsl:template>
 
 <!--
  text nodes, inline tags en ignorable tagging binnen t.
@@ -103,7 +104,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:if test="teiHeader/revisionDesc/change">
      <meta id="note"><xsl:value-of select="string(teiHeader/revisionDesc/change)" /></meta>
     </xsl:if>
-    <!-- these we intherited, not sure what it does -->
+    <!-- these we inherited and are INL specific, not sure what it does but we'll leave it in -->
     <xsl:for-each select=".//listBibl[@xml:id='inlMetadata']//interpGrp"><meta id="{./@type}"><xsl:apply-templates mode="meta"/></meta></xsl:for-each>
     <xsl:for-each select=".//listBibl[not(@xml:id='inlMetadata')]">
         <submetadata>
