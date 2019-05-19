@@ -121,7 +121,7 @@ def convert(filename, transformer, parser=None, **kwargs):
 def mergeparts(sequence):
     """Merges a sequence of temporary parts, following the assumption that each only has one textcontent element which will be concatenated with the others"""
     try:
-        sequence[0].ancestor(folia.Paragraph, folia.Sentence)
+        sequence[0].ancestor(folia.Paragraph, folia.Sentence, folia.Part)
         Mergedclass = folia.Part
     except folia.NoSuchAnnotation:
         Mergedclass = folia.Paragraph
