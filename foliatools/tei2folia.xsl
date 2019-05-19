@@ -337,7 +337,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <!-- nested tables? what are we? HTML in the late nineties? let's just flatten the nested table instead -->
         <comment>[tei2folia WARNING] Nested table occurs here, we flattened it. Results may be unexpected</comment>
         <xsl:for-each select=".//cell/*">
-            <xsl:apply-templates match="." mode="structure" />
+            <xsl:if test="name() != 'table' and name() != 'row' and name() != 'cell'">
+             <xsl:apply-templates match="." mode="structure" />
+            </xsl:if>
         </xsl:for-each>
     </xsl:when>
     <xsl:otherwise>
