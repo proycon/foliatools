@@ -336,7 +336,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:when test="ancestor::cell">
         <!-- nested tables? what are we? HTML in the late nineties? let's just flatten the nested table instead -->
         <comment>[tei2folia WARNING] Nested table occurs here, we flattened it. Results may be unexpected</comment>
-        <xsl:foreach select="match/cell/*">
+        <xsl:foreach select="table/row/cell/*">
             <xsl:apply-templates match="." mode="structure" />
         </xsl:foreach>
     </xsl:when>
