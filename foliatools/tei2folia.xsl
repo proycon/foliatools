@@ -300,13 +300,13 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template match="head|docTitle|titlePart[not(ancestor::docTitle)]" mode="structure">
     <xsl:choose>
-     <xsl:when test="list|figure">
+     <xsl:when test="list|figure|item">
          <!-- render head as p because of incompatible subelements-->
         <p>
         <xsl:attribute name="class">
         <xsl:choose>
             <xsl:when test="@rend"><xsl:value-of select="@rend"/></xsl:when>
-            <xsl:otherwise>unspecified</xsl:otherwise>
+            <xsl:otherwise>head</xsl:otherwise>
         </xsl:choose>
         </xsl:attribute>
         <xsl:call-template name="textandorstructure"/>
