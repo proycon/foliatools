@@ -458,7 +458,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template match="q|quote" mode="structure">
     <xsl:choose>
-      <xsl:when test="list|figure">
+      <xsl:when test="list|figure|table">
          <!-- having quotes here makes no sense, just process children as structure -->
         <xsl:apply-templates mode="structure" />
       </xsl:when>
