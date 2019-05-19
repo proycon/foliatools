@@ -332,9 +332,19 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <!-- move head out of table -->
         <xsl:apply-templates select="table/head" mode="structure" />
     </xsl:if>
-    <table>
-    <xsl:apply-templates mode="structure" />
-    </table>
+    <xsl:choose>
+    <xsl:when test="ancestor::cell">
+        <!-- nested tables? what are we? HTML in the late nineties? let's just flatten the nested table instead -->
+        <comment>[tei2folia WARNING] Nested table occurs here, we flattened it. Results may be unexpected</comment>
+        <xsl:apply-templates match="row/cell/*" mode="structure" />
+    </xsl:when>
+    <xsl:otherwise>
+        <!-- normal behaviour -->
+        <table>
+        <xsl:apply-templates mode="structure" />
+        </table>
+    </xsl:otherwise>
+    </xsl:choose>
 </xsl:template>
 
 <xsl:template match="cell" mode="structure">
