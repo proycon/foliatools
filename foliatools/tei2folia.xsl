@@ -534,6 +534,17 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:if>
 </xsl:template>
 
+<xsl:template match="title" mode="structure">
+<xsl:if test="normalize-space(string(.))">
+<part class="temp-title"><t><xsl:call-template name="title" /></t></part>
+</xsl:if>
+</xsl:template>
+
+<xsl:template match="name" mode="structure">
+<xsl:if test="normalize-space(string(.))">
+<part class="temp-name"><t><xsl:call-template name="name" /></t></part>
+</xsl:if>
+</xsl:template>
 
 <!-- ************************** TEMPLATES PRODUCING MARKUP ELEMENTS  *********************** -->
 
@@ -655,6 +666,16 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <!-- default text node behaviour -->
 <xsl:template match="text()" mode="markup">
 <xsl:value-of select="." />
+</xsl:template>
+
+<xsl:template name="title">
+<xsl:if test="normalize-space(string(.))">
+<t-str class="title"><xsl:apply-templates mode="markup" /></t-str>
+</xsl:if>
+</xsl:template>
+
+<xsl:template match="title" mode="markup">
+<xsl:call-template name="title" />
 </xsl:template>
 
 <!-- ************************** TEMPLATES DELETING ELEMENTS  *********************** -->
