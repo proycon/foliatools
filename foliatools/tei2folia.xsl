@@ -245,7 +245,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template name="textandorstructure">
     <xsl:variable name="hasstructure"><xsl:choose><xsl:when test="p|div|s|w|lg|sp|table|row|cell|figure|list|item|cell|speaker|head">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
     <xsl:variable name="hastext"><xsl:choose><xsl:when test="normalize-space(.) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
-    <xsl:variable name="hasmarkup"><xsl:choose><xsl:when test="hi|add|name|note|corr|supplied|add|l">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
+    <xsl:variable name="hasmarkup"><xsl:choose><xsl:when test="hi|add|name|note|corr|supplied|add|l and normalize-space(string(.)) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
 
     <!--<xsl:comment>DEBUG:<xsl:value-of select="$hasstructure" /><xsl:value-of select="$hastext" /><xsl:value-of select="$hasmarkup" /></xsl:comment>-->
 
