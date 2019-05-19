@@ -870,7 +870,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <comment>[tei2folia WARNING] skipping <xsl:value-of select="name()" /> in item! (not allowed)</comment>
 </xsl:template>
 
-<xsl:template match="quote/figure" mode="structure">
+<xsl:template match="quote/figure|q/figure" mode="structure">
     <xsl:if test="$quiet = 'false'">
     <xsl:message terminate="no">WARNING: skipping <xsl:value-of select="name()" /> in quote! (not allowed)</xsl:message>
     </xsl:if>
