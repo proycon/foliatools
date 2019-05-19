@@ -333,9 +333,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <xsl:apply-templates select="table/head" mode="structure" />
     </xsl:if>
     <xsl:choose>
-    <xsl:when test="ancestor::cell|ancestor::table|ancestor::item|ancestor::list">
+    <xsl:when test="ancestor::cell|ancestor::table|ancestor::item|ancestor::list|ancestor::quote|ancestor::q">
         <!-- nested tables? what are we? HTML in the late nineties? let's just flatten the nested table instead -->
-        <comment>[tei2folia WARNING] Nested table occurs here, we flattened it. Results may be unexpected</comment>
+        <comment>[tei2folia WARNING] Nested table (or table in invalid context) occurs here, we flattened it. Results may be unexpected</comment>
         <part class="nestedtable">
         <xsl:for-each select=".//cell/*">
             <xsl:if test="name() != 'table' and name() != 'row' and name() != 'cell'">
