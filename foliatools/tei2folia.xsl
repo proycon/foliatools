@@ -336,14 +336,14 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:when test="ancestor::cell|ancestor::table|ancestor::item|ancestor::list">
         <!-- nested tables? what are we? HTML in the late nineties? let's just flatten the nested table instead -->
         <comment>[tei2folia WARNING] Nested table occurs here, we flattened it. Results may be unexpected</comment>
-        <part class="nestedtable">
+        <p class="flattenedtable">
         <xsl:for-each select=".//cell/*">
             <xsl:if test="name() != 'table' and name() != 'row' and name() != 'cell'">
              <xsl:apply-templates match="." mode="structure" />
              <br class="cellbreak"/>
             </xsl:if>
         </xsl:for-each>
-        </part>
+        </p>
     </xsl:when>
     <xsl:otherwise>
         <!-- normal behaviour -->
