@@ -26,7 +26,9 @@ A number of command-line tools are readily available for working with FoLiA, to 
 - ``foliaupgrade`` -- Upgrades a document to the latest FoLiA version.
 - ``alpino2folia`` -- Convert Alpino-DS XML to FoLiA XML
 - ``dcoi2folia`` -- Convert D-Coi XML to FoLiA XML
+- ``conllu2folia`` -- Convert files in the `CONLL-U format <http://http://universaldependencies.org/format.html>`_ to FoLiA XML.
 - ``rst2folia`` -- Convert ReStructuredText, a lightweight non-intrusive text markup language, to FoLiA, using `docutils <http://docutils.sourceforge.net/>`_.
+- ``tei2folia`` -- Convert a subset of TEI to FoLiA.
 
 All of these tools are written in Python, and thus require a Python (2.7, 3 or higher) installation to run. More tools are added as time progresses.
 

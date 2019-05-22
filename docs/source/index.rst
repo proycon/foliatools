@@ -31,6 +31,7 @@ various ends. The following tools are currently available:
 * ``conllu2folia`` -- Convert files in the `CONLL-U format <http://http://universaldependencies.org/format.html>`_ to FoLiA XML.
 * ``rst2folia`` -- Convert `ReStructuredText <http://docutils.sourceforge.net/rst.html>`_, a lightweight non-intrusive text markup language, to FoLiA, using `docutils <http://docutils.sourceforge.net/>`.
 * ``alpino2folia`` -- Convert Alpino-DS XML to FoLiA XML
+* ``tei2folia`` -- Convert a subset of TEI to FoLiA.
 
 All of these tools are written in Python 3. More tools are added as time progresses.
 
