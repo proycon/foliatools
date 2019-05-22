@@ -23,6 +23,22 @@ for f in ../folia/examples/*.folia.xml; do #the example/test data is in a git su
     fi
 done
 
+for f in ../folia/examples/erroneous/*.folia.xml; do #the example/test data is in a git submodule
+    if [[ $f = *"deep"* ]]; then
+        echo "Running FoLiA validator (DEEP!) on erroneous input $(basename $f)" >&2
+        foliavalidator -d $f
+    else
+        echo "Running FoLiA validator (shallow) on erroneous input $(basename $f)" >&2
+        foliavalidator $f
+    fi
+    if [ $? -eq 0 ]; then
+        echo "...${boldred}FAILED${normal}" >&2
+        FAILURE=1
+    else
+        echo "...${boldgreen}OK${normal}" >&2
+    fi
+done
+
 echo "Running folia2txt" >&2
 folia2txt test.xml > test.tmp
 if [ $? -ne 0 ]; then
