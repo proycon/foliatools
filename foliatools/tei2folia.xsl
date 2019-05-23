@@ -217,7 +217,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
          <annotator processor="proc.tei2folia.xsl"/>
  </event-annotation>
 </xsl:if>
-<xsl:if test="//lb|//pb">
+<xsl:if test="//lb|//pb|//l">
  <linebreak-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/linebreaks.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
  </linebreak-annotation>
