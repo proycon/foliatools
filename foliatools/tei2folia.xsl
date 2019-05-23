@@ -426,9 +426,11 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <xsl:attribute name="n"><xsl:value-of select="string(preceding-sibling::*[1])" /></xsl:attribute>
         <xsl:choose>
         <xsl:when test="list|table|p|s|w">
+        <xsl:if test="normalize-space(string(preceding-sibling::*[1]))">
         <gap class="label">
         <content><xsl:value-of select="string(preceding-sibling::*[1])" /></content>
         </gap>
+        </xsl:if>
         <xsl:apply-templates mode="structure" />
         </xsl:when>
         <xsl:otherwise>
