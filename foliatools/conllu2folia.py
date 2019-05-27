@@ -65,9 +65,14 @@ def convert(file, **args):
                 doc.append(textbody)
                 anchor = textbody
             if 'newpar id' in tokenlist.metadata:
-                anchor = textbody.append(folia.Paragraph, id=tokenlist.metadata['newpar id'])
+                par_id = tokenlist.metadata['newpar id']
+                if par_id.isnumeric():
+                    par_id = doc_id + ".p." + par_id
+                anchor = textbody.append(folia.Paragraph, id=par_id)
             if 'sent_id' in tokenlist.metadata:
                 sent_id = tokenlist.metadata['sent_id']
+                if sent_id.isnumeric():
+                    sent_id = doc_id + ".s." + sent_id
             else:
                 sent_id = doc_id + '.s.' + str(i+1)
             sentence = folia.Sentence(doc, id=sent_id)
