@@ -103,6 +103,10 @@ def convert(file, **args):
                 hascontent = True
             for token in tokenlist:
                 if token['head'] and token['deprel']:
+                    try:
+                        head = wordindex[token['head']]
+                    except KeyError:
+                        raise KeyError("Dependency Head for token " + str(token['id']) + " in sentence " + sentence.id + " points to token " + str(token['head'])  +", which does no exist")
                     sentence.add(folia.Dependency(doc, set=args.get('depset',UDEP_SET), cls=token['deprel'], contents=[
                         folia.DependencyHead(doc, wordindex[token['head']]),
                         folia.DependencyDependent(doc, wordindex[token['id']])
