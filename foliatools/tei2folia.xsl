@@ -47,18 +47,6 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 
-<!--
- text nodes, inline tags en ignorable tagging binnen t.
-  Let op: extra if ook in dergelijke andere templates toevoegen
-  Of liever parametriseren
--->
-
-<!-- meer algemeen iets met inline elementen doen wat je hier met hi en name doet -->
-
-
-
-
-
 
 
 <xsl:template match="signed">
@@ -244,8 +232,8 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <!-- process underlying text and/or structure-->
 <xsl:template name="textandorstructure">
     <xsl:variable name="hasstructure"><xsl:choose><xsl:when test="p|div|s|w|lg|sp|table|row|cell|figure|list|item|cell|speaker|head">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
-    <xsl:variable name="hastext"><xsl:choose><xsl:when test="normalize-space(.) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
-    <xsl:variable name="hasmarkup"><xsl:choose><xsl:when test="hi|add|name|note|corr|supplied|add|l and normalize-space(string(.)) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
+    <xsl:variable name="hastext"><xsl:choose><xsl:when test="normalize-space(translate(., '&#160;', ' ')) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
+    <xsl:variable name="hasmarkup"><xsl:choose><xsl:when test="hi|add|name|note|corr|supplied|add|l and normalize-space(translate(string(.),'&#160;', ' ')) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
 
     <!--<xsl:comment>DEBUG:<xsl:value-of select="$hasstructure" /><xsl:value-of select="$hastext" /><xsl:value-of select="$hasmarkup" /></xsl:comment>-->
 
@@ -426,7 +414,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <xsl:attribute name="n"><xsl:value-of select="string(preceding-sibling::*[1])" /></xsl:attribute>
         <xsl:choose>
         <xsl:when test="list|table|p|s|w">
-        <xsl:if test="normalize-space(string(preceding-sibling::*[1]))">
+        <xsl:if test="normalize-space(translate(string(preceding-sibling::*[1]) ,'&#160;', ' '))">
         <gap class="label">
         <content><xsl:value-of select="string(preceding-sibling::*[1])" /></content>
         </gap>
@@ -525,61 +513,61 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <!-- Text structural mode, wrap in part (to be sorted by postprocessor later!)-->
 <xsl:template match="l" mode="structure">
-    <xsl:if test="normalize-space(string(.))">
+    <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-l"><t><xsl:call-template name="l" /></t></part>
     </xsl:if>
 </xsl:template>
 
 <xsl:template match="hi" mode="structure">
-    <xsl:if test="normalize-space(string(.))">
+    <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-hi"><t><xsl:call-template name="hi" /></t></part>
     </xsl:if>
 </xsl:template>
 
 <xsl:template match="add" mode="structure">
-    <xsl:if test="normalize-space(string(.))">
+    <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-add"><t><xsl:call-template name="add" /></t></part>
     </xsl:if>
 </xsl:template>
 
 <xsl:template match="corr" mode="structure">
-    <xsl:if test="normalize-space(string(.))">
+    <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-corr"><t><xsl:call-template name="corr" /></t></part>
     </xsl:if>
 </xsl:template>
 
 <xsl:template match="supplied" mode="structure">
-    <xsl:if test="normalize-space(string(.))">
+    <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-supplied"><t><xsl:call-template name="supplied" /></t></part>
     </xsl:if>
 </xsl:template>
 
 <xsl:template match="del" mode="structure">
-    <xsl:if test="normalize-space(string(.))">
+    <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-del"><t><xsl:call-template name="del" /></t></part>
     </xsl:if>
 </xsl:template>
 
 <xsl:template match="note" mode="structure">
-    <xsl:if test="normalize-space(string(.))">
+    <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-note"><t><xsl:call-template name="note" /></t></part> <!-- this deliberately does not resolve to notes yet, our postprocessor creates the notes -->
     </xsl:if>
 </xsl:template>
 
 <xsl:template match="text()" mode="structure">
-<xsl:if test="normalize-space(.)">
+<xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
 <part class="temp-text"><t><xsl:value-of select="." /></t></part>
 </xsl:if>
 </xsl:template>
 
 <xsl:template match="title" mode="structure">
-<xsl:if test="normalize-space(string(.))">
+<xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
 <part class="temp-title"><t><xsl:call-template name="title" /></t></part>
 </xsl:if>
 </xsl:template>
 
 <xsl:template match="name" mode="structure">
-<xsl:if test="normalize-space(string(.))">
+<xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
 <part class="temp-name"><t><xsl:call-template name="name" /></t></part>
 </xsl:if>
 </xsl:template>
@@ -707,7 +695,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <xsl:template name="title">
-<xsl:if test="normalize-space(string(.))">
+<xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
 <t-str class="title"><xsl:apply-templates mode="markup" /></t-str>
 </xsl:if>
 </xsl:template>
