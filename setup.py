@@ -47,6 +47,7 @@ setup(
             'conllu2folia = foliatools.conllu2folia:main',
             'rst2folia = foliatools.rst2folia:main',
             'tei2folia = foliatools.tei2folia:main',
+            'psd2folia = foliatools.psd2folia:main',
             'foliacat = foliatools.foliacat:main',
             'folia2rst = foliatools.folia2rst:main',
             'foliacorrect = foliatools.foliacorrect:main',
@@ -63,5 +64,5 @@ setup(
     },
     #include_package_data=True,
     package_data = {'foliatools': ['*.xsl']},
-    install_requires=['folia >= 2.1.0', 'lxml >= 2.2','docutils', 'pyyaml']
+    install_requires=['folia >= 2.1.0', 'lxml >= 2.2','docutils', 'pyyaml', 'parsimonious']
 )
