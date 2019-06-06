@@ -52,40 +52,12 @@ def convert_undefined_sets(doc):
 
 def annotators2processors(doc, mainprocessor):
     """Convert FoLiA v1 style annotators to v2 style processors (limited)"""
-    mapping = {} #annotator (name,type) to processor instance map
     for element in doc.items():
         if isinstance(element, folia.AbstractElement):
             if element.annotator is not None:
-                if element.annotatortype == folia.ProcessorType.MANUAL:
-                    annotatortype = folia.ProcessorType.MANUAL
-                else:
-                    annotatortype = folia.ProcessorType.AUTO
-                try:
-                    foundprocessor = mapping[(element.annotator, annotatortype)]
-                except KeyError:
-                    foundprocessor = None
-                    for processor in doc.getprocessors(element.ANNOTATIONTYPE, element.set):
-                        if element.annotator == processor.name and annotatortype == processor.type:
-                            foundprocessor = processor
-                if foundprocessor:
-                    element.setprocessor(foundprocessor)
-                    mapping[(element.annotator,annotatortype)] = foundprocessor
-                else:
-                    #Create a new processor
-                    newprocessor = folia.Processor(element.annotator, type=annotatortype)
-                    try:
-                        newprocessor.begindatetime = doc.annotationdefaults[element.ANNOTATIONTYPE][element.set]['datetime']
-                    except: #May likely not exist, that's ok
-                        pass
-                    mainprocessor.append(newprocessor)
-                    element.setprocessor(newprocessor)
-                    mapping[(element.annotator,annotatortype)] = newprocessor
-                #delete the old style annotator
-                element.annotator = None
-                element.annotatortype = None
+                element.annotator2processor(element.annotator, element.annotatortype, parentprocessor=mainprocessor) #the library does the bulk of the work for us
             elif element.annotatortype is not None:
-                element.annotatortype = None
-                element.annotator = None
+                element.annotator2processor("unspecified", element.annotatortype, parentprocessor=mainprocessor) #the library does the bulk of the work for us
     doc.annotationdefaults = {} #not needed anymore
 
 def upgrade(doc, upgradeprocessor):
