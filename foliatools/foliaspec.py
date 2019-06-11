@@ -397,6 +397,13 @@ def outputblock(block, target, varname, args, indent = ""):
                     if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
                     s += indent + "  {  AnnotationType::" + element['properties']['annotationtype'] + ', "' + element['properties']['xmltag'] + '" },\n'
             s += indent + "};\n"
+        elif target == 'rust':
+            s += indent + "match annotationtype {\n"
+            for element in elements:
+                if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties']:
+                    if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
+                    s += indent + "  AnnotationType::" + element['properties']['annotationtype'] + ' => "' + element['properties']['xmltag'] + '",\n'
+            s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'annotationtype_elementtype_map':
@@ -407,6 +414,13 @@ def outputblock(block, target, varname, args, indent = ""):
                     if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
                     s += indent + "  {  AnnotationType::" + element['properties']['annotationtype'] + ', ' + element['class'] + '_t },\n'
             s += indent + "};\n"
+        elif target == 'rust':
+            s += indent + "match elementtype {\n"
+            for element in elements:
+                if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties']:
+                    if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
+                    s += indent + " => ElementType::' + element['properties']['xmltag'] + ' => AnnotationType::" + element['properties']['annotationtype'] + ',\n'
+            s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
 
@@ -428,6 +442,19 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + '  { XmlComment_t, "_XmlComment" },\n'
             s += indent + '  { XmlText_t, "_XmlText" }\n'
             s += indent + "};\n"
+        elif target == 'rust':
+            s += indent + "match elementtype {\n"
+            for element in elements:
+                if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
+                    s += indent + "  ElementType::" + element['class'] + ' => "' + element['properties']['xmltag'] + '",\n'
+                elif 'properties' in element and 'subset' in element['properties'] and element['properties']['subset']:
+                    if element['class'] == 'HeadFeature':
+                        s += indent + '  ElementType::HeadFeature => "headfeature",\n'
+                    else:
+                        s += indent + "  ElementType::" + element['properties']['subset'] + ' => "' + element['properties']['xmltag'] + '",\n'
+                else:
+                    s += indent + '  ElementType::' + element['class'] + ' => "' + element['class'] + '",\n'
+            s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'string_elementtype_map':
@@ -448,6 +475,19 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + '  { "_XmlComment", XmlComment_t  },\n'
             s += indent + '  { "_XmlText", XmlText_t  }\n'
             s += indent + "};\n"
+        elif target == 'rust':
+            s += indent + "match tag {\n"
+            for element in elements:
+                if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
+                    s += indent + '  "' + element['properties']['xmltag'] + '" =>  ElementType::' + element['class'] + ',\n'
+                elif 'properties' in element and 'subset' in element['properties'] and element['properties']['subset']:
+                    if element['class'] == 'HeadFeature':
+                        s += indent + '  "headfeature" =>  ElementType::' + element['class'] + ',\n'
+                    else:
+                        s += indent + '  "' + element['properties']['subset'] + '" =>  ElementType::' + element['class'] + ',\n'
+                else:
+                    s += indent + '  "_' + element['class'] + '" => ElementType::' + element['class'] + ',\n'
+            s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'string_class_map':
@@ -719,7 +759,10 @@ def foliaspec_parser(filename):
         target = 'python' #foliapy
         commentsign = '#'
     elif filename[-4:] == '.rst':
-        target = 'rst' #folia documentation
+        target = 'rst' #folia documentation, reStructuredTexgt
+        commentsign = '.. '
+    elif filename[-3:] == '.rs':
+        target = 'rust' #libfolia-rs
         commentsign = '.. '
     else:
         raise Exception("No target language could be deduced from the filename " + filename)
