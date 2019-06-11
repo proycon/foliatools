@@ -264,7 +264,7 @@ def outputblock(block, target, varname, args, indent = ""):
 
     if target == 'python':
         commentsign = '#'
-    elif target == 'c++':
+    elif target in ('c++','rust'):
         commentsign = '//'
     elif target == 'rst':
         commentsign = '.. '
@@ -305,6 +305,9 @@ def outputblock(block, target, varname, args, indent = ""):
         if target == 'c++':
             s += indent + "enum ElementType : unsigned int { BASE=0,"
             s += ", ".join([ e + '_t' for e in elementnames]) + ", PlaceHolder_t, XmlComment_t, XmlText_t,  LastElement };\n"
+        elif target == 'rust':
+            s += indent  + "#[derive(Debug,Copy,Clone)]\n"
+            s += indent + "pub enum ElementType { " + ", ".join([ e for e in elementnames]) + " }\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'annotationtype':
@@ -314,6 +317,9 @@ def outputblock(block, target, varname, args, indent = ""):
         elif target == 'c++':
             s += indent + "enum AnnotationType : int { NO_ANN,"
             s += ", ".join(spec['annotationtype']) + ", LAST_ANN };\n"
+        elif target == 'rust':
+            s += indent  + "#[derive(Debug,Copy,Clone)]\n"
+            s += indent + "pub enum AnnotationType { " + ", ".join(spec['annotationtype']) + " }\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'defaultproperties':
@@ -419,7 +425,7 @@ def outputblock(block, target, varname, args, indent = ""):
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties']:
                     if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
-                    s += indent + " => ElementType::' + element['properties']['xmltag'] + ' => AnnotationType::" + element['properties']['annotationtype'] + ',\n'
+                    s += indent + "AnnotationType::" + element['properties']['annotationtype'] + ' => ElementType::' + element['class'] + ',\n'
             s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
@@ -451,9 +457,7 @@ def outputblock(block, target, varname, args, indent = ""):
                     if element['class'] == 'HeadFeature':
                         s += indent + '  ElementType::HeadFeature => "headfeature",\n'
                     else:
-                        s += indent + "  ElementType::" + element['properties']['subset'] + ' => "' + element['properties']['xmltag'] + '",\n'
-                else:
-                    s += indent + '  ElementType::' + element['class'] + ' => "' + element['class'] + '",\n'
+                        s += indent + "  ElementType::" + element['class'] + ' => "' + element['properties']['subset'] + '",\n'
             s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
@@ -763,7 +767,7 @@ def foliaspec_parser(filename):
         commentsign = '.. '
     elif filename[-3:] == '.rs':
         target = 'rust' #libfolia-rs
-        commentsign = '.. '
+        commentsign = '//'
     else:
         raise Exception("No target language could be deduced from the filename " + filename)
 

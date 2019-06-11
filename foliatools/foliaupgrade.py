@@ -16,6 +16,7 @@ def main():
     parser.add_argument('-V', '--version',help="Output version information", action='store_true')
     parser.add_argument('-n', '--dryrun',help="Dry run, do not write files", action='store_true', default=False)
     parser.add_argument('-E','--extension', type=str,help="Extension", action='store',default="xml",required=False)
+    parser.add_argument('--fixunassignedprocessor',help="Fixes invalid FoLiA that does not explicitly assign a processor to an annotation when multiple processors are possible (and there is therefore no default). The last processor will be used in this case.", action='store_true', default=False)
     parser.add_argument('files', nargs='+', help='Input files')
     args = parser.parse_args()
 
