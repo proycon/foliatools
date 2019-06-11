@@ -306,8 +306,8 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "enum ElementType : unsigned int { BASE=0,"
             s += ", ".join([ e + '_t' for e in elementnames]) + ", PlaceHolder_t, XmlComment_t, XmlText_t,  LastElement };\n"
         elif target == 'rust':
-            s += indent  + "#[derive(Debug,Copy,Clone)]\n"
-            s += indent + "pub enum ElementType { " + ", ".join([ e for e in elementnames]) + " }\n"
+            s += indent  + "#[derive(Debug,Copy,Clone,PartialEq)]\n"
+            s += indent + "pub enum ElementType { " + ", ".join([ e for e in elementnames if not e.startswith('Abstract')]) + " }\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'annotationtype':
@@ -318,7 +318,7 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "enum AnnotationType : int { NO_ANN,"
             s += ", ".join(spec['annotationtype']) + ", LAST_ANN };\n"
         elif target == 'rust':
-            s += indent  + "#[derive(Debug,Copy,Clone)]\n"
+            s += indent  + "#[derive(Debug,Copy,Clone,PartialEq)]\n"
             s += indent + "pub enum AnnotationType { " + ", ".join(spec['annotationtype']) + " }\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
@@ -421,11 +421,11 @@ def outputblock(block, target, varname, args, indent = ""):
                     s += indent + "  {  AnnotationType::" + element['properties']['annotationtype'] + ', ' + element['class'] + '_t },\n'
             s += indent + "};\n"
         elif target == 'rust':
-            s += indent + "match elementtype {\n"
+            s += indent + "match annotationtype {\n"
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties']:
                     if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
-                    s += indent + "AnnotationType::" + element['properties']['annotationtype'] + ' => ElementType::' + element['class'] + ',\n'
+                    s += indent + "    AnnotationType::" + element['properties']['annotationtype'] + ' => ElementType::' + element['class'] + ',\n'
             s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
@@ -483,14 +483,13 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "match tag {\n"
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
-                    s += indent + '  "' + element['properties']['xmltag'] + '" =>  ElementType::' + element['class'] + ',\n'
+                    s += indent + '  "' + element['properties']['xmltag'] + '" =>  Ok(ElementType::' + element['class'] + '),\n'
                 elif 'properties' in element and 'subset' in element['properties'] and element['properties']['subset']:
                     if element['class'] == 'HeadFeature':
-                        s += indent + '  "headfeature" =>  ElementType::' + element['class'] + ',\n'
+                        s += indent + '  "headfeature" =>  Ok(ElementType::' + element['class'] + '),\n'
                     else:
-                        s += indent + '  "' + element['properties']['subset'] + '" =>  ElementType::' + element['class'] + ',\n'
-                else:
-                    s += indent + '  "_' + element['class'] + '" => ElementType::' + element['class'] + ',\n'
+                        s += indent + '  "' + element['properties']['subset'] + '" =>  Ok(ElementType::' + element['class'] + '),\n'
+            s += indent + '    _ => Err(FoliaError::ParseError(format!("Unknown tag has no associated element type: {}",tag).to_string()))\n'
             s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
