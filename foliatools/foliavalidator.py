@@ -20,7 +20,7 @@ def validate(filename, schema = None,**kwargs):
             print(str(e), file=sys.stderr)
             return False
     try:
-        document = folia.Document(file=filename, deepvalidation=kwargs.get('deep',False),textvalidation=kwargs.get('stricttextvalidation',False),verbose=True, autodeclare=kwargs.get('autodeclare',False), processor=kwargs.get('processor'), keepversion=kwargs.get('keepversion'), debug=kwargs.get('debug',0))
+        document = folia.Document(file=filename, deepvalidation=kwargs.get('deep',False),textvalidation=kwargs.get('stricttextvalidation',False),verbose=True, autodeclare=kwargs.get('autodeclare',False), processor=kwargs.get('processor'), keepversion=kwargs.get('keepversion'), fixunassignedprocessor=kwargs.get('fixunassignedprocessor'), debug=kwargs.get('debug',0))
     except folia.DeepValidationError as e:
         print("DEEP VALIDATION ERROR on full parse by library (stage 2/3), in " + filename,file=sys.stderr)
         print(e.__class__.__name__ + ": " + str(e),file=sys.stderr)
@@ -102,6 +102,7 @@ def commandparser(parser):
     parser.add_argument('-k','--keepversion',help="Attempt to keep an older FoLiA version (not always guaranteed to work)", action='store_true', default=False)
     parser.add_argument('-D','--debug',type=int,help="Debug level", action='store',default=0)
     parser.add_argument('-b','--traceback',help="Provide a full traceback on validation errors", action='store_true', default=False)
+    parser.add_argument('--fixunassignedprocessor',help="Fixes invalid FoLiA that does not explicitly assign a processor to an annotation when multiple processors are possible (and there is therefore no default). The last processor will be used in this case.", action='store_true', default=False)
     return parser
 
 def main():
