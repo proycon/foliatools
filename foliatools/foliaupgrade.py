@@ -80,7 +80,7 @@ def process(*files, **kwargs):
             if r != 0:
                 success = False
         elif os.path.isfile(file):
-            mainprocessor = folia.Processor.create(name="foliaupgrade", version=VERSION, src="https://github.com/proycon/foliatools")
+            mainprocessor = folia.Processor.create(name="foliaupgrade", version=TOOLVERSION, src="https://github.com/proycon/foliatools")
             doc = validate(file,schema=None, stricttextvalidation=True,autodeclare=True,output=False, warn=False,processor=mainprocessor,traceback=True,**kwargs)
             if doc is not False:
                 print("Upgrading " + doc.filename,file=sys.stderr)
