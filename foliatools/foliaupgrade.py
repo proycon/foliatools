@@ -7,22 +7,18 @@ import glob
 import shutil
 import folia.main as folia
 from socket import getfqdn
-from foliatools import VERSION
+from foliatools import VERSION as TOOLVERSION
 from foliatools.foliavalidator import validate
 
 
 def main():
     parser = argparse.ArgumentParser(description="", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-V', '--version',help="Output version information", action='store_true')
+    parser.add_argument('-v','-V','--version',help="Show version information", action='version', version="FoLiA-tools v" + TOOLVERSION + ", using FoLiA v" + folia.FOLIAVERSION + " with library FoLiApy v" + folia.LIBVERSION, default=False)
     parser.add_argument('-n', '--dryrun',help="Dry run, do not write files", action='store_true', default=False)
     parser.add_argument('-E','--extension', type=str,help="Extension", action='store',default="xml",required=False)
     parser.add_argument('--fixunassignedprocessor',help="Fixes invalid FoLiA that does not explicitly assign a processor to an annotation when multiple processors are possible (and there is therefore no default). The last processor will be used in this case.", action='store_true', default=False)
     parser.add_argument('files', nargs='+', help='Input files')
     args = parser.parse_args()
-
-    if args.version:
-        print("FoLiA " + folia.FOLIAVERSION + ", library version " + folia.LIBVERSION,file=sys.stderr)
-        sys.exit(0)
 
     success = process(*args.files, **args.__dict__)
     sys.exit(0 if success else 1)

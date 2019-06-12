@@ -8,7 +8,7 @@ import shutil
 import folia.main as folia
 from langid.langid import LanguageIdentifier, model
 from socket import getfqdn
-from foliatools import VERSION
+from foliatools import VERSION as TOOLVERSION
 from foliatools.foliavalidator import validate
 
 LANG123 = { 'af': 'afr', 'am':'amh', 'an':'arg', 'ar':'ara', 'as':'asm', 'az':'aze', 'be':'bel', 'bg':'bul', 'bn':'ben', 'br':'bre', 'bs':'bos', 'ca':'cat', 'cs':'ces', 'cy':'cym', 'da':'dan', 'de':'deu', 'dz':'dzo', 'el':'ell', 'en':'eng', 'eo':'epo', 'es':'spa', 'et':'est', 'eu':'eus', 'fa':'fas', 'fi':'fin', 'fo':'fao', 'fr':'fra', 'ga':'gle', 'gl':'glg', 'gu':'guj', 'he':'heb', 'hi':'hin', 'hr':'hrv', 'ht':'hat', 'hu':'hun', 'hy':'hye', 'id':'ind', 'is':'isl', 'it':'ita', 'ja':'gap', 'jv':'jav', 'ka':'kat', 'kk':'kaz', 'km':'khm', 'kn': 'kan', 'ko':'kon', 'ku':'kur', 'ky':'kir', 'la':'lat', 'lb':'ltz', 'lo': 'lao', 'lt':'lit', 'lv': 'lav', 'mg':'mlg', 'mk':'mkd', 'ml':'mal', 'mn':'mon', 'mr':'mar', 'ms':'msa', 'mt':'mlt', 'nb':'nob', 'ne':'nep', 'nl':'nld', 'nn':'nno', 'no':'nor', 'oc':'oci', 'or':'ori', 'pa':'pan', 'pl':'pol', 'ps':'pus', 'pt':'por', 'qu':'que', 'ro':'ron', 'ru':'rus', 'rw':'kin', 'se':'sme', 'si':'sin', 'sk':'slk', 'sl':'slv', 'sq':'sqi', 'sr':'srp', 'sv':'swe', 'sw':'swa', 'ta':'tam', 'te':'tel', 'th':'tha', 'tl':'tgl', 'tr':'tur', 'ug':'uig', 'uk':'ukr', 'ur':'urd', 'vi':'vie', 'vo':'vol', 'wa':'wln', 'xh':'xho', 'zh':'zho', 'zu':'zul' }
@@ -19,7 +19,7 @@ LANGSET = "https://raw.githubusercontent.com/proycon/folia/master/setdefinitions
 
 def main():
     parser = argparse.ArgumentParser(description="", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-V', '--version',help="Output version information", action='store_true')
+    parser.add_argument('-v','-V','--version',help="Show version information", action='version', version="FoLiA-tools v" + TOOLVERSION + ", using FoLiA v" + folia.FOLIAVERSION + " with library FoLiApy v" + folia.LIBVERSION, default=False)
     parser.add_argument('-n', '--dryrun',help="Dry run, do not write files (outputs to stdout)", action='store_true', default=False)
     parser.add_argument('-E','--extension', type=str,help="Extension", action='store',default="xml",required=False)
     parser.add_argument('-l','--languages', type=str,help="Constrain possible languages (comma separated list of ISO-639-3 codes)", action='store',required=False)
@@ -27,10 +27,6 @@ def main():
     parser.add_argument('-v', '--verbose',help="Output version information", action='store_true')
     parser.add_argument('files', nargs='+', help='Input files')
     args = parser.parse_args()
-
-    if args.version:
-        print("Version " + VERSION + ", FoLiA " + folia.FOLIAVERSION + ", library version " + folia.LIBVERSION,file=sys.stderr)
-        sys.exit(0)
 
     success = process(*args.files, **args.__dict__)
     sys.exit(0 if success else 1)
@@ -41,7 +37,7 @@ def processdoc(doc, **kwargs):
         types = tuple([ folia.XML2CLASS[t] for t in kwargs['types'].split(',') ])
     else:
         types = tuple([ folia.AbstractStructureElement ])
-    doc.processor = folia.Processor.create(name="folialangid", version=VERSION, src="https://github.com/proycon/foliatools")
+    doc.processor = folia.Processor.create(name="folialangid", version=TOOLVERSION, src="https://github.com/proycon/foliatools")
     doc.declare(folia.AnnotationType.LANG, set=LANGSET)
     for e in doc.data[0].select(types):
         try:
