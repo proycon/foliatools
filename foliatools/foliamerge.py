@@ -38,7 +38,7 @@ def mergechildren(parent, outputdoc, asalternative):
     if hasattr(parent,'merged'): return 0
     merges = 0
     for e in parent:
-        if isinstance(e, (folia.AbstractTokenAnnotation, folia.AbstractAnnotationLayer)) and parent.id and not hasattr(e, 'merged'):
+        if isinstance(e, (folia.AbstractInlineAnnotation, folia.AbstractAnnotationLayer)) and parent.id and not hasattr(e, 'merged'):
             try:
                 e.ANNOTATIONTYPE
             except:
@@ -56,7 +56,7 @@ def mergechildren(parent, outputdoc, asalternative):
                 #check if the annotation already exists
                 #print("DEBUG: Adding annotation type " + e.__class__.__name__ + ", set " + e.set + ", under " + newparent.id, file=sys.stderr)
                 if asalternative:
-                    if isinstance(e, folia.AbstractTokenAnnotation):
+                    if isinstance(e, folia.AbstractInlineAnnotation):
                         print("Adding Annotation type " + e.__class__.__name__ + ", set " + str(e.set) + " to " + newparent.id + " as alternative", file=sys.stderr)
                         alt = newparent.append(folia.Alternative, generate_id_in=newparent)
                         reID(newparent.doc, e, newparent.id, alt.id)
@@ -76,7 +76,7 @@ def mergechildren(parent, outputdoc, asalternative):
                         alt.merged = True
                         e.merged = True
                         merges += 1
-                elif isinstance(e, folia.AbstractTokenAnnotation) and newparent.hasannotation(e.__class__, e.set):
+                elif isinstance(e, folia.AbstractInlineAnnotation) and newparent.hasannotation(e.__class__, e.set):
                     print("Annotation type " + e.__class__.__name__ + ", set " + e.set + ", under " + newparent.id + " , already exists... skipping", file=sys.stderr)
                     pass
                 elif isinstance(e, folia.AbstractAnnotationLayer) and newparent.hasannotationlayer(e.__class__, e.set):
