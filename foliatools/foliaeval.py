@@ -358,6 +358,7 @@ def main():
         Type = folia.XML2CLASS[args.type]
     except KeyError:
         print("No such type: ", args.type,file=sys.stderr)
+        sys.exit(2)
 
     foliaset = args.set
     if args.verbose:
