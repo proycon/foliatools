@@ -76,9 +76,10 @@ def process(*files, **kwargs):
     success = False
     for file in files:
         if os.path.isdir(file):
-            r = process(list(glob.glob(os.path.join(file, "*." + kwargs['extension'] )) ), **kwargs)
-            if r != 0:
-                success = False
+            files = list(glob.glob(os.path.join(file, "*." + kwargs['extension'] )) )
+            r = process(files, **kwargs)
+            if files and r:
+                success = True
         elif os.path.isfile(file):
             mainprocessor = folia.Processor.create(name="foliaupgrade", version=TOOLVERSION, src="https://github.com/proycon/foliatools")
             doc = validate(file,schema=None, stricttextvalidation=True,autodeclare=True,output=False, warn=False,processor=mainprocessor,traceback=True,**kwargs)
@@ -90,6 +91,7 @@ def process(*files, **kwargs):
                     print("Upgrade failed",file=sys.stderr)
                     success = False
                 else:
+                    success = True
                     print("Upgrade OK",file=sys.stderr)
                     if kwargs.get('dryrun'):
                         os.unlink(doc.filename+".upgraded")
