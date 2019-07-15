@@ -25,7 +25,7 @@ def main():
     parser.add_argument('-l','--languages', type=str,help="Constrain possible languages (comma separated list of ISO-639-3 codes)", action='store',required=False)
     parser.add_argument('-t','--types', type=str,help="Constrain to the following structural elements (comma separated list of FoLiA structural element tags, e.g. 's' for sentence, 'p' for paragraph). Defaults to annotating EVERY structural element.", action='store',required=False)
     parser.add_argument('-T','--textclass', type=str,help="Use the specified textclass (default: current)", action='store',required=False, default="current")
-    parser.add_argument('-v', '--verbose',help="Output version information", action='store_true')
+    parser.add_argument('--verbose',help="Output verbose information", action='store_true')
     parser.add_argument('files', nargs='+', help='Input files')
     args = parser.parse_args()
 
