@@ -520,31 +520,31 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template match="hi" mode="structure">
     <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
-    <part class="temp-hi"><t><xsl:call-template name="hi" /></t></part>
+    <part class="temp-hi" space="no"><t><xsl:call-template name="hi" /></t></part>
     </xsl:if>
 </xsl:template>
 
 <xsl:template match="add" mode="structure">
     <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
-    <part class="temp-add"><t><xsl:call-template name="add" /></t></part>
+    <part class="temp-add" space="no"><t><xsl:call-template name="add" /></t></part>
     </xsl:if>
 </xsl:template>
 
 <xsl:template match="corr" mode="structure">
     <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
-    <part class="temp-corr"><t><xsl:call-template name="corr" /></t></part>
+    <part class="temp-corr" space="no"><t><xsl:call-template name="corr" /></t></part>
     </xsl:if>
 </xsl:template>
 
 <xsl:template match="supplied" mode="structure">
     <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
-    <part class="temp-supplied"><t><xsl:call-template name="supplied" /></t></part>
+    <part class="temp-supplied" space="no"><t><xsl:call-template name="supplied" /></t></part>
     </xsl:if>
 </xsl:template>
 
 <xsl:template match="del" mode="structure">
     <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
-    <part class="temp-del"><t><xsl:call-template name="del" /></t></part>
+    <part class="temp-del" space="no"><t><xsl:call-template name="del" /></t></part>
     </xsl:if>
 </xsl:template>
 
