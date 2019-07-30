@@ -53,7 +53,7 @@ def processdoc(doc, **kwargs):
                 e.append(folia.LangAnnotation, set=LANGSET,cls=LANG123[lang], confidence=confidence)
 
 def process(*files, **kwargs):
-    success = False
+    success = True
     for file in files:
         if os.path.isdir(file):
             r = process(list(glob.glob(os.path.join(file, "*." + kwargs['extension'] )) ), **kwargs)
