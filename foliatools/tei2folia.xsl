@@ -495,11 +495,13 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <xsl:template match="interpGrp" mode="structure">
+<xsl:if test="./interp">
 <comment>
 <xsl:for-each select="./interp">
     interp[<xsl:value-of select="@type"/>]: <xsl:value-of select="@value" />
 </xsl:for-each>
 </comment>
+</xsl:if>
 </xsl:template>
 
 <!-- Valid both as structural and as markup, easy -->
