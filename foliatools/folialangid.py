@@ -25,6 +25,8 @@ def main():
     parser.add_argument('-l','--languages', type=str,help="Constrain possible languages (comma separated list of ISO-639-3 codes)", action='store',required=False)
     parser.add_argument('-t','--types', type=str,help="Constrain to the following structural elements (comma separated list of FoLiA structural element tags, e.g. 's' for sentence, 'p' for paragraph). Defaults to annotating EVERY structural element.", action='store',required=False)
     parser.add_argument('-T','--textclass', type=str,help="Use the specified textclass (default: current)", action='store',required=False, default="current")
+    parser.add_argument('-c','--confidence', type=float, help="Confidence threshold, anything below this will be pruned or set to the fallback language (if set)", action='store')
+    parser.add_argument('-F','--fallback', type=str, help="Fallback language, everything not meeting the confidence threshold will be set to this language (with a low confidence value of 0.1", action='store')
     parser.add_argument('--verbose',help="Output verbose information", action='store_true')
     parser.add_argument('files', nargs='+', help='Input files')
     args = parser.parse_args()
@@ -36,6 +38,10 @@ def processdoc(doc, **kwargs):
     identifier = LanguageIdentifier.from_modelstring(model, norm_probs=True)
     if 'languages' in kwargs and kwargs['languages']:
         identifier.set_languages(kwargs['languages'].split(','))
+    if 'confidence' in kwargs:
+        confidencethreshold = kwargs['confidence']
+    else:
+        confidencethreshold = 0.0
     if 'types' in kwargs and kwargs['types']:
         types = tuple([ folia.XML2CLASS[t] for t in kwargs['types'].split(',') ])
     else:
@@ -52,7 +58,10 @@ def processdoc(doc, **kwargs):
             if kwargs.get('verbose'):
                 print(repr(e), lang, confidence,file=sys.stderr)
             if e.accepts(folia.LangAnnotation, raiseexceptions=False):
-                e.append(folia.LangAnnotation, set=LANGSET,cls=LANG123[lang], confidence=confidence)
+                if confidence > confidencethreshold:
+                    e.append(folia.LangAnnotation, set=LANGSET,cls=LANG123[lang], confidence=confidence)
+                elif 'fallback' in kwargs:
+                    e.append(folia.LangAnnotation, set=LANGSET,cls=kwargs['fallback'], confidence=0.1)
 
 def process(*files, **kwargs):
     success = True
