@@ -34,6 +34,8 @@ def main():
 
 def processdoc(doc, **kwargs):
     identifier = LanguageIdentifier.from_modelstring(model, norm_probs=True)
+    if 'languages' in kwargs and kwargs['languages']:
+        identifier.set_languages(kwargs['languages'].split(','))
     if 'types' in kwargs and kwargs['types']:
         types = tuple([ folia.XML2CLASS[t] for t in kwargs['types'].split(',') ])
     else:
