@@ -654,7 +654,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <xsl:when test="@place = 'foot'">
         <xsl:attribute name="class">footnote</xsl:attribute>
         </xsl:when>
-        <xsl:otherwise>unspecified</xsl:otherwise>
+        <xsl:otherwise><xsl:attribute name="class">unspecified</xsl:attribute></xsl:otherwise>
         </xsl:choose>
         <xsl:apply-templates mode="markup" /></t-ref>
 </xsl:template>
