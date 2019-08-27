@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+"""
+This convertor reads a FoLiA XML document and produces a
+simple columned output format (supports CSV,TSV) in which each token appears on one
+line. Note that only simple token annotations are supported and a lot
+of FoLiA data can not be intuitively expressed in a simple columned format!
+"""
+
 from __future__ import print_function, unicode_literals, division, absolute_import
 
 import getopt
@@ -14,12 +21,9 @@ def usage():
     print("folia2columns", file=sys.stderr)
     print("  by Maarten van Gompel (proycon)", file=sys.stderr)
     print("  Centre for Language and Speech Technology, Radboud University Nijmegen",file=sys.stderr)
-    print("  2016 - Licensed under GPLv3", file=sys.stderr)
+    print("  2016-2019 - Licensed under GPLv3", file=sys.stderr)
     print("", file=sys.stderr)
-    print("This conversion script reads a FoLiA XML document and produces a", file=sys.stderr)
-    print("simple columned output format in which each token appears on one", file=sys.stderr)
-    print("line. Note that only simple token annotations are supported and a lot", file=sys.stderr)
-    print("of FoLiA data can not be intuitively expressed in a simple columned format!", file=sys.stderr)
+    print(__doc__, file=sys.stderr)
     print("", file=sys.stderr)
     print("Usage: folia2columns [options] -C [columns] file-or-dir1 file-or-dir2 ..etc..", file=sys.stderr)
 

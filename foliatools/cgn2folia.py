@@ -9,11 +9,12 @@
 #   proycon AT anaproy DOT nl
 #
 #   Licensed under GPLv3
-#
-# This script converts CGN to FoLiA format. (Note that paragraph information
-# is not available in CGN and therefore not stored in FoLiA format either.)
-#
 #----------------------------------------------------------------
+
+"""
+This script converts CGN (Corpus Gesproken Nederlands, in the original format) to FoLiA format. (Note that paragraph information
+is not available in CGN and therefore not stored in FoLiA format either.)
+"""
 
 from __future__ import print_function, unicode_literals, division, absolute_import
 

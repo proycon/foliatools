@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+"""Compute a frequency list on the basis of one or more *tokenised* FoLiA documents."""
+
 from __future__ import print_function, unicode_literals, division, absolute_import
 
 import getopt
@@ -18,7 +20,7 @@ def usage():
     print("  Radboud University Nijmegen",file=sys.stderr)
     print("  2012 - Licensed under GPLv3",file=sys.stderr)
     print("",file=sys.stderr)
-    print("Compute a frequency list on one or more *tokenised* FoLiA documents.",file=sys.stderr)
+    print(__doc__,file=sys.stderr)
     print("",file=sys.stderr)
     print("Usage: foliafreqlist [options] file-or-dir1 file-or-dir2 ..etc..",file=sys.stderr)
     print("",file=sys.stderr)

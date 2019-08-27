@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+"""
+Assigns unique identifiers to structural elements within a FoLiA document where there are none yet
+"""
+
 from __future__ import print_function, unicode_literals, division, absolute_import
 
 import getopt
@@ -18,7 +22,7 @@ def usage():
     print("  Centre for Language and Speech Technology, Radboud University Nijmegen",file=sys.stderr)
     print("  2017-2019 - Licensed under GPLv3",file=sys.stderr)
     print("",file=sys.stderr)
-    print("Assign IDs to structural elements that have none yet", file=sys.stderr)
+    print(__doc__, file=sys.stderr)
     print("",file=sys.stderr)
     print("Usage: foliaid [options] file-or-dir1 file-or-dir2 ..etc..",file=sys.stderr)
     print("",file=sys.stderr)

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+"""FoLiA Evaluator. This tool is used to evaluate annotation on two or more structurally equivalent FoLiA documents. It can provide a measure of inter-annotator agreement, or comparison of system output against a gold standard. It delivers a variery of metrics."""
+
 from __future__ import print_function, unicode_literals, division, absolute_import
 
 import argparse
@@ -333,7 +335,7 @@ def get_value(annotation, Class):
     return annotation.cls
 
 def main():
-    parser = argparse.ArgumentParser(description="FoLiA Evaluator. This tool is used to evaluate annotation on two or more structurally equivalent FoLiA documents. It can provide a measure of inter-annotator agreement, or comparison of system output against a gold standard. It delivers a variery of metrics.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     #Evaluation is expressed as accuracy on the total number of annotation targets (often words) and comes in two flavours: weak and strong. Weak checks only if the same items were marked and can be used as a measure of detection; strong checks if the assigned classes are equal amongst annotators.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     #parser.add_argument('--storeconst',dest='settype',help="", action='store_const',const='somevalue')
     parser.add_argument('-t','--type', type=str,help="Annotation type to consider", action='store',default="",required=True)

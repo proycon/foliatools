@@ -1,6 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf8 -*-
 
+"""
+This conversion script converts one or more FoLiA documents to D-Coi XML format, omitting
+any annotations that can not be represented in the D-Coi format.
+"""
+
 from __future__ import print_function, unicode_literals, division, absolute_import
 import foliatools.xslt as xslt
 
@@ -10,8 +15,7 @@ def main():
   Tilburg University / Radboud University Nijmegen
   2012 - Licensed under GPLv3
 
-This conversion script converts one or more FoLiA documents to D-Coi XML format, omitting
-any annotations that can not be represented in the D-Coi format.
+""" + __doc__ + """
 
 Usage: folia2dcoi [options] file-or-dir1 file-or-dir2 ..etc.."""
 

@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 # -*- coding: utf8 -*-
 
+"""This conversion script reads an Alpino XML document and converts it to FoLiA. If multiple input files are specified, and/or the output FoLiA document already exists, then the converter will append it."""
+
 from __future__ import print_function, unicode_literals, division, absolute_import
 
 import lxml
@@ -13,11 +15,9 @@ def usage():
     print("alpino2folia",file=sys.stderr)
     print("  by Maarten van Gompel (proycon)",file=sys.stderr)
     print("  Centre for Language and Speech Technology, Radboud University Nijmegen",file=sys.stderr)
-    print("  2012-2016 - Licensed under GPLv3",file=sys.stderr)
+    print("  2012-2019 - Licensed under GPLv3",file=sys.stderr)
     print("",file=sys.stderr)
-    print("This conversion script reads an Alpino XML document and converts",file=sys.stderr)
-    print("it to FoLiA. If multiple input files are specified, and/or the output FoLiA document already exists, then the",file=sys.stderr)
-    print("converter will append it.",file=sys.stderr)
+    print(__doc__,file=sys.stderr)
     print("",file=sys.stderr)
     print("Usage: alpino2folia [options] alpino-input [alpino-input 2..] folia-output"   ,file=sys.stderr)
 

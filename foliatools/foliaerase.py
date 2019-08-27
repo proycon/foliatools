@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
+"""Erase the specified annotation types from a FoLiA document, effectively simplifying the document"""
 
 from __future__ import print_function, unicode_literals, division, absolute_import
 
@@ -50,7 +51,7 @@ def parsetypes(s):
             yield (parsetype(pair.strip()), False)
 
 def main():
-    parser = argparse.ArgumentParser(description="Erase certain annotation types from a FoLiA document", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-v','--version',help="Show version information", action='version', version="FoLiA-tools v" + TOOLVERSION + ", using FoLiA v" + folia.FOLIAVERSION + " with library FoLiApy v" + folia.LIBVERSION, default=False)
     parser.add_argument('-n','--dryrun', help="Do not write files", action='store_true')
     parser.add_argument('-O','--output', help="Output to standard output", action='store_true')

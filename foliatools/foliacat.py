@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
+"""Concatenates two or more FoLiA documents"""
 
 from __future__ import print_function, unicode_literals, division, absolute_import
 
@@ -59,7 +60,7 @@ def foliacat(id, outputfile, *files, keepversion=True):
     return outputdoc
 
 def main():
-    parser = argparse.ArgumentParser(description="Concatenates two or more FoLiA documents", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-v','--version',help="Show version information", action='version', version="FoLiA-tools v" + TOOLVERSION + ", using FoLiA v" + folia.FOLIAVERSION + " with library FoLiApy v" + folia.LIBVERSION, default=False)
     parser.add_argument('-i','--id',type=str, help="Set the ID for the output document", action='store', required=True)
     parser.add_argument('-o','--output',type=str, help="Output file (defaults to stdout if not set)", required=True)

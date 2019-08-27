@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+"""Automatically upgrade older FoLiA documents to the latest version. Also has the ability to apply certain fixes."""
+
 import sys
 import os.path
 import argparse
@@ -12,7 +14,7 @@ from foliatools.foliavalidator import validate
 
 
 def main():
-    parser = argparse.ArgumentParser(description="", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-v','-V','--version',help="Show version information", action='version', version="FoLiA-tools v" + TOOLVERSION + ", using FoLiA v" + folia.FOLIAVERSION + " with library FoLiApy v" + folia.LIBVERSION, default=False)
     parser.add_argument('-n', '--dryrun',help="Dry run, do not write files", action='store_true', default=False)
     parser.add_argument('-E','--extension', type=str,help="Extension", action='store',default="xml",required=False)

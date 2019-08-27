@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-#Generate library specification code (for either Python or C++) on the the basis of folia.yml
-#Used by respectively foliapy and libfolia
+
+"""
+Tool to adapt library sources and documentation according to the latest FoLiA specification. Filenames are Python, C++ or ReStructuredText files that may contain foliaspec instructions, the files will be updated according to the latest specification. This tool is mostly for internal use and of less interest to the general ppublic.
+"""
 
 from __future__ import print_function, unicode_literals, division, absolute_import #python 2.7 compatibility
 
@@ -855,7 +857,7 @@ def usage():
 
 def main():
     global spec, elements, elementnames
-    parser = argparse.ArgumentParser(description="Tool to adapt sources according to the latest FoLiA specification. Filenames are Python, C++ or ReStructuredText files that may contain foliaspec instructions, the files will be updated according to the latest specification", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-s','--specification', type=str,help="Point this to the FoLiA Specification YAML", action='store',default="folia/schemas/folia.yml",required=True)
     parser.add_argument('-v','--version',help="Output the version of the FoLiA specification", action='store_true',required=False)
     parser.add_argument('filenames', nargs='+', help='ReStructuredText files or Python or C++ source code files to process (will modify the files!)')

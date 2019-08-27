@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+"""Query one or more FoLiA documents for certain patterns."""
+
 from __future__ import print_function, unicode_literals, division, absolute_import
 
 import getopt
@@ -14,9 +16,9 @@ def usage():
     print("foliaquery",file=sys.stderr)
     print("  by Maarten van Gompel (proycon)",file=sys.stderr)
     print("  Radboud University Nijmegen",file=sys.stderr)
-    print("  2015 - Licensed under GPLv3",file=sys.stderr)
+    print("  2015-2019 - Licensed under GPLv3",file=sys.stderr)
     print("",file=sys.stderr)
-    print("Query one or more FoLiA documents for certain patterns.",file=sys.stderr)
+    print(__doc__,file=sys.stderr)
     print("",file=sys.stderr)
     print("Usage: foliaquery [options] -q <FQL query> file-or-dir1 file-or-dir2 ..etc..",file=sys.stderr)
     print("",file=sys.stderr)

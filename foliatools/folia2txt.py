@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+"""
+This conversion script reads a FoLiA XML document and outputs the
+document's text as plain text, *without* any annotations.
+Use folia2annotatedtxt if you want limited support for inline annotations.
+"""
+
 from __future__ import print_function, unicode_literals, division, absolute_import
 
 import getopt
@@ -14,11 +20,9 @@ def usage():
     print("folia2txt",file=sys.stderr)
     print("  by Maarten van Gompel (proycon)",file=sys.stderr)
     print("  Centre for Language and Speech Technology, Radboud University Nijmegen",file=sys.stderr)
-    print("  2012-2016 - Licensed under GPLv3",file=sys.stderr)
+    print("  2012-2019 - Licensed under GPLv3",file=sys.stderr)
     print("",file=sys.stderr)
-    print("This conversion script reads a FoLiA XML document and outputs the",file=sys.stderr)
-    print("document's text as plain text, *without* any annotations.",file=sys.stderr)
-    print("Use folia2annotatedtxt if you want limited support for inline annotations.",file=sys.stderr)
+    print(__doc__,file=sys.stderr)
     print("",file=sys.stderr)
     print("Usage: folia2txt [options] file-or-dir1 file-or-dir2 ..etc..",file=sys.stderr)
     print("",file=sys.stderr)

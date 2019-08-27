@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+"""This tool is a FoLiA-aware wrapper around langid.py and provides languages identification on FoLiA documents"""
+
 import sys
 import os.path
 import argparse
@@ -18,7 +20,7 @@ LANG321 = { v: k for k, v in LANG123.items() }
 LANGSET = "https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/iso639_3.foliaset"
 
 def main():
-    parser = argparse.ArgumentParser(description="", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-v','-V','--version',help="Show version information", action='version', version="FoLiA-tools v" + TOOLVERSION + ", using FoLiA v" + folia.FOLIAVERSION + " with library FoLiApy v" + folia.LIBVERSION, default=False)
     parser.add_argument('-n', '--dryrun',help="Dry run, do not write files (outputs to stdout)", action='store_true', default=False)
     parser.add_argument('-E','--extension', type=str,help="Extension", action='store',default="xml",required=False)

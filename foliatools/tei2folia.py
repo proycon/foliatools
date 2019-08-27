@@ -9,12 +9,9 @@
 #   proycon AT anaproy DOT nl
 #
 #   Licensed under GPLv3
-#
-# This script converts *SOME VARIANTS* of TEI to the FoLiA format.
-# Because of the great diversity in TEI formats, it is not
-# guaranteed to work in all circumstances.
-#
 #----------------------------------------------------------------
+
+"""Converts SOME VARIANTS of TEI to FoLiA XML. Because of the great diversity in TEI formats, it is not guaranteed to work in all circumstances."""
 
 import sys
 import argparse
@@ -230,7 +227,7 @@ def loadxslt():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert *SOME VARIANTS* of TEI to FoLiA XML. Because of the great diversity in TEI formats, it is not guaranteed to work in all circumstances.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-o','--outputdir',type=str, help="Output directory, set to - for stdout", action="store",default=".",required=False)
     parser.add_argument('--dtddir',type=str, help="Directory where DTDs are stored (tei2folia will actively try to obtain the DTDs)", action="store",default=".",required=False)
     parser.add_argument('-D','--debug',type=int,help="Debug level", action='store',default=0)

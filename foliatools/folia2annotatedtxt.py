@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+"""
+This convertor reads a FoLiA XML document and produces a
+simple inline output format in which tokens are space-separated and annotations are separated by a pipe symbol (|)
+Note that only simple token annotations are supported and a lot
+of FoLiA data can not be intuitively expressed in a simple columned format!
+"""
+
 from __future__ import print_function, unicode_literals, division, absolute_import
 
 import getopt
@@ -14,12 +21,9 @@ def usage():
     print("folia2annotatedtxt", file=sys.stderr)
     print("  by Maarten van Gompel (proycon)", file=sys.stderr)
     print("  Tilburg University / Radboud University Nijmegen", file=sys.stderr)
-    print("  2012 - Licensed under GPLv3", file=sys.stderr)
+    print("  2012-2019 - Licensed under GPLv3", file=sys.stderr)
     print("", file=sys.stderr)
-    print("This conversion script reads a FoLiA XML document and produces a", file=sys.stderr)
-    print("simple inline output format in which tokens are space-separated and annotations are separated by a pipe symbol (|)", file=sys.stderr)
-    print("Note that only simple token annotations are supported and a lot", file=sys.stderr)
-    print("of FoLiA data can not be intuitively expressed in a simple columned format!", file=sys.stderr)
+    print(__doc__, file=sys.stderr)
     print("", file=sys.stderr)
     print("Usage: folia2annotatedtxt [options] -C [columns] file-or-dir1 file-or-dir2 ..etc..", file=sys.stderr)
 

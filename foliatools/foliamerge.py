@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
+"""Merges annotations from two or more FoLiA documents. Structural elements are never added. Annotations can only be merged if their parent elements have IDs."""
+
 import getopt
 import sys
 from foliatools import VERSION
@@ -12,7 +14,7 @@ def usage():
     print("  Radboud University Nijmegen",file=sys.stderr)
     print("  2017-2019 - Licensed under GPLv3",file=sys.stderr)
     print("",file=sys.stderr)
-    print("Merges annotations from two or more FoLiA documents. Structural elements are never added. Annotations can only be merged if their parent elements have IDs.",file=sys.stderr)
+    print(__doc__,file=sys.stderr)
     print("",file=sys.stderr)
     print("Usage: foliamerge [options] file1 file2 file3 ... ",file=sys.stderr)
     print("",file=sys.stderr)

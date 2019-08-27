@@ -2,17 +2,16 @@
 #-*- coding:utf-8 -*-
 
 #---------------------------------------------------------------
-# FoLiA to ReStructuredText Converter
+# FoLiA Set Definition tool
 #   by Maarten van Gompel
 #   Centre for Language Studies
 #   Radboud University Nijmegen
 #   proycon AT anaproy DOT nl
 #
 #   Licensed under GPLv3
-#
-# This script converts RST to FoLiA format.
-#
 #----------------------------------------------------------------
+
+"""A tool to read FoLiA Set Definitions and perform some operations on them. By default it will print all sets and classes. This tool can also convert from legacy XML to SKOS/RDF."""
 
 from __future__ import print_function, unicode_literals, division, absolute_import
 
@@ -40,7 +39,7 @@ def printclass(classinfo, args, indent):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="A tool to read FoLiA Set Definitions and perform some operations on them. By default it will print all sets and classes. This tool can also convert from legacy XML to RDF.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--basenamespace', type=str,help="Base RDF namespace to use when converting from legacy XML to RDF", action='store',default="",required=False)
     parser.add_argument('--rdfttl', help="Output RDF in Turtle", action='store_true',required=False)
     parser.add_argument('--rdfxml',help="Output RDF in XML", action='store_true',required=False)

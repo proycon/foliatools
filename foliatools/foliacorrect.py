@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
+"""
+Corrections are one of the most complex forms of annotation in FoLiA. It may occur that you want to strip explicit corrections from a document, and leave only either the corrected or original version. The document can then be parsed by simpler parsers that can not handle explicit corrections. Alternatively, you may want to accept the best suggestion for correction (with or without stripping the correction element). This tool provides the means to do all that.
+"""
+
 from __future__ import print_function, unicode_literals, division, absolute_import
 
 import getopt
@@ -18,7 +22,7 @@ def usage():
     print("", file=sys.stderr)
     print("FoLiA " + folia.FOLIAVERSION + ", library version " + folia.LIBVERSION, file=sys.stderr)
     print("", file=sys.stderr)
-    print("Corrections are one of the most complex forms of annotation in FoLiA. It may occur that you want to strip explicit corrections from a document, and leave only either the corrected or original version. The document can then be parsed by simpler parsers that can not handle explicit corrections. Alternatively, you may want to accept the best suggestion for correction (with or without stripping the correction element). This tool provides the means to do all that.", file=sys.stderr)
+    print(__doc__, file=sys.stderr)
     print("", file=sys.stderr)
     print("Usage: foliacorrect [options] file-or-dir1 file-or-dir2 ..etc..", file=sys.stderr)
     print("", file=sys.stderr)

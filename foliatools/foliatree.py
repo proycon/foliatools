@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+"""
+This conversion script reads a FoLiA XML document and outputs a tree of its structure
+"""
+
 from __future__ import print_function, unicode_literals, division, absolute_import
 
 import getopt
@@ -17,7 +21,7 @@ def usage():
     print("  Centre for Language and Speech Technology, Radboud University Nijmegen",file=sys.stderr)
     print("  2016 - Licensed under GPLv3",file=sys.stderr)
     print("",file=sys.stderr)
-    print("This conversion script reads a FoLiA XML document and outputs a tree of its structure", file=sys.stderr)
+    print(__doc__, file=sys.stderr)
     print("",file=sys.stderr)
     print("Usage: foliatree [options] file-or-dir1 file-or-dir2 ..etc..",file=sys.stderr)
     print("",file=sys.stderr)

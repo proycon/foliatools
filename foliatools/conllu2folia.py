@@ -10,9 +10,9 @@
 #
 #   Licensed under GPLv3
 #
-# This script converts CONNL-U to FoLiA format.
-#
 #----------------------------------------------------------------
+
+"""CONNL-U to FoLiA converter"""
 
 from __future__ import print_function, unicode_literals, division, absolute_import
 
@@ -30,7 +30,7 @@ UDEP_SET = "https://raw.githubusercontent.com/proycon/folia/master/setdefinition
 
 
 def main():
-    parser = argparse.ArgumentParser(description="CONLL-U to FoLiA converter", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--id',type=str,help="Document ID for the FoLiA document", action='store',default="",required=False)
     parser.add_argument('--lemma-set',dest="lemmaset", type=str,help="URL of the set definition for lemmas", action='store',default="undefined",required=False)
     parser.add_argument('--pos-set',dest="posset",type=str,help="URL of the set definition for *language-specific* part-of-speech and features (xpos and not the universal pos!)", action='store',default="undefined",required=False)

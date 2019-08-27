@@ -10,9 +10,11 @@
 #
 #   Licensed under GPLv3
 #
-# This script converts RST to FoLiA format.
-#
 #----------------------------------------------------------------
+
+"""
+Converts a FoLiA Document to reStructuredText. This only pertains to document structure and does not include linguistic annotations.
+"""
 
 from __future__ import print_function, unicode_literals, division, absolute_import
 

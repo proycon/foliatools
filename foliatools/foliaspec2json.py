@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-#Generate library specification code (for either Python or C++) on the the basis of folia.yml
-#Used by respectively pynlpl and libfolia
+
+"""Convert the FoLiA specification from YAML to JSON. This is mostly an internal tool with little public use."""
 
 from __future__ import print_function, unicode_literals, division, absolute_import
 
