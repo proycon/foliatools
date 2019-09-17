@@ -470,7 +470,7 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "match " + args[0] + " {\n"
             for element in elements:
                 if 'elements' in element:
-                    s += indent + "    ElementGroup::" + element['class'].replace("Abstract","").replace("Annotation","") + " => &vec![" + ",".join([ "ElementType::" + subelement['class'] for subelement in element['elements'] if subelement['class'].find('Abstract') == -1 ] ) + "],"
+                    s += indent + "    ElementGroup::" + element['class'].replace("Abstract","").replace("Annotation","") + " => &[" + ",".join([ "ElementType::" + subelement['class'] for subelement in element['elements'] if subelement['class'].find('Abstract') == -1 ] ) + "],"
             s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
