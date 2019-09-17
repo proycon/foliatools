@@ -312,6 +312,12 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "pub enum ElementType { " + ", ".join([ e for e in elementnames if not e.startswith('Abstract')]) + " }\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
+    elif block == 'elementgroup':
+        if target == 'rust':
+            s += indent  + "#[derive(Debug,Copy,Clone,PartialEq)]\n"
+            s += indent + "pub enum ElementGroup { " + ", ".join([ e.replace('Abstract','').replace('Annotation','') for e in elementnames if e.startswith('Abstract')]) + " }\n"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'annotationtype':
         if target == 'python':
             s += indent + "class AnnotationType:\n"
@@ -320,7 +326,7 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "enum AnnotationType : int { NO_ANN,"
             s += ", ".join(spec['annotationtype']) + ", LAST_ANN };\n"
         elif target == 'rust':
-            s += indent  + "#[derive(Debug,Copy,Clone,PartialEq)]\n"
+            s += indent  + "#[derive(Debug,Copy,Clone,PartialEq,Eq,Hash)]\n"
             s += indent + "pub enum AnnotationType { " + ", ".join(spec['annotationtype']) + " }\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
@@ -376,6 +382,15 @@ def outputblock(block, target, varname, args, indent = ""):
                     s += indent + "  { AnnotationType::" + element['properties']['annotationtype'] + ',  "' + element['properties']['annotationtype'].lower() + '" },\n'
                     done[element['properties']['annotationtype']] = True #prevent duplicates
             s += indent + "};\n"
+        elif target == 'rust':
+            s += indent + "match " + args[0] + " {\n"
+            done = {}
+            for element in elements:
+                if 'properties' in element and  'annotationtype' in element['properties'] and element['properties']['annotationtype'] not in done:
+                    s += indent + "  AnnotationType::" + element['properties']['annotationtype'] + " => \"" + element['properties']['annotationtype'].lower() + "\",\n"
+                    done[element['properties']['annotationtype']] = True #prevent duplicates
+            s += indent + "}\n"
+
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'string_annotationtype_map':
@@ -388,6 +403,15 @@ def outputblock(block, target, varname, args, indent = ""):
                     s += indent + '  { "' + element['properties']['annotationtype'].lower() + '", AnnotationType::' + element['properties']['annotationtype'] + ' },\n'
                     done[element['properties']['annotationtype']] = True #prevent duplicates
             s += indent + "};\n"
+        elif target == 'rust':
+            s += indent + "match " + args[0] + " {\n"
+            done = {}
+            for element in elements:
+                if 'properties' in element and  'annotationtype' in element['properties'] and element['properties']['annotationtype'] not in done:
+                    s += indent + "    \"" +element['properties']['annotationtype'].lower() + "\" => Some(AnnotationType::" + element['properties']['annotationtype'] + "),\n"
+                    done[element['properties']['annotationtype']] = True #prevent duplicates
+            s += indent + "    _ => None\n"
+            s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'annotationtype_xml_map':
@@ -406,7 +430,7 @@ def outputblock(block, target, varname, args, indent = ""):
                     s += indent + "  {  AnnotationType::" + element['properties']['annotationtype'] + ', "' + element['properties']['xmltag'] + '" },\n'
             s += indent + "};\n"
         elif target == 'rust':
-            s += indent + "match annotationtype {\n"
+            s += indent + "match " + args[0] + " {\n"
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties']:
                     if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
@@ -423,11 +447,30 @@ def outputblock(block, target, varname, args, indent = ""):
                     s += indent + "  {  AnnotationType::" + element['properties']['annotationtype'] + ', ' + element['class'] + '_t },\n'
             s += indent + "};\n"
         elif target == 'rust':
-            s += indent + "match annotationtype {\n"
+            s += indent + "match " + args[0] + " {\n"
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties']:
                     if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
                     s += indent + "    AnnotationType::" + element['properties']['annotationtype'] + ' => ElementType::' + element['class'] + ',\n'
+            s += indent + "}\n"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
+
+    elif block == 'elementtype_annotationtype_map':
+        if target == 'rust':
+            s += indent + "match " + args[0] + " {\n"
+            for element in elements:
+                if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties']:
+                    s += indent + "    ElementType::" + element['class'] + " => Some(AnnotationType::" + element['properties']['annotationtype'] + "),\n"
+            s += indent + "}\n"
+        else:
+            raise NotImplementedError("Block " + block + " not implemented for " + target)
+    elif block == 'elementgroup_elementtypes_map':
+        if target == 'rust':
+            s += indent + "match " + args[0] + " {\n"
+            for element in elements:
+                if 'elements' in element:
+                    s += indent + "    ElementGroup::" + element['class'].replace("Abstract","").replace("Annotation","") + " => &vec![" + ",".join([ "ElementType::" + subelement['class'] for subelement in element['elements'] if subelement['class'].find('Abstract') == -1 ] ) + "],"
             s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
@@ -451,7 +494,7 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + '  { XmlText_t, "_XmlText" }\n'
             s += indent + "};\n"
         elif target == 'rust':
-            s += indent + "match elementtype {\n"
+            s += indent + "match " + args[0] + " {\n"
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
                     s += indent + "  ElementType::" + element['class'] + ' => "' + element['properties']['xmltag'] + '",\n'
@@ -482,7 +525,7 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + '  { "_XmlText", XmlText_t  }\n'
             s += indent + "};\n"
         elif target == 'rust':
-            s += indent + "match tag {\n"
+            s += indent + "match " + args[0] + " {\n"
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
                     s += indent + '  "' + element['properties']['xmltag'] + '" =>  Ok(ElementType::' + element['class'] + '),\n'
