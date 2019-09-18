@@ -191,6 +191,71 @@ def outputvar(var, value, target, declare = False):
             else:
                 if declare: typedeclaration = 'const auto '
                 return typedeclaration + var + ' = ' + value+ ';'
+    elif target == 'rust':
+        typedeclaration = ''
+        prefix = ''
+        if value is None:
+            if declare: raise NotImplementedError("Declare not supported for None values")
+            if varname in ('required_attribs','optional_attribs','required_data','accepted_data'):
+                return var + ' = [];'
+            elif varname in ('xmltag'):
+                return var + ' = "";'
+            elif varname in ('textdelimiter'):
+                return var + ' = None;'
+            elif varname  == 'subset':
+                return var + ' = None;'
+            else:
+                raise NotImplementedError("Don't know how to handle None for " + var)
+        elif isinstance(value, bool):
+            if declare:
+                typedeclaration = ': bool'
+                prefix = 'let '
+            if value:
+                return prefix + var + typedeclaration + ' = true;'
+            else:
+                return prefix + var + typedeclaration + ' = false;'
+        elif isinstance(value, int ):
+            if declare:
+                typedeclaration = ': i32'
+                prefix = 'let '
+            return prefix + var + typedeclaration + ' = ' + str(value) + ';'
+        elif isinstance(value, float ):
+            if declare:
+                typedeclaration = ': f64'
+                prefix = 'let '
+            return prefix + var + typedeclaration + ' = ' + str(value) + ';'
+        elif isinstance(value, (list,tuple,set)):
+            #list items are  enums or classes, never string literals
+            if varname in ('accepted_data','required_data') or  all([ x in elementnames for x in value ]):
+                if declare:
+                    typedeclarion = ': [AcceptedData] '
+                    operator = '='
+                    prefix = 'let '
+                else:
+                    typedeclaration = ''
+                    operator = '+='
+                    prefix = ''
+                value = [ accepteddata_rust(x) for x in value ]
+                return prefix + var + typedeclaration + ' ' + operator + ' [' + ', '.join(value) + '];'
+            elif varname in ('optional_attribs', 'required_attribs') or all([ x in spec['attributes'] for x in value ]):
+                value = [ "AttribType::" + x  for x in value ]
+                return prefix + var + typedeclaration + ' = [ ' + ','.join(value) + ' ];'
+            else:
+                return prefix + var + typedeclaration + ' = [ ' + ', '.join([ '"' + x + '"' for x in value if x]) + ', ];'
+        else:
+            if varname == 'ANNOTATIONTYPE':
+                value = "AnnotationType::" + value
+
+            if quote:
+                if declare:
+                    typedeclaration = ': &str '
+                    prefix = 'let '
+                return prefix + var + typedeclaration + ' = "' + value+ '";'
+            else:
+                if declare:
+                    typedeclaration = ''
+                    prefix = 'let '
+                return prefix + var + typedeclaration + ' = ' + value+ ';'
     elif target == 'rst':
         return var + ": " + str(value)
 
@@ -245,6 +310,34 @@ def setelementproperties_cpp(element,indent, defer,done):
                 s += indent + outputvar(element['class'] + '::PROPS.' + prop.upper(),  value, target) + '\n'
     done[element['class']] = True
     return s
+
+def accepteddata_rust(elementname):
+    if 'Abstract' in elementname:
+        return "AcceptedData::AcceptElementGroup(ElementGroup::" + elementname.replace('Abstract','').replace('Annotation','') + ")"
+    else:
+        return "AcceptedData::AcceptElementType(ElementType::" + elementname + ")"
+
+
+def setelementproperties_rust(element,indent, defer,done):
+    target = 'rust'
+    done[element['class']] = True
+    if element['class'].find('Abstract') == -1:
+        s = indent + "    ElementType::" + element['class'] + " => {\n"
+        s = indent + "        let mut properties = Properties::default();\n"
+        properties = {}
+        properties.update(spec['defaultproperties'])
+        for parent in parents[element['class']]:
+            if 'properties' in elements[parent]:
+                properties.update(elements[parent]['properties'])
+        for key in properties:
+            if key in ('accepted_data','required_data', 'required_attribs','optional_attribs'):
+                properties[key] = tuple(sorted(addfromparents(element['class'],key)))
+        for key,value in properties.items():
+            s += indent + "        " +  outputvar('properties.' + key.lower(),  value, target) + '\n'
+        s = indent + "    }\n"
+        return s
+
+
 
 def flattenclasses(candidates):
     done = {}
@@ -368,7 +461,14 @@ def outputblock(block, target, varname, args, indent = ""):
                     if element['class'] in defer:
                         for deferred in defer[element['class']]:
                             s += setelementproperties_cpp(deferred,indent, defer,done)
-
+        elif target == 'rust':
+            done = {}
+            for element in elements:
+                s += indent + "match " + args[0] + " {\n"
+                output = setelementproperties_rust(element,indent,done)
+                if output:
+                    s += output
+                s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'annotationtype_string_map':
