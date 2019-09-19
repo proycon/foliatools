@@ -226,7 +226,7 @@ def outputvar(var, value, target, declare = False):
             #list items are  enums or classes, never string literals
             if varname in ('accepted_data','required_data') or  all([ x in elementnames for x in value ]):
                 if declare:
-                    typedeclarion = ': Vec<AcceptedData> '
+                    typedeclarion = ": &'static [AcceptedData] "
                     operator = '='
                     prefix = 'let '
                 else:
@@ -234,16 +234,16 @@ def outputvar(var, value, target, declare = False):
                     operator = '='
                     prefix = ''
                 value = [ accepteddata_rust(x) for x in value ]
-                return prefix + var + typedeclaration + ' ' + operator + ' vec![' + ', '.join(value) + '];'
+                return prefix + var + typedeclaration + ' ' + operator + ' &[' + ', '.join(value) + '];'
             elif varname in ('optional_attribs', 'required_attribs') or all([ x in spec['attributes'] for x in value ]):
                 if declare:
-                    typedeclarion = ': Vec<AttribType> '
+                    typedeclarion = ": &'static [AttribType] "
                     operator = '='
                     prefix = 'let '
                 value = [ "AttribType::" + x  for x in value ]
-                return prefix + var + typedeclaration + ' = vec![ ' + ','.join(value) + ' ];'
+                return prefix + var + typedeclaration + ' = &[ ' + ','.join(value) + ' ];'
             else:
-                return prefix + var + typedeclaration + ' = vec![ ' + ', '.join([ '"' + x + '"' for x in value if x]) + ', ];'
+                return prefix + var + typedeclaration + ' = &[ ' + ', '.join([ '"' + x + '"' for x in value if x]) + ', ];'
         else:
             if varname.lower() == 'annotationtype':
                 value = "Some(AnnotationType::" + value + ")"
