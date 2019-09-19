@@ -204,6 +204,8 @@ def outputvar(var, value, target, declare = False):
                 return var + ' = None;'
             elif varname  == 'subset':
                 return var + ' = None;'
+            elif varname  == 'annotationtype':
+                return "//(annotationtype ignored)"
             else:
                 raise NotImplementedError("Don't know how to handle None for " + var)
         elif isinstance(value, bool):
@@ -228,22 +230,26 @@ def outputvar(var, value, target, declare = False):
             #list items are  enums or classes, never string literals
             if varname in ('accepted_data','required_data') or  all([ x in elementnames for x in value ]):
                 if declare:
-                    typedeclarion = ': [AcceptedData] '
+                    typedeclarion = ': Vec<AcceptedData> '
                     operator = '='
                     prefix = 'let '
                 else:
                     typedeclaration = ''
-                    operator = '+='
+                    operator = '='
                     prefix = ''
                 value = [ accepteddata_rust(x) for x in value ]
-                return prefix + var + typedeclaration + ' ' + operator + ' [' + ', '.join(value) + '];'
+                return prefix + var + typedeclaration + ' ' + operator + ' vec![' + ', '.join(value) + '];'
             elif varname in ('optional_attribs', 'required_attribs') or all([ x in spec['attributes'] for x in value ]):
+                if declare:
+                    typedeclarion = ': Vec<AttribType> '
+                    operator = '='
+                    prefix = 'let '
                 value = [ "AttribType::" + x  for x in value ]
-                return prefix + var + typedeclaration + ' = [ ' + ','.join(value) + ' ];'
+                return prefix + var + typedeclaration + ' = vec![ ' + ','.join(value) + ' ];'
             else:
-                return prefix + var + typedeclaration + ' = [ ' + ', '.join([ '"' + x + '"' for x in value if x]) + ', ];'
+                return prefix + var + typedeclaration + ' = vec![ ' + ', '.join([ '"' + x + '"' for x in value if x]) + ', ];'
         else:
-            if varname == 'ANNOTATIONTYPE':
+            if varname.upper() == 'ANNOTATIONTYPE':
                 value = "AnnotationType::" + value
 
             if quote:
@@ -318,23 +324,24 @@ def accepteddata_rust(elementname):
         return "AcceptedData::AcceptElementType(ElementType::" + elementname + ")"
 
 
-def setelementproperties_rust(element,indent, defer,done):
+def setelementproperties_rust(element,indent, done):
     target = 'rust'
     done[element['class']] = True
     if element['class'].find('Abstract') == -1:
         s = indent + "    ElementType::" + element['class'] + " => {\n"
-        s = indent + "        let mut properties = Properties::default();\n"
+        s += indent + "        let mut properties = Properties::default();\n"
         properties = {}
         properties.update(spec['defaultproperties'])
         for parent in parents[element['class']]:
-            if 'properties' in elements[parent]:
-                properties.update(elements[parent]['properties'])
+            if 'properties' in elementdict[parent]:
+                properties.update(elementdict[parent]['properties'])
         for key in properties:
             if key in ('accepted_data','required_data', 'required_attribs','optional_attribs'):
                 properties[key] = tuple(sorted(addfromparents(element['class'],key)))
         for key,value in properties.items():
             s += indent + "        " +  outputvar('properties.' + key.lower(),  value, target) + '\n'
-        s = indent + "    }\n"
+        s += indent + "        properties\n"
+        s += indent + "    },\n"
         return s
 
 
@@ -463,12 +470,12 @@ def outputblock(block, target, varname, args, indent = ""):
                             s += setelementproperties_cpp(deferred,indent, defer,done)
         elif target == 'rust':
             done = {}
+            s += indent + "match " + args[0] + " {\n"
             for element in elements:
-                s += indent + "match " + args[0] + " {\n"
                 output = setelementproperties_rust(element,indent,done)
                 if output:
                     s += output
-                s += indent + "}\n"
+            s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'annotationtype_string_map':
