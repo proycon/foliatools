@@ -200,12 +200,8 @@ def outputvar(var, value, target, declare = False):
                 return var + ' = [];'
             elif varname in ('xmltag'):
                 return var + ' = "";'
-            elif varname in ('textdelimiter'):
+            elif varname in ('textdelimiter', 'annotationtype','subset'):
                 return var + ' = None;'
-            elif varname  == 'subset':
-                return var + ' = None;'
-            elif varname  == 'annotationtype':
-                return "//(annotationtype ignored)"
             else:
                 raise NotImplementedError("Don't know how to handle None for " + var)
         elif isinstance(value, bool):
@@ -249,8 +245,12 @@ def outputvar(var, value, target, declare = False):
             else:
                 return prefix + var + typedeclaration + ' = vec![ ' + ', '.join([ '"' + x + '"' for x in value if x]) + ', ];'
         else:
-            if varname.upper() == 'ANNOTATIONTYPE':
-                value = "AnnotationType::" + value
+            if varname.lower() == 'annotationtype':
+                value = "Some(AnnotationType::" + value + ")"
+                quote = False
+            elif varname in ('textdelimiter', 'subset'):
+                value = 'Some("' + value + '")'
+                quote = False
 
             if quote:
                 if declare:
@@ -319,7 +319,7 @@ def setelementproperties_cpp(element,indent, defer,done):
 
 def accepteddata_rust(elementname):
     if 'Abstract' in elementname:
-        return "AcceptedData::AcceptElementGroup(ElementGroup::" + elementname.replace('Abstract','').replace('Annotation','') + ")"
+        return "AcceptedData::AcceptElementGroup(ElementGroup::" + elementname.replace('Abstract','').replace('Annotation','').replace('Element','') + ")"
     else:
         return "AcceptedData::AcceptElementType(ElementType::" + elementname + ")"
 
@@ -332,6 +332,8 @@ def setelementproperties_rust(element,indent, done):
         s += indent + "        let mut properties = Properties::default();\n"
         properties = {}
         properties.update(spec['defaultproperties'])
+        if 'properties' in element:
+            properties.update(element['properties'])
         for parent in parents[element['class']]:
             if 'properties' in elementdict[parent]:
                 properties.update(elementdict[parent]['properties'])
