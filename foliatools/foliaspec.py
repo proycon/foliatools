@@ -197,7 +197,7 @@ def outputvar(var, value, target, declare = False):
         if value is None:
             if declare: raise NotImplementedError("Declare not supported for None values")
             if varname in ('required_attribs','optional_attribs','required_data','accepted_data'):
-                return var + ' = [];'
+                return var + ' = &[];'
             elif varname in ('xmltag'):
                 return var + ' = "";'
             elif varname in ('textdelimiter', 'annotationtype','subset'):
