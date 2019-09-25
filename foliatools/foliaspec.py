@@ -332,14 +332,14 @@ def setelementproperties_rust(element,indent, done):
         s += indent + "        let mut properties = Properties::default();\n"
         properties = {}
         properties.update(spec['defaultproperties'])
-        if 'properties' in element:
-            properties.update(element['properties'])
         for parent in parents[element['class']]:
             if 'properties' in elementdict[parent]:
                 properties.update(elementdict[parent]['properties'])
         for key in properties:
             if key in ('accepted_data','required_data', 'required_attribs','optional_attribs'):
                 properties[key] = tuple(sorted(addfromparents(element['class'],key)))
+        if 'properties' in element:
+            properties.update(element['properties'])
         for key,value in properties.items():
             s += indent + "        " +  outputvar('properties.' + key.lower(),  value, target) + '\n'
         s += indent + "        properties\n"
