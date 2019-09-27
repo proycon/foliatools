@@ -415,7 +415,7 @@ def outputblock(block, target, varname, args, indent = ""):
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'elementgroup':
         if target == 'rust':
-            s += indent + "pub enum ElementGroup { " + ", ".join([ e.replace('Abstract','').replace('Annotation','') for e in elementnames if e.startswith('Abstract')]) + " }\n"
+            s += indent + "pub enum ElementGroup { " + ", ".join([ e.replace('Abstract','').replace('Annotation','').replace('Element','') for e in elementnames if e.startswith('Abstract') or e == 'Feature'] ) + " }\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'annotationtype':
@@ -568,6 +568,7 @@ def outputblock(block, target, varname, args, indent = ""):
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties']:
                     s += indent + "    ElementType::" + element['class'] + " => Some(AnnotationType::" + element['properties']['annotationtype'] + "),\n"
+            s += indent + "    _ => None\n"
             s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
@@ -576,7 +577,7 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "match " + args[0] + " {\n"
             for element in elements:
                 if 'elements' in element:
-                    s += indent + "    ElementGroup::" + element['class'].replace("Abstract","").replace("Annotation","") + " => &[" + ",".join([ "ElementType::" + subelement['class'] for subelement in element['elements'] if subelement['class'].find('Abstract') == -1 ] ) + "],"
+                    s += indent + "    ElementGroup::" + element['class'].replace("Abstract","").replace("Annotation","").replace("Element","") + " => &[" + ",".join([ "ElementType::" + subelement['class'] for subelement in element['elements'] if subelement['class'].find('Abstract') == -1 ] ) + "],\n"
             s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
