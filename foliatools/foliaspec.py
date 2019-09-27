@@ -410,13 +410,11 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "enum ElementType : unsigned int { BASE=0,"
             s += ", ".join([ e + '_t' for e in elementnames]) + ", PlaceHolder_t, XmlComment_t, XmlText_t,  LastElement };\n"
         elif target == 'rust':
-            s += indent  + "#[derive(Debug,Copy,Clone,PartialEq)]\n"
             s += indent + "pub enum ElementType { " + ", ".join([ e for e in elementnames if not e.startswith('Abstract')]) + " }\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'elementgroup':
         if target == 'rust':
-            s += indent  + "#[derive(Debug,Copy,Clone,PartialEq)]\n"
             s += indent + "pub enum ElementGroup { " + ", ".join([ e.replace('Abstract','').replace('Annotation','') for e in elementnames if e.startswith('Abstract')]) + " }\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
@@ -428,7 +426,6 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "enum AnnotationType : int { NO_ANN,"
             s += ", ".join(spec['annotationtype']) + ", LAST_ANN };\n"
         elif target == 'rust':
-            s += indent  + "#[derive(Debug,Copy,Clone,PartialEq,Eq,Hash)]\n"
             s += indent + "pub enum AnnotationType { " + ", ".join(spec['annotationtype']) + " }\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
