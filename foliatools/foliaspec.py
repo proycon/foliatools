@@ -339,7 +339,14 @@ def setelementproperties_rust(element,indent, done):
             if key in ('accepted_data','required_data', 'required_attribs','optional_attribs'):
                 properties[key] = tuple(sorted(addfromparents(element['class'],key)))
         if 'properties' in element:
-            properties.update(element['properties'])
+            for key in element['properties']:
+                if key in ('accepted_data','required_data', 'required_attribs','optional_attribs') and key in element['properties'] and element['properties'][key]:
+                    if properties[key]:
+                        properties[key] = tuple(sorted(set(properties[key])  | set(element['properties'][key])))
+                    else:
+                        properties[key] = element['properties'][key]
+                else:
+                    properties[key] = element['properties'][key]
         for key,value in properties.items():
             s += indent + "        " +  outputvar('properties.' + key.lower(),  value, target) + '\n'
         s += indent + "        properties\n"
