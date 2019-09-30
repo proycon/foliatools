@@ -60,6 +60,7 @@ setup(
             'foliaeval = foliatools.foliaeval:main',
             'foliaupgrade = foliatools.foliaupgrade:main',
             'folialangid = foliatools.folialangid:main',
+            'foliabench = foliatools.foliabench:main',
         ]
     },
     #include_package_data=True,
