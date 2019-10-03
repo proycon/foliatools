@@ -59,12 +59,13 @@ def run_test(test_id, file):
         begintime, beginmem = begin()
         out = doc.text()
         return begintime, beginmem, title , out
-    elif test_id == 'words':
+    elif test_id == 'select':
         title = "Select all words"
         doc = folia.Document(file=file)
         begintime, beginmem = begin()
-        words = list(doc.select(folia.Word))
-        return begintime, beginmem, title , words
+        for word in doc.select(folia.Word):
+            pass
+        return begintime, beginmem, title, None
     raise KeyError("No such test: " + test_id)
 
 def test(test_id,file, args):

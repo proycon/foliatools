@@ -22,6 +22,7 @@ def usage():
     print("Usage: alpino2folia [options] alpino-input [alpino-input 2..] folia-output"   ,file=sys.stderr)
 
 def extract_syntax(alpinonode, folianode, foliasentence, alpinoroot):
+    print(alpinonode,file=sys.stderr)
     for node in alpinonode:
         if 'word' in node.attrib:
             folianode.append(folia.SyntacticUnit, foliasentence[int(node.attrib['begin'])], cls=node.attrib['pos'],id=foliasentence.id+'.alpinonode.'+node.attrib['id'] )
@@ -35,7 +36,7 @@ def extract_dependencies(alpinonode, deplayer, foliasentence):
     deps = []
     head = None
     for node in alpinonode:
-        #print("DEP:", node,file=sys.stderr)
+        print("DEBUG dep", node,file=sys.stderr)
         if not 'word' in node.attrib:
             extract_dependencies(node, deplayer, foliasentence )
         if 'rel' in node.attrib:
@@ -70,6 +71,12 @@ def makefoliadoc(outputfile):
         foliadoc.declare(folia.AnnotationType.MORPHOLOGICAL, 'alpino-morphology')
 
     return foliadoc
+
+def findnode(elements):
+    for node in elements:
+        if node.tag == "node":
+            return node
+    raise Exception("No node found")
 
 
 def alpino2folia(alpinofile, foliadoc):
@@ -120,16 +127,17 @@ def alpino2folia(alpinofile, foliadoc):
                 elif not key in ('sense','pos','rel','postag','pt','frame','root','lemma','id','begin','end','word','index'):
                     print("WARNING: Ignored attribute " + key + "=\"" + value + "\" on node ",file=sys.stderr)
 
+
     foliasyntaxlayer = foliasentence.append(folia.SyntaxLayer)
     foliasyntaxtop = foliasyntaxlayer.append(folia.SyntacticUnit, cls='top')
 
     #extract syntax
-    extract_syntax(alpinoroot[0], foliasyntaxtop, foliasentence, alpinoroot)
+    extract_syntax(findnode(alpinoroot), foliasyntaxtop, foliasentence, alpinoroot)
 
     foliadeplayer = foliasentence.append(folia.DependenciesLayer)
 
     #extract dependencies:
-    extract_dependencies(alpinoroot[0], foliadeplayer, foliasentence)
+    extract_dependencies(findnode(alpinoroot), foliadeplayer, foliasentence)
 
     return foliadoc
 
