@@ -10,6 +10,7 @@ import getopt
 import sys
 import os
 import folia.main as folia
+from foliatools import VERSION as TOOLVERSION
 
 def usage():
     print("alpino2folia",file=sys.stderr)
@@ -22,7 +23,6 @@ def usage():
     print("Usage: alpino2folia [options] alpino-input [alpino-input 2..] folia-output"   ,file=sys.stderr)
 
 def extract_syntax(alpinonode, folianode, foliasentence, alpinoroot):
-    print(alpinonode,file=sys.stderr)
     for node in alpinonode:
         if 'word' in node.attrib:
             folianode.append(folia.SyntacticUnit, foliasentence[int(node.attrib['begin'])], cls=node.attrib['pos'],id=foliasentence.id+'.alpinonode.'+node.attrib['id'] )
@@ -36,7 +36,6 @@ def extract_dependencies(alpinonode, deplayer, foliasentence):
     deps = []
     head = None
     for node in alpinonode:
-        print("DEBUG dep", node,file=sys.stderr)
         if not 'word' in node.attrib:
             extract_dependencies(node, deplayer, foliasentence )
         if 'rel' in node.attrib:
@@ -52,7 +51,8 @@ def extract_dependencies(alpinonode, deplayer, foliasentence):
 
 def makefoliadoc(outputfile):
     baseid = os.path.basename(outputfile).replace('.folia.xml','').replace('.xml','')
-    foliadoc = folia.Document(id=baseid)
+    processor = folia.Processor.create("alpino2folia", version=TOOLVERSION)
+    foliadoc = folia.Document(id=baseid, processor=processor)
     foliadoc.append(folia.Text(foliadoc, id=baseid+'.text'))
 
     if not foliadoc.declared(folia.AnnotationType.TOKEN, 'alpino-tokens'):
