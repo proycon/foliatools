@@ -1,3 +1,21 @@
+.. image:: https://travis-ci.com/proycon/foliatools.svg?branch=master
+    :target: https://travis-ci.com/proycon/foliatools
+
+.. image:: http://readthedocs.org/projects/foliatools/badge/?version=latest
+	:target: http://foliatools.readthedocs.io/en/latest/?badge=latest
+	:alt: Documentation Status
+
+.. image:: http://applejack.science.ru.nl/lamabadge.php/foliatools
+   :target: http://applejack.science.ru.nl/languagemachines/
+
+.. image:: https://www.repostatus.org/badges/latest/active.svg
+   :alt: Project Status: Active – The project has reached a stable, usable state and is being actively developed.
+   :target: https://www.repostatus.org/#active
+
+.. image:: https://img.shields.io/pypi/v/folia-tools
+   :alt: Latest release in the Python Package Index
+   :target: https://pypi.org/project/folia-tools/
+
 FoLiA Tools
 =================
 
