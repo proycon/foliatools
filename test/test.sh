@@ -182,7 +182,34 @@ else
   fi
 fi
 
+echo "Running txt2folia" >&2
+txt2folia test2.txt
+if [ $? -ne 0 ]; then
+    echo "...${boldred}FAILED${normal}" >&2
+    FAILURE=1
+else
+  foliavalidator test.folia.xml
+  if [ $? -ne 0 ]; then
+      echo "...VALIDATOR ${boldred}FAILED${normal}" >&2
+      FAILURE=1
+  else
+      echo "...${boldgreen}OK${normal}" >&2
+  fi
+fi
+
+echo "Running txt2folia" >&2
+txt2folia --nostructure test2.txt
+if [ $? -ne 0 ]; then
+    echo "...${boldred}FAILED${normal}" >&2
+    FAILURE=1
+else
+  foliavalidator test.folia.xml
+  if [ $? -ne 0 ]; then
+      echo "...VALIDATOR ${boldred}FAILED${normal}" >&2
+      FAILURE=1
+  else
+      echo "...${boldgreen}OK${normal}" >&2
+  fi
+fi
 
 exit $FAILURE
-
-

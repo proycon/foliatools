@@ -60,7 +60,7 @@ def convert(filename, **kwargs):
             else:
                 if not line.strip():
                     #empty line, add buffer
-                    body.append(folia.Paragraph, *buffer)
+                    body.append(folia.Paragraph, folia.TextContent(doc,*buffer))
                     buffer = []
                 else:
                     buffer.append(line.strip())
