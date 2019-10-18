@@ -115,7 +115,7 @@ def convert(file, **args):
             anchor.add(sentence)
 
     if doc is not None and hascontent:
-        if 'outputfile' in args:
+        if 'outputfile' in args and args['outputfile']:
             doc.save(args['outputfile'])
             print("Wrote " + args['outputfile'],file=sys.stderr)
         else:
