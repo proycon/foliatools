@@ -41,13 +41,17 @@ def convert(filename, **kwargs):
     with open(filename,'r',encoding=kwargs['encoding']) as f:
         for line in f:
             if kwargs.get('sentenceperline'):
-                body.append(folia.Sentence, line.strip())
+                if line.strip():
+                    body.append(folia.Sentence, line.strip())
             elif kwargs.get('paragraphperline'):
-                body.append(folia.Paragraph, line.strip())
+                if line.strip():
+                    body.append(folia.Paragraph, line.strip())
             elif kwargs.get('nostructure'):
-                if kwargs.get('linebreaks'):
-                    buffer.append( line.strip() )
-                    buffer.append(folia.LineBreak(doc))
+                if not kwargs.get('nolinebreaks'):
+                    if line.strip():
+                        buffer.append( line.strip() )
+                    if buffer and buffer[-1][-1] != '-':
+                        buffer.append(folia.Linebreak(doc))
                 else:
                     if buffer and buffer[-1][-1] not in (' ','-'):
                         buffer.append( " " + line.strip() )
@@ -59,15 +63,15 @@ def convert(filename, **kwargs):
                     body.append(folia.Paragraph, *buffer)
                     buffer = []
                 else:
-                    buffer.append(line)
-                    if kwargs.get('linebreaks'):
-                        buffer.append(folia.LineBreak(doc))
+                    buffer.append(line.strip())
+                    if not kwargs.get('nolinebreaks'):
+                        buffer.append(folia.Linebreak(doc))
 
     if buffer:
         if kwargs.get('nostructure'):
-            body.settext(folia.TextContent(doc, *buffer ))
+            body.data = [folia.TextContent(doc, *buffer )]
         else:
-            body.append(folia.Paragraph, *buffer)
+            body.append(folia.Paragraph, folia.TextContent(doc,*buffer))
 
     return doc
 
@@ -80,7 +84,7 @@ def main():
     parser.add_argument('--paragraphperline',help="Assume one paragraph per line", action='store_true')
     parser.add_argument('--paragraphs',help="Assumes paragraphs seperated by an empty line (this is the default)", action='store_true')
     parser.add_argument('--nostructure',help="Do not extract any structure, just wrap the entire text in a minimal FoLiA structure", action='store_true')
-    parser.add_argument('--linebreaks',help="Explicitly encode linebreaks", action='store_true')
+    parser.add_argument('--nolinebreaks',help="Do not explicitly encode linebreaks", action='store_true')
     parser.add_argument('files', nargs='+', help='Text files to process')
     args = parser.parse_args()
 
