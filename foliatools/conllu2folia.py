@@ -36,6 +36,7 @@ def main():
     parser.add_argument('--pos-set',dest="posset",type=str,help="URL of the set definition for *language-specific* part-of-speech and features (xpos and not the universal pos!)", action='store',default="undefined",required=False)
     parser.add_argument('--dependency-set',dest="depset", type=str,help="Dependency set", action='store',default=UDEP_SET, required=False)
     parser.add_argument('-o', '--outputdir',type=str,help="Output directory", action='store',default=".", required=False)
+    parser.add_argument('--outputfile',type=str,help="Output file", action='store', required=False)
     parser.add_argument('files', nargs='+', help='CONLL-U input files')
     args = parser.parse_args()
 
