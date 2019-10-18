@@ -31,7 +31,7 @@ def convert(filename, **kwargs):
     if not os.path.exists(filename):
         raise Exception("File not found: " + filename)
 
-    if 'id' in kwargs:
+    if 'id' in kwargs and kwargs['id']:
         docid = folia.makencname(kwargs['id'])
     else:
         docid = folia.makencname(os.path.basename(filename).split('.')[0])
