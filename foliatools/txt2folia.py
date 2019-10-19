@@ -50,10 +50,10 @@ def convert(filename, **kwargs):
                 if not kwargs.get('nolinebreaks'):
                     if line.strip():
                         buffer.append( line.strip() )
-                    if buffer and buffer[-1][-1] != '-':
+                    if buffer and isinstance(buffer[-1],str) and buffer[-1][-1] != '-':
                         buffer.append(folia.Linebreak(doc))
                 else:
-                    if buffer and buffer[-1][-1] not in (' ','-'):
+                    if buffer and isinstance(buffer[-1],str) and buffer[-1][-1] not in (' ','-'):
                         buffer.append( " " + line.strip() )
                     else:
                         buffer.append( line.strip() )
