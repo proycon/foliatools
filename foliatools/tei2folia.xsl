@@ -30,6 +30,8 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:param name='generateIds'>true</xsl:param><!-- We actually rarely do this now -->
 <xsl:param name="quiet">false</xsl:param>
 
+<xsl:key name="correctors" match="//tei:corr|//tei:supplied|//tei:del" use="@resp" />
+
 <xsl:template name="note-resp">
 <xsl:if test="@resp">
 <xsl:attribute name="class">resp_<xsl:value-of select="@resp"/></xsl:attribute>
@@ -194,6 +196,13 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:if test="//tei:text//tei:cor|//tei:text//tei:supplied|//tei:text//tei:del">
  <correction-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/corrections.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
+         <xsl:for-each select="//tei:*[(contains(name(), 'corr') or contains(name(), 'del') or contains(name(), 'supplied')) and generate-id() = generate-id(key('correctors', @resp)[1])]">
+             <xsl:if test="@resp">
+                 <annotator>
+                     <xsl:attribute name="processor">proc.corrector.<xsl:value-of select="translate(@resp, ' :&#160;', '')" /></xsl:attribute>
+                 </annotator>
+             </xsl:if>
+         </xsl:for-each>
  </correction-annotation>
 </xsl:if>
 <xsl:if test="//tei:text//tei:note">
@@ -221,9 +230,18 @@ Heavily adapted by Maarten van Gompel (Radboud University)
    <provenance>
     <processor xml:id="proc.tei2folia" name="tei2folia" src="https://github.com/proycon/foliatools">
         <processor xml:id="proc.tei2folia.xsl" name="tei2folia.xsl" />
+        <xsl:for-each select="//tei:*[(contains(name(), 'corr') or contains(name(), 'del') or contains(name(), 'supplied')) and generate-id() = generate-id(key('correctors', @resp)[1])]">
+             <xsl:if test="@resp">
+                 <processor name="{@resp}">
+                     <xsl:attribute name="xml:id">proc.corrector.<xsl:value-of select="translate(@resp, ' :&#160;', '')" /></xsl:attribute>
+                 </processor>
+             </xsl:if>
+         </xsl:for-each>
     </processor>
    </provenance>
 </xsl:template>
+
+
 
 <xsl:template match="tei:interpGrp/tei:interp" mode="meta"><xsl:variable name="cur"><xsl:value-of select="."/></xsl:variable><xsl:if test="not(../tei:interp[1]=$cur)"><xsl:text>; </xsl:text></xsl:if><xsl:apply-templates mode="meta"/></xsl:template>
 
@@ -733,14 +751,17 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template match="tei:cb" mode="markup"><xsl:call-template name="cb" /></xsl:template>
 <xsl:template match="tei:pb" mode="markup"><xsl:call-template name="pb" /></xsl:template>
 
+<!-- Converts an annotator with a link to a processor -->
+<xsl:template name="resp2processor"><xsl:attribute name="processor"><xsl:choose><xsl:when test="@resp">proc.corrector.<xsl:value-of select="translate(@resp, ' :&#160;', '')"/></xsl:when><xsl:otherwise>proc.tei2folia.xsl</xsl:otherwise></xsl:choose></xsl:attribute></xsl:template>
+
 
 <!-- Corrections -->
 <!-- TODO: annotators should be in provenance chain, specifying them here probably fails even now -->
-<xsl:template name="corr"><t-correction class="correction"><xsl:if test="@resp"><xsl:attribute name="annotator"><xsl:value-of select="@resp" /></xsl:attribute></xsl:if><xsl:if test="@sic"><xsl:attribute name="original"><xsl:value-of select="@sic" /></xsl:attribute></xsl:if><xsl:apply-templates mode="markup"/></t-correction></xsl:template>
+<xsl:template name="corr"><t-correction class="correction"><xsl:call-template name="resp2processor"/><xsl:if test="@sic"><xsl:attribute name="original"><xsl:value-of select="@sic" /></xsl:attribute></xsl:if><xsl:apply-templates mode="markup"/></t-correction></xsl:template>
 
-<xsl:template name="supplied"><t-correction class="supplied"><xsl:if test="@resp"><xsl:attribute name="annotator"><xsl:value-of select="@resp" /></xsl:attribute></xsl:if><xsl:apply-templates mode="markup"/></t-correction></xsl:template>
+<xsl:template name="supplied"><t-correction class="supplied"><xsl:call-template name="resp2processor"/><xsl:apply-templates mode="markup"/></t-correction></xsl:template>
 
-<xsl:template name="del"><t-correction class="deletion" original="{.//text()}"><xsl:if test="@resp"><xsl:attribute name="annotator"><xsl:value-of select="@resp" /></xsl:attribute></xsl:if></t-correction></xsl:template>
+<xsl:template name="del"><t-correction class="deletion" original="{.//text()}"><xsl:call-template name="resp2processor"/></t-correction></xsl:template>
 
 <xsl:template match="tei:corr" mode="markup"><xsl:call-template name="corr" /></xsl:template>
 <xsl:template match="tei:supplied" mode="markup"><xsl:call-template name="supplied" /></xsl:template>
