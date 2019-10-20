@@ -226,6 +226,6 @@ else
   else
       echo "...${boldgreen}OK${normal}" >&2
   fi
-f
+fi
 
 exit $FAILURE
