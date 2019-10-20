@@ -175,7 +175,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
          <annotator processor="proc.tei2folia.xsl"/>
    </style-annotation>
  </xsl:if>
- <part-annotation annotatortype="auto" set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/parts.foliaset.ttl"> <!-- we use this for parts that the non-XSLT postprocessor processes -->
+ <part-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/parts.foliaset.ttl"> <!-- we use this for parts that the non-XSLT postprocessor processes -->
          <annotator processor="proc.tei2folia.xsl"/>
  </part-annotation>
  <comment-annotation>  <!-- We produce FoLiA comments to report where there were things that couldn't be converted -->
@@ -192,7 +192,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
   </lemma-annotation>
  </xsl:if>
 <xsl:if test="//tei:text//tei:cor|//tei:text//tei:supplied|//tei:text//tei:del">
- <correction-annotation annotatortype="auto" set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/corrections.foliaset.ttl">
+ <correction-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/corrections.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
  </correction-annotation>
 </xsl:if>
