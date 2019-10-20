@@ -213,4 +213,19 @@ else
   fi
 fi
 
+echo "Running tei2folia" >&2
+tei2folia test.tei.xml
+if [ $? -ne 0 ]; then
+    echo "...${boldred}FAILED${normal}" >&2
+    FAILURE=1
+else
+  foliavalidator test.tei.folia.xml
+  if [ $? -ne 0 ]; then
+      echo "...VALIDATOR ${boldred}FAILED${normal}" >&2
+      FAILURE=1
+  else
+      echo "...${boldgreen}OK${normal}" >&2
+  fi
+f
+
 exit $FAILURE
