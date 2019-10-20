@@ -992,7 +992,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:if test="$quiet = 'false'">
     <xsl:message terminate="no">WARNING: Unknown tag in markup context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</xsl:message>
     </xsl:if>
-    <comment>[tei2folia WARNING] Unhandled tag in markup context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</comment>
+    <xsl:value-of select="string(.)"/>
 </xsl:template>
 
 <xsl:template match="*">
