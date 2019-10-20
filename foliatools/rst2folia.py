@@ -366,6 +366,12 @@ class FoLiATranslator(nodes.NodeVisitor):
     def depart_title(self, node):
         self.closestructure('head')
 
+    def visit_subtitle(self, node):
+        self.initstructure('head')
+
+    def depart_subtitle(self, node):
+        self.closestructure('head')
+
     def visit_bullet_list(self,node):
         self.list_enumerated.append([False,0])
         self.initstructure('list')
