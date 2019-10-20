@@ -66,8 +66,17 @@ def convert(filename, transformer, parser=None, **kwargs):
     if parser is None:
         parser = lxml.etree.XMLParser(load_dtd=True)
         parser.resolvers.add( CustomResolver(kwargs.get('dtddir','.')) )
-    with open(filename,'rb') as f:
-        parsedsource = lxml.etree.parse(f, parser)
+    if 'forcenamespace' in kwargs and kwargs['forcenamespace']:
+        with open(filename,'rb') as f:
+            data = f.read()
+        if data.find(b"xmlns=\"http://www.tei-c.org/ns/1.0\"") == -1:
+            data = data.replace(b"<TEI ",b"<TEI xmlns=\"http://www.tei-c.org/ns/1.0\" ")
+            data = data.replace(b"<TEI.2 ",b"<TEI.2 xmlns=\"http://www.tei-c.org/ns/1.0\" ")
+        parsedsource = lxml.etree.fromstring(data, parser)
+        del data
+    else:
+        with open(filename,'rb') as f:
+            parsedsource = lxml.etree.parse(f, parser)
     transformed = transformer(parsedsource,quiet="true")
     try:
         doc = folia.Document(tree=transformed, debug=kwargs.get('debug',0))
@@ -236,6 +245,7 @@ def main():
     parser.add_argument('-P','--leaveparts',help="Do *NOT* resolve temporary parts", action='store_true', default=False)
     parser.add_argument('-N','--leavenotes',help="Do *NOT* resolve inline notes (t-gap)", action='store_true', default=False)
     parser.add_argument('-i','--ids',help="Generate IDs for all structural elements", action='store_true', default=False)
+    parser.add_argument('-f','--forcenamespace',help="Force a TEI namespace even if the input document has none", action='store_true', default=False)
     parser.add_argument('files', nargs='+', help='TEI Files to process')
     args = parser.parse_args()
     print("Instantiating XML parser",file=sys.stderr)

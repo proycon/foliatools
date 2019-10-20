@@ -24,9 +24,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
   <xsl:strip-space elements="*"/>
 -->
 
-<xsl:strip-space elements="l p interp meta interpGrp"/>
+<xsl:strip-space elements="tei:l tei:p tei:interp tei:meta tei:interpGrp"/>
 
-<xsl:param name="docid"><xsl:value-of select="//publicationStmt/idno/text()"/></xsl:param>
+<xsl:param name="docid"><xsl:choose><xsl:when test="//tei:publicationStmt/tei:idno/text()"><xsl:value-of select="//tei:publicationStmt/tei:idno/text()"/></xsl:when><xsl:otherwise>untitled</xsl:otherwise></xsl:choose></xsl:param>
 <xsl:param name='generateIds'>true</xsl:param><!-- We actually rarely do this now -->
 <xsl:param name="quiet">false</xsl:param>
 
@@ -49,7 +49,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 
-<xsl:template match="signed">
+<xsl:template match="tei:signed">
 <xsl:apply-templates/>
 </xsl:template>
 
@@ -61,48 +61,52 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <!-- *************************************************** DOCUMENT & METADATA ************************************************** -->
 
 <xsl:template match="TEI|TEI.2">
+    <xsl:message terminate="yes">ERROR: TEI document lacks proper XML namespace declarations! Run tei2folia --forcenamespace to try to recover automatically or add xmlns="http://www.tei-c.org/ns/1.0" manually.</xsl:message>
+</xsl:template>
+
+<xsl:template match="tei:TEI|tei:TEI.2">
 <FoLiA xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://ilk.uvt.nl/folia" version="2.1.0" generator="tei2folia.xsl">
   <xsl:attribute name="xml:id"><xsl:value-of select="$docid"/></xsl:attribute>
   <metadata type="native">
     <xsl:call-template name="annotations"/>
     <xsl:call-template name="provenance"/>
-    <xsl:if test="teiHeader/fileDesc/titleStmt/title">
-     <meta id="title"><xsl:value-of select="string(teiHeader/fileDesc/titleStmt/title)" /></meta>
+    <xsl:if test="tei:TeiHeader/tei:fileDesc/tei:titleStmt/tei:title">
+     <meta id="title"><xsl:value-of select="string(tei:TeiHeader/tei:fileDesc/tei:titleStmt/tei:title)" /></meta>
     </xsl:if>
-    <xsl:if test="teiHeader/fileDesc//editionStmt/edition">
-     <meta id="edition"><xsl:value-of select="string(teiHeader/fileDesc//editionStmt/edition)" /></meta>
+    <xsl:if test="tei:TeiHeader/tei:fileDesc//tei:editionStmt/edition">
+     <meta id="edition"><xsl:value-of select="string(tei:TeiHeader/tei:fileDesc//tei:editionStmt/tei:edition)" /></meta>
     </xsl:if>
-    <xsl:if test="teiHeader/fileDesc//respStmt/resp">
-     <meta id="responsibility"><xsl:value-of select="string(teiHeader/fileDesc//respStmt/resp)" /></meta>
+    <xsl:if test="tei:TeiHeader/tei:fileDesc//tei:respStmt/resp">
+     <meta id="responsibility"><xsl:value-of select="string(tei:TeiHeader/tei:fileDesc//tei:respStmt/tei:resp)" /></meta>
     </xsl:if>
     <!-- the following meta fields are probably very DBNL specific -->
-    <xsl:if test="teiHeader/fileDesc//publicationStmt/idno[@type='titelcode']">
-     <meta id="titelcode"><xsl:value-of select="string(teiHeader/fileDesc//publicationStmt/idno[@type='titelcode'])" /></meta>
+    <xsl:if test="tei:TeiHeader/tei:fileDesc//tei:publicationStmt/tei:idno[@type='titelcode']">
+     <meta id="titelcode"><xsl:value-of select="string(tei:TeiHeader/tei:fileDesc//tei:publicationStmt/tei:idno[@type='titelcode'])" /></meta>
     </xsl:if>
-    <xsl:if test="teiHeader/fileDesc//publicationStmt/idno[@type='format']">
-     <meta id="original_format"><xsl:value-of select="string(teiHeader/fileDesc//publicationStmt/idno[@type='format'])" /></meta>
+    <xsl:if test="tei:TeiHeader/tei:fileDesc//tei:publicationStmt/tei:idno[@type='format']">
+     <meta id="original_format"><xsl:value-of select="string(tei:TeiHeader/tei:fileDesc//tei:publicationStmt/tei:idno[@type='format'])" /></meta>
     </xsl:if>
-    <xsl:if test="teiHeader/fileDesc//publicationStmt/availability">
-     <meta id="availability"><xsl:value-of select="string(teiHeader/fileDesc//publicationStmt/availability)" /></meta>
+    <xsl:if test="tei:TeiHeader/tei:fileDesc//tei:publicationStmt/tei:availability">
+     <meta id="availability"><xsl:value-of select="string(tei:TeiHeader/tei:fileDesc//tei:publicationStmt/tei:availability)" /></meta>
     </xsl:if>
-    <xsl:if test="teiHeader/fileDesc//notesStmt/note">
-     <meta id="note"><xsl:value-of select="string(teiHeader/fileDesc//notesStmt/note)" /></meta>
+    <xsl:if test="tei:TeiHeader/tei:fileDesc//tei:notesStmt/tei:note">
+     <meta id="note"><xsl:value-of select="string(tei:TeiHeader/tei:fileDesc//tei:notesStmt/tei:note)" /></meta>
     </xsl:if>
-    <xsl:if test="teiHeader/revisionDesc/change">
-     <meta id="note"><xsl:value-of select="string(teiHeader/revisionDesc/change)" /></meta>
+    <xsl:if test="tei:TeiHeader/tei:revisionDesc/tei:change">
+     <meta id="note"><xsl:value-of select="string(tei:TeiHeader/tei:revisionDesc/tei:change)" /></meta>
     </xsl:if>
     <!-- these we inherited and are INL specific, not sure what it does but we'll leave it in -->
-    <xsl:for-each select=".//listBibl[@xml:id='inlMetadata']//interpGrp"><meta id="{./@type}"><xsl:apply-templates mode="meta"/></meta></xsl:for-each>
-    <xsl:for-each select=".//listBibl[not(@xml:id='inlMetadata')]">
+    <xsl:for-each select=".//tei:listBibl[@xml:id='inlMetadata']//tei:interpGrp"><meta id="{./@type}"><xsl:apply-templates mode="meta"/></meta></xsl:for-each>
+    <xsl:for-each select=".//tei:listBibl[not(@xml:id='inlMetadata')]">
         <submetadata>
-            <xsl:attribute name="xml:id"><xsl:value-of select="substring-after(.//interpGrp/@inst[position()=1],'#')"/></xsl:attribute>
-            <xsl:for-each select=".//interpGrp"><meta id="{./@type}"><xsl:apply-templates/></meta></xsl:for-each>
+            <xsl:attribute name="xml:id"><xsl:value-of select="substring-after(.//tei:interpGrp/@inst[position()=1],'#')"/></xsl:attribute>
+            <xsl:for-each select=".//tei:interpGrp"><meta id="{./@type}"><xsl:apply-templates/></meta></xsl:for-each>
        </submetadata>
     </xsl:for-each>
   </metadata>
   <text>
     <xsl:attribute name="xml:id"><xsl:value-of select="$docid"/>.text</xsl:attribute>
-    <xsl:apply-templates select="//text/*" mode="structure"/>
+    <xsl:apply-templates select="//tei:text/*" mode="structure"/>
   </text>
 </FoLiA>
 </xsl:template>
@@ -118,42 +122,42 @@ Heavily adapted by Maarten van Gompel (Radboud University)
   <division-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/divisions.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
   </division-annotation>
-  <xsl:if test="//p">
+  <xsl:if test="//tei:p">
     <paragraph-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/paragraphs.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
     </paragraph-annotation>
   </xsl:if>
-  <xsl:if test="//head">
+  <xsl:if test="//tei:head">
     <head-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/heads.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
     </head-annotation>
   </xsl:if>
-  <xsl:if test="//s">
+  <xsl:if test="//tei:s">
     <sentence-annotation>
          <annotator processor="proc.tei2folia.xsl"/>
     </sentence-annotation>
   </xsl:if>
-  <xsl:if test="//w">
+  <xsl:if test="//tei:w">
     <token-annotation>
          <annotator processor="proc.tei2folia.xsl"/>
     </token-annotation>
   </xsl:if>
-  <xsl:if test="//list">
+  <xsl:if test="//tei:list">
       <list-annotation>
          <annotator processor="proc.tei2folia.xsl"/>
       </list-annotation>
   </xsl:if>
-  <xsl:if test="//figure">
+  <xsl:if test="//tei:figure">
     <figure-annotation>
          <annotator processor="proc.tei2folia.xsl"/>
     </figure-annotation>
   </xsl:if>
-  <xsl:if test="//table">
+  <xsl:if test="//tei:table">
     <table-annotation>
          <annotator processor="proc.tei2folia.xsl"/>
     </table-annotation>
   </xsl:if>
-  <xsl:if test="//text//gap|//text//label|//text//note">
+  <xsl:if test="//tei:text//tei:gap|//tei:text//tei:label|//tei:text//tei:note">
    <gap-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/gaps.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
    </gap-annotation>
@@ -161,12 +165,12 @@ Heavily adapted by Maarten van Gompel (Radboud University)
          <annotator processor="proc.tei2folia.xsl"/>
    </rawcontent-annotation>
   </xsl:if>
-  <xsl:if test="//text//note">
+  <xsl:if test="//tei:text//tei:note">
    <reference-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/references.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
    </reference-annotation>
   </xsl:if>
-  <xsl:if test="//hi">
+  <xsl:if test="//tei:hi">
    <style-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/styles.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
    </style-annotation>
@@ -177,22 +181,22 @@ Heavily adapted by Maarten van Gompel (Radboud University)
  <comment-annotation>  <!-- We produce FoLiA comments to report where there were things that couldn't be converted -->
          <annotator processor="proc.tei2folia.xsl"/>
  </comment-annotation>
- <xsl:if test="//w/@pos">
+ <xsl:if test="//tei:w/@pos">
   <pos-annotation set="unknown">
          <annotator processor="proc.tei2folia.xsl"/>
   </pos-annotation>
  </xsl:if>
- <xsl:if test="//w/@lemma">
+ <xsl:if test="//tei:w/@lemma">
   <lemma-annotation set="unknown">
          <annotator processor="proc.tei2folia.xsl"/>
   </lemma-annotation>
  </xsl:if>
-<xsl:if test="//text//cor|//text//supplied|//text//del">
+<xsl:if test="//tei:text//tei:cor|//tei:text//tei:supplied|//tei:text//tei:del">
  <correction-annotation annotatortype="auto" set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/corrections.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
  </correction-annotation>
 </xsl:if>
-<xsl:if test="//text//note">
+<xsl:if test="//tei:text//tei:note">
  <note-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/notes.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
  </note-annotation>
@@ -200,12 +204,12 @@ Heavily adapted by Maarten van Gompel (Radboud University)
  <string-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/strings.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
  </string-annotation>
-<xsl:if test="//sp|//stage">
+<xsl:if test="//tei:sp|//tei:stage">
  <event-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/events.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
  </event-annotation>
 </xsl:if>
-<xsl:if test="//lb|//pb|//l">
+<xsl:if test="//tei:lb|//tei:pb|//tei:l">
  <linebreak-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/linebreaks.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
  </linebreak-annotation>
@@ -221,19 +225,19 @@ Heavily adapted by Maarten van Gompel (Radboud University)
    </provenance>
 </xsl:template>
 
-<xsl:template match="interpGrp/interp" mode="meta"><xsl:variable name="cur"><xsl:value-of select="."/></xsl:variable><xsl:if test="not(../interp[1]=$cur)">|</xsl:if><xsl:apply-templates mode="meta"/></xsl:template>
+<xsl:template match="tei:interpGrp/tei:interp" mode="meta"><xsl:variable name="cur"><xsl:value-of select="."/></xsl:variable><xsl:if test="not(../interp[1]=$cur)">|</xsl:if><xsl:apply-templates mode="meta"/></xsl:template>
 
-<xsl:template match="interpGrp/text()" mode="meta"/>
+<xsl:template match="tei:interpGrp/text()" mode="meta"/>
 
-<xsl:template match="interp/text()" mode="meta"><xsl:value-of select="normalize-space(.)"/></xsl:template>
+<xsl:template match="tei:interp/text()" mode="meta"><xsl:value-of select="normalize-space(.)"/></xsl:template>
 
 <!-- ************************** HELPER TEMPLATES  *********************** -->
 
 <!-- process underlying text and/or structure-->
 <xsl:template name="textandorstructure">
-    <xsl:variable name="hasstructure"><xsl:choose><xsl:when test="p|div|s|w|lg|sp|table|row|cell|figure|list|item|cell|speaker|head">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
+    <xsl:variable name="hasstructure"><xsl:choose><xsl:when test="tei:p|tei:div|tei:s|tei:w|tei:lg|tei:sp|tei:table|tei:row|tei:cell|tei:figure|tei:list|tei:item|tei:cell|tei:speaker|tei:head">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
     <xsl:variable name="hastext"><xsl:choose><xsl:when test="normalize-space(translate(., '&#160;', ' ')) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
-    <xsl:variable name="hasmarkup"><xsl:choose><xsl:when test="hi|add|name|note|corr|supplied|add|l and normalize-space(translate(string(.),'&#160;', ' ')) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
+    <xsl:variable name="hasmarkup"><xsl:choose><xsl:when test="tei:hi|tei:add|tei:name|tei:note|tei:corr|tei:supplied|tei:add|tei:l and normalize-space(translate(string(.),'&#160;', ' ')) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
 
     <!--<xsl:comment>DEBUG:<xsl:value-of select="$hasstructure" /><xsl:value-of select="$hastext" /><xsl:value-of select="$hasmarkup" /></xsl:comment>-->
 
@@ -278,7 +282,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <!-- ************************** TEMPLATES PRODUCING STRUCTURAL ELEMENTS  *********************** -->
 
-<xsl:template match="front|body|back" mode="structure">
+<xsl:template match="tei:front|tei:body|tei:back" mode="structure">
     <div class="{name(.)}matter">
     <xsl:call-template name="haalPbBinnen"/>
     <xsl:apply-templates mode="structure" />
@@ -286,9 +290,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 
-<xsl:template match="head|docTitle|titlePart[not(ancestor::docTitle)]" mode="structure">
+<xsl:template match="tei:head|tei:docTitle|tei:titlePart[not(ancestor::tei:docTitle)]" mode="structure">
     <xsl:choose>
-     <xsl:when test="list|figure|ancestor::item|ancestor::figDesc">
+     <xsl:when test="tei:list|tei:figure|ancestor::tei:item|ancestor::tei:figDesc">
          <!-- render head as p because of incompatible subelements or super-elements -->
         <p>
         <xsl:attribute name="class">
@@ -315,17 +319,17 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </xsl:choose>
 </xsl:template>
 
-<xsl:template match="table" mode="structure">
+<xsl:template match="tei:table" mode="structure">
     <xsl:if test="table/head">
         <!-- move head out of table -->
-        <xsl:apply-templates select="table/head" mode="structure" />
+        <xsl:apply-templates select="tei:table/tei:head" mode="structure" />
     </xsl:if>
     <xsl:choose>
     <xsl:when test="ancestor::cell|ancestor::table|ancestor::item|ancestor::list|ancestor::quote|ancestor::q">
         <!-- nested tables? what are we? HTML in the late nineties? let's just flatten the nested table instead -->
         <comment>[tei2folia WARNING] Nested table (or table in invalid context) occurs here, we flattened it. Results may be unexpected</comment>
         <part class="nestedtable">
-        <xsl:for-each select=".//cell/*">
+        <xsl:for-each select=".//tei:cell/*">
             <xsl:if test="name() != 'table' and name() != 'row' and name() != 'cell'">
              <xsl:apply-templates match="." mode="structure" />
              <br class="cellbreak"/>
@@ -342,34 +346,34 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </xsl:choose>
 </xsl:template>
 
-<xsl:template match="cell" mode="structure">
+<xsl:template match="tei:cell" mode="structure">
     <cell>
         <xsl:call-template name="textandorstructure"/>
     </cell>
 </xsl:template>
 
-<xsl:template match="p|speaker|trailer|closer|opener|lxx" mode="structure">
+<xsl:template match="tei:p|tei:speaker|tei:trailer|tei:closer|tei:opener|tei:lxx" mode="structure">
     <xsl:call-template name="p"/>
 </xsl:template>
 
 <!-- we can't have tables, figures or lists inside paragraphs -->
-<xsl:template match="p[./table|./figure|./list]|xcloser[./list]|xcloser[./signed/list]" mode="structure">
+<xsl:template match="tei:p[./tei:table|./tei:figure|./tei:list]|tei:xcloser[./tei:list]|tei:xcloser[./tei:signed/tei:list]" mode="structure">
     <!-- just forget about the P and handle everything inside directly: -->
     <xsl:apply-templates mode="structure" />
 </xsl:template>
 
 <!-- we can't have breaks in lists or table (rows)-->
-<xsl:template match="table/pb|list/pb|row/pb|figure/pb" mode="structure">
+<xsl:template match="tei:table/tei:pb|tei:list/tei:pb|tei:row/tei:pb|tei:figure/tei:pb" mode="structure">
     <xsl:if test="$quiet = 'false'">
     <xsl:message>WARNING: Skipped over pagebreak in table/list/row/figure</xsl:message>
     </xsl:if>
     <comment>[tei2folia WARNING] Skipped over pagebreak here</comment>
 </xsl:template>
 
-<xsl:template match="figure" mode="structure">
-    <xsl:if test="figure/head">
+<xsl:template match="tei:figure" mode="structure">
+    <xsl:if test="tei:figure/tei:head">
         <!-- move head out of figure -->
-        <xsl:apply-templates select="figure/head" mode="structure" />
+        <xsl:apply-templates select="tei:figure/tei:head" mode="structure" />
     </xsl:if>
     <xsl:choose>
     <xsl:when test="ancestor::list|ancestor::quote|ancestor::q">
@@ -381,25 +385,25 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:otherwise>
         <!-- normal behaviour -->
     <figure>
-        <xsl:if test="xptr">
-        <xsl:attribute name="src"><xsl:value-of select="xptr/@to" /></xsl:attribute>
+        <xsl:if test="tei:xptr">
+        <xsl:attribute name="src"><xsl:value-of select="tei:xptr/@to" /></xsl:attribute>
         </xsl:if>
-        <xsl:apply-templates select="figDesc" mode="structure"/>
+        <xsl:apply-templates select="tei:figDesc" mode="structure"/>
     </figure>
     </xsl:otherwise>
     </xsl:choose>
 </xsl:template>
 
-<xsl:template match="figDesc" mode="structure">
+<xsl:template match="tei:figDesc" mode="structure">
     <caption>
     <xsl:call-template name="textandorstructure"/>
     </caption>
 </xsl:template>
 
-<xsl:template match="list" mode="structure">
-    <xsl:if test="list/head">
+<xsl:template match="tei:list" mode="structure">
+    <xsl:if test="tei:list/tei:head">
         <!-- move head out of list -->
-        <xsl:apply-templates select="table/list" mode="structure" />
+        <xsl:apply-templates select="tei:table/tei:list" mode="structure" />
     </xsl:if>
     <list>
         <xsl:apply-templates mode="structure"/>
@@ -407,13 +411,13 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <!-- Handles both tei:item and preceding tei:label, in list context -->
-<xsl:template match="item" mode="structure">
+<xsl:template match="tei:item" mode="structure">
      <xsl:choose>
       <xsl:when test="name(preceding-sibling::*[1]) = 'label'">
         <item>
         <xsl:attribute name="n"><xsl:value-of select="string(preceding-sibling::*[1])" /></xsl:attribute>
         <xsl:choose>
-        <xsl:when test="list|table|p|s|w">
+        <xsl:when test="tei:list|tei:table|tei:p|tei:s|tei:w">
         <xsl:if test="normalize-space(translate(string(preceding-sibling::*[1]) ,'&#160;', ' '))">
         <gap class="label">
         <content><xsl:value-of select="string(preceding-sibling::*[1])" /></content>
@@ -437,11 +441,11 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 
-<xsl:template match="lg" mode="structure">
+<xsl:template match="tei:lg" mode="structure">
     <xsl:text>
     </xsl:text>
     <xsl:choose>
-    <xsl:when test="ancestor::figDesc|ancestor::item">
+    <xsl:when test="ancestor::tei:figDesc|ancestor::tei:item">
         <!-- no divisions allowed under captions, just descend into substructures -->
         <xsl:apply-templates mode="structure" />
     </xsl:when>
@@ -454,19 +458,19 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </xsl:choose>
 </xsl:template>
 
-<xsl:template match="epigraph" mode="structure">
+<xsl:template match="tei:epigraph" mode="structure">
     <div class="epigraph">
     <xsl:call-template name="textandorstructure" />
     </div>
 </xsl:template>
 
-<xsl:template match="row" mode="structure">
+<xsl:template match="tei:row" mode="structure">
     <row>
     <xsl:apply-templates mode="structure" />
     </row>
 </xsl:template>
 
-<xsl:template match="div|div0|div1|div2|div3|div4|div5|div6|div7|titlePage|argument" mode="structure">
+<xsl:template match="tei:div|tei:div0|tei:div1|tei:div2|tei:div3|tei:div4|tei:div5|tei:div6|tei:div7|tei:titlePage|tei:argument" mode="structure">
  <xsl:element name="div">
     <xsl:attribute name="class"><xsl:choose><xsl:when test="@type"><xsl:value-of select="@type" /></xsl:when><xsl:otherwise>unspecified</xsl:otherwise></xsl:choose></xsl:attribute>
     <xsl:call-template name="metadata_link"/><!-- for INT collections? -->
@@ -474,9 +478,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
  </xsl:element>
 </xsl:template>
 
-<xsl:template match="q|quote" mode="structure">
+<xsl:template match="tei:q|tei:quote" mode="structure">
     <xsl:choose>
-      <xsl:when test="list|table">
+      <xsl:when test="tei:list|tei:table">
          <!-- having quotes here makes no sense, just process children as structure -->
         <xsl:apply-templates mode="structure" />
       </xsl:when>
@@ -490,14 +494,14 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 
-<xsl:template match="gap" mode="structure">
+<xsl:template match="tei:gap" mode="structure">
     <gap annotator="{@resp}" class="{@reason}"/>
 </xsl:template>
 
-<xsl:template match="interpGrp" mode="structure">
-<xsl:if test="./interp">
+<xsl:template match="tei:interpGrp" mode="structure">
+<xsl:if test="./tei:interp">
 <comment>
-<xsl:for-each select="./interp">
+<xsl:for-each select="./tei:interp">
     interp[<xsl:value-of select="@type"/>]: <xsl:value-of select="@value" />
 </xsl:for-each>
 </comment>
@@ -505,46 +509,46 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <!-- Valid both as structural and as markup, easy -->
-<xsl:template match="lb" mode="structure"><xsl:call-template name="lb" /></xsl:template>
-<xsl:template match="cb" mode="structure"><xsl:call-template name="cb" /></xsl:template>
-<xsl:template match="pb" mode="structure"><xsl:call-template name="pb" /></xsl:template>
+<xsl:template match="tei:lb" mode="structure"><xsl:call-template name="lb" /></xsl:template>
+<xsl:template match="tei:cb" mode="structure"><xsl:call-template name="cb" /></xsl:template>
+<xsl:template match="tei:pb" mode="structure"><xsl:call-template name="pb" /></xsl:template>
 
 
 <!-- Markup elements in structural mode, wrap in part (to be sorted by postprocessor later)-->
 
 
 <!-- Text structural mode, wrap in part (to be sorted by postprocessor later!)-->
-<xsl:template match="l" mode="structure">
+<xsl:template match="tei:l" mode="structure">
     <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-l"><t><xsl:call-template name="l" /></t></part>
     </xsl:if>
 </xsl:template>
 
-<xsl:template match="hi" mode="structure">
+<xsl:template match="tei:hi" mode="structure">
     <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-hi" space="no"><t><xsl:call-template name="hi" /></t></part>
     </xsl:if>
 </xsl:template>
 
-<xsl:template match="add" mode="structure">
+<xsl:template match="tei:add" mode="structure">
     <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-add" space="no"><t><xsl:call-template name="add" /></t></part>
     </xsl:if>
 </xsl:template>
 
-<xsl:template match="corr" mode="structure">
+<xsl:template match="tei:corr" mode="structure">
     <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-corr" space="no"><t><xsl:call-template name="corr" /></t></part>
     </xsl:if>
 </xsl:template>
 
-<xsl:template match="supplied" mode="structure">
+<xsl:template match="tei:supplied" mode="structure">
     <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-supplied" space="no"><t><xsl:call-template name="supplied" /></t></part>
     </xsl:if>
 </xsl:template>
 
-<xsl:template match="del" mode="structure">
+<xsl:template match="tei:del" mode="structure">
     <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-del" space="no"><t><xsl:call-template name="del" /></t></part>
     </xsl:if>
@@ -562,13 +566,13 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:if>
 </xsl:template>
 
-<xsl:template match="title" mode="structure">
+<xsl:template match="tei:title" mode="structure">
 <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
 <part class="temp-title"><t><xsl:call-template name="title" /></t></part>
 </xsl:if>
 </xsl:template>
 
-<xsl:template match="name" mode="structure">
+<xsl:template match="tei:name" mode="structure">
 <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
 <part class="temp-name"><t><xsl:call-template name="name" /></t></part>
 </xsl:if>
@@ -606,7 +610,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </t-str>
 </xsl:template>
 
-<xsl:template match="add" mode="markup">
+<xsl:template match="tei:add" mode="markup">
 <xsl:call-template name="add" />
 </xsl:template>
 
@@ -617,9 +621,51 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:if>
 </xsl:template>
 
-<xsl:template match="hi" mode="markup">
+<xsl:template match="tei:hi" mode="markup">
 <xsl:call-template name="hi" />
 </xsl:template>
+
+<!-- more specific variants of styling -->
+<xsl:template name="emph">
+<xsl:if test="normalize-space(string(.))">
+<t-style class="emphasis"><xsl:apply-templates mode="markup"/></t-style>
+</xsl:if>
+</xsl:template>
+
+<xsl:template match="tei:emph" mode="markup">
+<xsl:call-template name="emph" />
+</xsl:template>
+
+<xsl:template name="foreign">
+<xsl:if test="normalize-space(string(.))">
+<t-str class="foreign"><xsl:apply-templates mode="markup"/></t-str>
+</xsl:if>
+</xsl:template>
+
+<xsl:template match="tei:foreign" mode="markup">
+<xsl:call-template name="foreign" />
+</xsl:template>
+
+<xsl:template name="term">
+<xsl:if test="normalize-space(string(.))">
+<t-str class="term"><xsl:apply-templates mode="markup"/></t-str>
+</xsl:if>
+</xsl:template>
+
+<xsl:template match="tei:term" mode="markup">
+<xsl:call-template name="term" />
+</xsl:template>
+
+<xsl:template name="mentioned">
+<xsl:if test="normalize-space(string(.))">
+<t-str class="mentioned"><xsl:apply-templates mode="mentioned"/></t-str>
+</xsl:if>
+</xsl:template>
+
+<xsl:template match="tei:mentioned" mode="markup">
+<xsl:call-template name="mentioned" />
+</xsl:template>
+
 
 
 <!-- Valid both as structural and as markup, easy -->
@@ -627,9 +673,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template name="cb"><br class="columnbreak"/></xsl:template>
 <xsl:template name="pb"><br class="pagebreak" newpage="yes" pagenr="{@n}"/></xsl:template>
 
-<xsl:template match="lb" mode="markup"><xsl:call-template name="lb" /></xsl:template>
-<xsl:template match="cb" mode="markup"><xsl:call-template name="cb" /></xsl:template>
-<xsl:template match="pb" mode="markup"><xsl:call-template name="pb" /></xsl:template>
+<xsl:template match="tei:lb" mode="markup"><xsl:call-template name="lb" /></xsl:template>
+<xsl:template match="tei:cb" mode="markup"><xsl:call-template name="cb" /></xsl:template>
+<xsl:template match="tei:pb" mode="markup"><xsl:call-template name="pb" /></xsl:template>
 
 
 <!-- Corrections -->
@@ -640,9 +686,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template name="del"><t-correction class="deletion" annotator="{@resp}" original="{.//text()}"></t-correction></xsl:template>
 
-<xsl:template match="corr" mode="markup"><xsl:call-template name="corr" /></xsl:template>
-<xsl:template match="supplied" mode="markup"><xsl:call-template name="supplied" /></xsl:template>
-<xsl:template match="del" mode="markup"><xsl:call-template name="del" /></xsl:template>
+<xsl:template match="tei:corr" mode="markup"><xsl:call-template name="corr" /></xsl:template>
+<xsl:template match="tei:supplied" mode="markup"><xsl:call-template name="supplied" /></xsl:template>
+<xsl:template match="tei:del" mode="markup"><xsl:call-template name="del" /></xsl:template>
 
 <!-- Notes -->
 <xsl:template name="note">
@@ -659,21 +705,21 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <xsl:apply-templates mode="markup" /></t-ref>
 </xsl:template>
 
-<xsl:template match="note" mode="markup"><xsl:call-template name="note" /></xsl:template>
+<xsl:template match="tei:note" mode="markup"><xsl:call-template name="note" /></xsl:template>
 
 <xsl:template name="quote">
     <xsl:if test="normalize-space(string(.))">
     <t-str class="quote"><xsl:apply-templates mode="markup" /></t-str>
     </xsl:if>
 </xsl:template>
-<xsl:template match="q|quote" mode="markup"><xsl:call-template name="quote" /></xsl:template>
+<xsl:template match="tei:q|tei:quote" mode="markup"><xsl:call-template name="quote" /></xsl:template>
 
 <xsl:template name="gap">
     <t-gap annotator="{@resp}" class="{@reason}"/>
 </xsl:template>
-<xsl:template match="gap" mode="markup"><xsl:call-template name="gap" /></xsl:template>
+<xsl:template match="tei:gap" mode="markup"><xsl:call-template name="gap" /></xsl:template>
 
-<xsl:template match="note[./table|./figure|./list|./p]" mode="markup">
+<xsl:template match="tei:note[./tei:table|./tei:figure|./tei:list|./tei:p]" mode="markup">
 <xsl:if test="$quiet = 'false'">
 <xsl:message>WARNING: There is a table, list or figure or paragraph in a note, the converter can't handle this currently</xsl:message>
 </xsl:if>
@@ -687,7 +733,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:if>
 </xsl:template>
 
-<xsl:template match="l" mode="markup">
+<xsl:template match="tei:l" mode="markup">
 <xsl:call-template name="l" />
 </xsl:template>
 
@@ -702,7 +748,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:if>
 </xsl:template>
 
-<xsl:template match="title" mode="markup">
+<xsl:template match="tei:title" mode="markup">
 <xsl:call-template name="title" />
 </xsl:template>
 
@@ -711,27 +757,27 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <!-- Deletion often occurs because the element is already handled elsewhere -->
 
 <!-- I suppose this cleans up something from some preprocessing step? leaving it in just in case -->
-<xsl:template match="supplied[./text()='leeg']" mode="markup"/>
-<xsl:template match="supplied[./text()='leeg']" mode="structure"/>
+<xsl:template match="tei:supplied[./text()='leeg']" mode="markup"/>
+<xsl:template match="tei:supplied[./text()='leeg']" mode="structure"/>
 
 <!-- Handled by item -->
-<xsl:template match="label" mode="structure"/>
+<xsl:template match="tei:label" mode="structure"/>
 
 <!-- Handled by table -->
-<xsl:template match="table/head" mode="structure"/>
+<xsl:template match="tei:table/tei:head" mode="structure"/>
 
 <!-- Handled by list -->
-<xsl:template match="list/head" mode="structure"/>
+<xsl:template match="tei:list/tei:head" mode="structure"/>
 
 <!-- Handled by figure -->
-<xsl:template match="figure/head" mode="structure"/>
+<xsl:template match="tei:figure/tei:head" mode="structure"/>
 
 <!-- *********************************** PAGEBREAK MAGIC **************************************************** -->
 
-<xsl:template match="text/pb|table/pb|row/pb|list/pb" mode="structure"><comment>Skipping pagebreak here</comment></xsl:template>
-<xsl:template match="list/lb|row/lb|table/lb" mode="structure"><comment>Skipping linebreak here</comment></xsl:template>
-<xsl:template match="text/pb|table/pb|row/pb|list/pb" mode="markup"><comment>Skipping pagebreak here</comment></xsl:template>
-<xsl:template match="list/lb|row/lb|table/lb" mode="markup"><comment>Skipping linebreak here</comment></xsl:template>
+<xsl:template match="tei:text/tei:pb|tei:table/tei:pb|tei:row/tei:pb|tei:list/tei:pb" mode="structure"><comment>Skipping pagebreak here</comment></xsl:template>
+<xsl:template match="tei:list/tei:lb|tei:row/tei:lb|tei:table/tei:lb" mode="structure"><comment>Skipping linebreak here</comment></xsl:template>
+<xsl:template match="tei:text/tei:pb|tei:table/tei:pb|tei:row/tei:pb|tei:list/tei:pb" mode="markup"><comment>Skipping pagebreak here</comment></xsl:template>
+<xsl:template match="tei:list/tei:lb|tei:row/tei:lb|tei:table/tei:lb" mode="markup"><comment>Skipping linebreak here</comment></xsl:template>
 
 <!-- I'm not entirely sure what this does but it looks well thought out (proycon) -->
 
@@ -755,7 +801,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template name="haalPbBinnen">
 <xsl:for-each select="preceding-sibling::*[1]">
-<xsl:if test="self::pb and (not(ancestor::div)) and (not(ancestor::div1))  and (not(ancestor::titlePage))">
+<xsl:if test="self::tei:pb and (not(ancestor::tei:div)) and (not(ancestor::tei:div1))  and (not(ancestor::tei:titlePage))">
 <comment>opgeviste pagebreak:</comment>
 <xsl:call-template name="pb"/>
 </xsl:if>
@@ -767,7 +813,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template name="haalPbBinnenInCel">
 <xsl:for-each select="..">
 <xsl:for-each select="preceding-sibling::*[1]">
-<xsl:if test="self::pb">
+<xsl:if test="self::tei:pb">
 <comment>opgeviste pagebreak naar cel</comment>
 <xsl:call-template name="pb"/>
 </xsl:if>
@@ -808,7 +854,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 
-<xsl:template match="delSpan">
+<xsl:template match="tei:delSpan">
 <xsl:variable name="spanTo"><xsl:value-of select="@spanTo"/></xsl:variable>
 <xsl:variable name="end"><xsl:value-of select="following-sibling::anchor[@xml:id=$spanTo]"/></xsl:variable>
 <xsl:if test="$end">
@@ -818,9 +864,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 
-<xsl:template match="sp" mode="structure">
+<xsl:template match="tei:sp" mode="structure">
     <xsl:choose>
-    <xsl:when test="ancestor::figDesc|ancestor::item|ancestor::quote|ancestor::q">
+    <xsl:when test="ancestor::tei:figDesc|ancestor::tei:item|ancestor::tei:quote|ancestor::tei:q">
         <!-- no events allowed under these elements, just descend into substructures -->
         <xsl:apply-templates mode="structure" />
     </xsl:when>
@@ -828,11 +874,11 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <!-- normal behaviour -->
         <event class="speakerturn">
         <xsl:choose>
-        <xsl:when test=".//speaker/hi">
-            <xsl:attribute name="actor"><xsl:value-of select="string(.//speaker/hi)" /></xsl:attribute>
+        <xsl:when test=".//tei:speaker/tei:hi">
+            <xsl:attribute name="actor"><xsl:value-of select="string(.//tei:speaker/tei:hi)" /></xsl:attribute>
         </xsl:when>
-        <xsl:when test=".//speaker">
-            <xsl:attribute name="actor"><xsl:value-of select="string(.//speaker)" /></xsl:attribute>
+        <xsl:when test=".//tei:speaker">
+            <xsl:attribute name="actor"><xsl:value-of select="string(.//tei:speaker)" /></xsl:attribute>
         </xsl:when>
         </xsl:choose>
         <xsl:call-template name="textandorstructure" />
@@ -841,7 +887,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </xsl:choose>
 </xsl:template>
 
-<xsl:template match="stage" mode="structure">
+<xsl:template match="tei:stage" mode="structure">
 <event class="stage">
     <xsl:call-template name="textandorstructure"/>
 </event>
@@ -849,27 +895,27 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 
-<xsl:template match="add[@resp='transcriber']"/>
+<xsl:template match="tei:add[@resp='transcriber']"/>
 
 
 
 <!-- ********************************** WARNINGS ***************************************************** -->
 
-<xsl:template match="item/figure" mode="structure">
+<xsl:template match="tei:item/tei:figure" mode="structure">
     <xsl:if test="$quiet = 'false'">
     <xsl:message terminate="no">WARNING: skipping <xsl:value-of select="name()" /> in item! (not allowed)</xsl:message>
     </xsl:if>
     <comment>[tei2folia WARNING] skipping <xsl:value-of select="name()" /> in item! (not allowed)</comment>
 </xsl:template>
 
-<xsl:template match="quote/figure|q/figure" mode="structure">
+<xsl:template match="tei:quote/tei:figure|tei:q/tei:figure" mode="structure">
     <xsl:if test="$quiet = 'false'">
     <xsl:message terminate="no">WARNING: skipping <xsl:value-of select="name()" /> in quote! (not allowed)</xsl:message>
     </xsl:if>
     <comment>[tei2folia WARNING] skipping <xsl:value-of select="name()" /> in quote! (not allowed)</comment>
 </xsl:template>
 
-<xsl:template match="figDesc/figure|figDesc/list|figDesc/table" mode="structure">
+<xsl:template match="tei:figDesc/tei:figure|tei:figDesc/tei:list|tei:figDesc/tei:table" mode="structure">
     <xsl:if test="$quiet = 'false'">
     <xsl:message terminate="no">WARNING: skipping <xsl:value-of select="name()" /> in caption! (not allowed)</xsl:message>
     </xsl:if>
@@ -890,14 +936,14 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:if test="$quiet = 'false'">
     <xsl:message terminate="no">WARNING: Unknown tag in markup context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</xsl:message>
     </xsl:if>
-    <comment>[tei2folia WARNING] Unhandled tag in markup context: tei:<xsl:value-of select="name(.)"/> (in tei:<xsl:value-of select="name(parent::node())" />)</comment>
+    <comment>[tei2folia WARNING] Unhandled tag in markup context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</comment>
 </xsl:template>
 
 <xsl:template match="*">
     <xsl:if test="$quiet = 'false'">
     <xsl:message terminate="no">WARNING: Unknown tag: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</xsl:message>
     </xsl:if>
-    <comment>[tei2folia WARNING] Unhandled tag: tei:<xsl:value-of select="name(.)"/> (in tei:<xsl:value-of select="name(parent::node())" />)</comment>
+    <comment>[tei2folia WARNING] Unhandled tag: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</comment>
 </xsl:template>
 
 
