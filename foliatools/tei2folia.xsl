@@ -225,7 +225,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
    </provenance>
 </xsl:template>
 
-<xsl:template match="tei:interpGrp/tei:interp" mode="meta"><xsl:variable name="cur"><xsl:value-of select="."/></xsl:variable><xsl:if test="not(../interp[1]=$cur)">|</xsl:if><xsl:apply-templates mode="meta"/></xsl:template>
+<xsl:template match="tei:interpGrp/tei:interp" mode="meta"><xsl:variable name="cur"><xsl:value-of select="."/></xsl:variable><xsl:if test="not(../tei:interp[1]=$cur)"><xsl:text>; </xsl:text></xsl:if><xsl:apply-templates mode="meta"/></xsl:template>
 
 <xsl:template match="tei:interpGrp/text()" mode="meta"/>
 
@@ -578,6 +578,13 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:if>
 </xsl:template>
 
+<xsl:template match="tei:seg" mode="structure">
+<xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
+<part class="segment"><t><xsl:value-of select="." /></t></part>
+</xsl:if>
+</xsl:template>
+
+
 <!-- ************************** TEMPLATES PRODUCING MARKUP ELEMENTS  *********************** -->
 
 <!-- These come in name/match template pairs as they are also referenced by the structural variants -->
@@ -658,7 +665,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template name="mentioned">
 <xsl:if test="normalize-space(string(.))">
-<t-str class="mentioned"><xsl:apply-templates mode="mentioned"/></t-str>
+<t-str class="mentioned"><xsl:apply-templates mode="markup"/></t-str>
 </xsl:if>
 </xsl:template>
 
@@ -666,7 +673,56 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:call-template name="mentioned" />
 </xsl:template>
 
+<xsl:template name="persName">
+<xsl:if test="normalize-space(string(.))">
+<t-str class="name-person"><xsl:apply-templates mode="markup"/></t-str>
+</xsl:if>
+</xsl:template>
 
+<xsl:template match="tei:persName" mode="markup">
+<xsl:call-template name="persName" />
+</xsl:template>
+
+<xsl:template name="placeName">
+<xsl:if test="normalize-space(string(.))">
+<t-str class="name-place"><xsl:apply-templates mode="markup"/></t-str>
+</xsl:if>
+</xsl:template>
+
+<xsl:template match="tei:placeName" mode="markup">
+<xsl:call-template name="placeName" />
+</xsl:template>
+
+
+<xsl:template name="geogName">
+<xsl:if test="normalize-space(string(.))">
+<t-str class="name-geography"><xsl:apply-templates mode="markup"/></t-str>
+</xsl:if>
+</xsl:template>
+
+<xsl:template match="tei:geogName" mode="markup">
+<xsl:call-template name="geogName" />
+</xsl:template>
+
+<xsl:template name="objectName">
+<xsl:if test="normalize-space(string(.))">
+<t-str class="name-object"><xsl:apply-templates mode="markup"/></t-str>
+</xsl:if>
+</xsl:template>
+
+<xsl:template match="tei:objectName" mode="markup">
+<xsl:call-template name="objectName" />
+</xsl:template>
+
+<xsl:template name="seg">
+<xsl:if test="normalize-space(string(.))">
+<t-str class="segment"><xsl:apply-templates mode="markup"/></t-str>
+</xsl:if>
+</xsl:template>
+
+<xsl:template match="tei:seg" mode="markup">
+<xsl:call-template name="seg" />
+</xsl:template>
 
 <!-- Valid both as structural and as markup, easy -->
 <xsl:template name="lb"><br class="linebreak"/></xsl:template>
@@ -680,11 +736,11 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <!-- Corrections -->
 <!-- TODO: annotators should be in provenance chain, specifying them here probably fails even now -->
-<xsl:template name="corr"><t-correction class="correction" annotator="{@resp}" original="{@sic}"><xsl:apply-templates mode="markup"/></t-correction></xsl:template>
+<xsl:template name="corr"><t-correction class="correction"><xsl:if test="@resp"><xsl:attribute name="annotator"><xsl:value-of select="@resp" /></xsl:attribute></xsl:if><xsl:if test="@sic"><xsl:attribute name="original"><xsl:value-of select="@sic" /></xsl:attribute></xsl:if><xsl:apply-templates mode="markup"/></t-correction></xsl:template>
 
-<xsl:template name="supplied"><t-correction class="supplied" annotator="{@resp}"><xsl:apply-templates mode="markup"/></t-correction></xsl:template>
+<xsl:template name="supplied"><t-correction class="supplied"><xsl:if test="@resp"><xsl:attribute name="annotator"><xsl:value-of select="@resp" /></xsl:attribute></xsl:if><xsl:apply-templates mode="markup"/></t-correction></xsl:template>
 
-<xsl:template name="del"><t-correction class="deletion" annotator="{@resp}" original="{.//text()}"></t-correction></xsl:template>
+<xsl:template name="del"><t-correction class="deletion" original="{.//text()}"><xsl:if test="@resp"><xsl:attribute name="annotator"><xsl:value-of select="@resp" /></xsl:attribute></xsl:if></t-correction></xsl:template>
 
 <xsl:template match="tei:corr" mode="markup"><xsl:call-template name="corr" /></xsl:template>
 <xsl:template match="tei:supplied" mode="markup"><xsl:call-template name="supplied" /></xsl:template>
