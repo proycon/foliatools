@@ -39,10 +39,10 @@ def convert_set(annotationtype, annotationset):
 def convert_undefined_sets(doc, elements = None):
     if elements is None: elements = doc.elements()
     exempt = set()
-    for element in doc.elements():
+    for element in elements:
         if element.set == "undefined" and element.cls:
             exempt.add(element.ANNOTATIONTYPE)
-    for element in doc.elements():
+    for element in elements:
         if element.set == "undefined" and element.ANNOTATIONTYPE not in exempt:
             element.set = None
     doc.annotations = [ (annotationtype, convert_set(annotationtype, annotationset) ) for annotationtype, annotationset in doc.annotations ]
