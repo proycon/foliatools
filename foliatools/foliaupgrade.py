@@ -36,27 +36,26 @@ def convert_set(annotationtype, annotationset):
     else:
         return annotationset
 
-def convert_undefined_sets(doc):
+def convert_undefined_sets(doc, elements = None):
+    if elements is None: elements = doc.elements()
     exempt = set()
-    for element in doc.items():
-        if isinstance(element, folia.AbstractElement):
-            if element.set == "undefined" and element.cls:
-                exempt.add(element.ANNOTATIONTYPE)
-    for element in doc.items():
-        if isinstance(element, folia.AbstractElement):
-            if element.set == "undefined" and element.ANNOTATIONTYPE not in exempt:
-                element.set = None
+    for element in doc.elements():
+        if element.set == "undefined" and element.cls:
+            exempt.add(element.ANNOTATIONTYPE)
+    for element in doc.elements():
+        if element.set == "undefined" and element.ANNOTATIONTYPE not in exempt:
+            element.set = None
     doc.annotations = [ (annotationtype, convert_set(annotationtype, annotationset) ) for annotationtype, annotationset in doc.annotations ]
 
 
-def annotators2processors(doc, mainprocessor):
+def annotators2processors(doc, mainprocessor, elements=None):
     """Convert FoLiA v1 style annotators to v2 style processors (limited)"""
-    for element in doc.items():
-        if isinstance(element, folia.AbstractElement):
-            if element.annotator is not None:
-                element.annotator2processor(element.annotator, element.annotatortype, parentprocessor=mainprocessor) #the library does the bulk of the work for us
-            elif element.annotatortype is not None:
-                element.annotator2processor("unspecified", element.annotatortype, parentprocessor=mainprocessor) #the library does the bulk of the work for us
+    if elements is None: elements = doc.elements()
+    for element in doc.elements():
+        if element.annotator is not None:
+            element.annotator2processor(element.annotator, element.annotatortype, parentprocessor=mainprocessor) #the library does the bulk of the work for us
+        elif element.annotatortype is not None:
+            element.annotator2processor("unspecified", element.annotatortype, parentprocessor=mainprocessor) #the library does the bulk of the work for us
     doc.annotationdefaults = {} #not needed anymore
 
 def upgrade(doc, upgradeprocessor):
@@ -68,10 +67,11 @@ def upgrade(doc, upgradeprocessor):
 
     #bump the version number
     doc.version = folia.FOLIAVERSION
+    elements = doc.elements()
     #convert old style annotators to new style processors
-    annotators2processors(doc, upgradeprocessor)
+    annotators2processors(doc, upgradeprocessor, elements)
     #convert undefined sets
-    convert_undefined_sets(doc)
+    convert_undefined_sets(doc, elements)
 
 
 def process(*files, **kwargs):
