@@ -404,10 +404,14 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "class Attrib:\n"
             s += indent + "    " +  ", ".join(spec['attributes']) + " = range(" + str(len(spec['attributes'])) + ")"
         elif target == 'c++':
-            s += indent + "enum Attrib : int { NO_ATT=0, "
+            s += indent + "enum Attrib : int { NO_ATT=0, ///<No attribute\n"
             value = 1
             for attrib in spec['attributes']:
                 s +=  attrib + '=' + str(value) + ', '
+                if attrib in spec['attributes_doc']:
+                    s += " ///<" + spec['attributes_doc'][attrib]['name'] + ':' +  spec['attributes_doc'][attrib]['description'] + "\n"
+                else:
+                    s += "\n"
                 value *= 2
             s += 'ALL='+str(value) + ' };'
         else:
@@ -437,7 +441,7 @@ def outputblock(block, target, varname, args, indent = ""):
                     s += " ///<" + spec['annotationtype_doc'][t]['name'] + ':' +  spec['annotationtype_doc'][t]['description'] + "\n"
                 else:
                     s += "\n"
-            s += ", ".join(spec['annotationtype']) + ", LAST_ANN };\n"
+            s += ", LAST_ANN };\n"
         elif target == 'rust':
             s += indent + "pub enum AnnotationType { " + ", ".join(spec['annotationtype']) + " }\n"
         else:
