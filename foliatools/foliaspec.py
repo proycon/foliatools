@@ -408,8 +408,8 @@ def outputblock(block, target, varname, args, indent = ""):
             value = 1
             for attrib in spec['attributes']:
                 s +=  attrib + '=' + str(value) + ', '
-                if attrib in spec['attributes_doc']:
-                    s += " ///<" + spec['attributes_doc'][attrib]['name'] + ':' +  spec['attributes_doc'][attrib]['description'] + "\n"
+                if attrib.lower() in spec['attributes_doc']:
+                    s += " ///<" + spec['attributes_doc'][attrib.lower()]['name'] + ': ' +  spec['attributes_doc'][attrib.lower()]['description'] + "\n"
                 else:
                     s += "\n"
                 value *= 2
@@ -434,11 +434,11 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "class AnnotationType:\n"
             s += indent + "    " +  ", ".join(spec['annotationtype']) + " = range(" + str(len(spec['annotationtype'])) + ")"
         elif target == 'c++':
-            s += indent + "enum AnnotationType : int { NO_ANN, ///<No attribute"
+            s += indent + "enum AnnotationType : int { NO_ANN, ///<No type dummy\n"
             for t in spec['annotationtype']:
                 s += "    " + t + ","
-                if t in spec['annotationtype_doc']:
-                    s += " ///<" + spec['annotationtype_doc'][t]['name'] + ':' +  spec['annotationtype_doc'][t]['description'] + "\n"
+                if t.lower() in spec['annotationtype_doc']:
+                    s += " ///<" + spec['annotationtype_doc'][t.lower()]['name'] + ': ' +  spec['annotationtype_doc'][t.lower()]['description'] + "\n"
                 else:
                     s += "\n"
             s += ", LAST_ANN };\n"
