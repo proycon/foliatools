@@ -441,7 +441,7 @@ def outputblock(block, target, varname, args, indent = ""):
                     s += " ///<" + spec['annotationtype_doc'][t.lower()]['name'] + ': ' +  spec['annotationtype_doc'][t.lower()]['description'] + "\n"
                 else:
                     s += "\n"
-            s += ", LAST_ANN };\n"
+            s += "LAST_ANN };\n"
         elif target == 'rust':
             s += indent + "pub enum AnnotationType { " + ", ".join(spec['annotationtype']) + " }\n"
         else:
