@@ -56,7 +56,7 @@ def validate(filename, schema = None,**kwargs):
             if kwargs.get('output'):
                 if not (folia.checkversion(document.version, "2.0.0") < 0 and kwargs.get('keepversion')):
                     document.provenance.append( folia.Processor.create(name="foliavalidator", version=TOOLVERSION, src="https://github.com/proycon/foliatools", metadata={"valid": "yes"}) )
-            xml = document.xmlstring()
+            xml = document.xmlstring(form=folia.Form.EXPLICIT if kwargs.get('explicit') else folia.Form.NORMAL)
             if kwargs.get('output'):
                 if folia.checkversion(document.version, "2.0.0") < 0 and not kwargs.get('keepversion') and not kwargs.get('autodeclare'):
                     print("WARNING: Document is valid but can't output older FoLiA (< v2) document unless you specify either --keepversion or --autodeclare to attempt to upgrade. However, if you really want to upgrade the document, use the 'foliaupgrade' tool instead." , file=sys.stderr)
@@ -106,6 +106,7 @@ def commandparser(parser):
     parser.add_argument('-k','--keepversion',help="Attempt to keep an older FoLiA version (not always guaranteed to work)", action='store_true', default=False)
     parser.add_argument('-D','--debug',type=int,help="Debug level", action='store',default=0)
     parser.add_argument('-b','--traceback',help="Provide a full traceback on validation errors", action='store_true', default=False)
+    parser.add_argument('-x','--explicit',help="Serialise to explicit form, this generates more verbose XML and simplified the job for parsers as implicit information is made explicit", action='store_true', default=False)
     parser.add_argument('--fixunassignedprocessor',help="Fixes invalid FoLiA that does not explicitly assign a processor to an annotation when multiple processors are possible (and there is therefore no default). The last processor will be used in this case.", action='store_true', default=False)
     return parser
 
@@ -117,6 +118,9 @@ def main():
     args = parser.parse_args()
 
     schema  = lxml.etree.RelaxNG(folia.relaxng())
+
+    if args.explicit:
+        args.output = True
 
     if args.files:
         success = True

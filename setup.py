@@ -11,7 +11,7 @@ def read(fname):
 
 setup(
     name = "FoLiA-tools",
-    version = "2.2.8", #also change in __init__.py
+    version = "2.3.0", #also change in __init__.py
     author = "Maarten van Gompel",
     author_email = "proycon@anaproy.nl",
     description = ("FoLiA-tools contains various Python-based command line tools for working with FoLiA XML (Format for Linguistic Annotation)"),
@@ -66,5 +66,5 @@ setup(
     },
     #include_package_data=True,
     package_data = {'foliatools': ['*.xsl']},
-    install_requires=['folia >= 2.2.3', 'lxml >= 2.2','docutils', 'pyyaml', 'langid','conllu', 'requests']
+    install_requires=['folia >= 2.3.0', 'lxml >= 2.2','docutils', 'pyyaml', 'langid','conllu', 'requests']
 )
