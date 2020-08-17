@@ -133,6 +133,7 @@ def mergeparts(sequence):
         Mergedclass = folia.Paragraph
 
     parent = sequence[0].parent
+
     index = parent.getindex(sequence[0])
     newtextcontent = []
     for part in sequence:
@@ -148,6 +149,11 @@ def mergeparts(sequence):
                 pass
         else: #intermediate elements (linebreaks and such), add as-is
             newtextcontent.append(part)
+
+    if isinstance(parent, (folia.Table, folia.List)):
+        print("Unable to merge parts in table/list root. Deleting parts!",file=sys.stderr)
+        return None
+
     mergedelement = parent.insert(index, Mergedclass, cls="aggregated")
     newtextcontent = mergedelement.append(folia.TextContent, *newtextcontent)
     return mergedelement
