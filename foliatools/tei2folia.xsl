@@ -312,6 +312,16 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <xsl:template name="w">
+    <xsl:variable name="hastext"><xsl:choose><xsl:when test="normalize-space(translate(., '&#160;', ' ')) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
+    <xsl:choose>
+    <xsl:when test="parent::tei:table|parent::tei:list">
+        <!-- sanity check to prevent invalid FoLiA -->
+        <xsl:if test="$quiet = 'false'">
+            <xsl:message terminate="no">WARNING: Rendering a word directly in list/figure context is invalid! Word will be ignored!</xsl:message>
+        </xsl:if>
+        <comment>[tei2folia WARNING] Rendering a word directly in this context is invalid! Word was ignored!</comment>
+    </xsl:when>
+    <xsl:when test="number($hastext) = 1">
     <xsl:text>
     </xsl:text>
     <w>
@@ -319,7 +329,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <xsl:attribute name="class"><xsl:value-of select="name(.)"/><xsl:if test="@type">.<xsl:value-of select="@type"/></xsl:if></xsl:attribute> <!-- class can be w, pc, optionally with type like pc.interrogative -->
         <xsl:if test="@join='right' or @join='both'"><xsl:attribute name="space">no</xsl:attribute></xsl:if>
         <t><xsl:apply-templates mode="markup" /></t>
-        <xsl:if test="@norm">
+        <xsl:if test="normalize-space(translate(@norm, '&#160;',' ')) != ''">
         <t class="norm"><xsl:value-of select="@norm"/></t>
         </xsl:if>
         <!-- process inline annotations -->
@@ -340,6 +350,14 @@ Heavily adapted by Maarten van Gompel (Radboud University)
             </lemma>
         </xsl:if>
     </w>
+    </xsl:when>
+    <xsl:otherwise>
+        <xsl:if test="$quiet = 'false'">
+            <xsl:message terminate="no">WARNING: Skipped a word with no text</xsl:message>
+        </xsl:if>
+        <comment>[tei2folia WARNING] Skipped a word with no text</comment>
+    </xsl:otherwise>
+    </xsl:choose>
 </xsl:template>
 
 
@@ -401,7 +419,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <xsl:apply-templates select="tei:table/tei:head" mode="structure" />
     </xsl:if>
     <xsl:choose>
-    <xsl:when test="ancestor::cell|ancestor::table|ancestor::item|ancestor::list|ancestor::quote|ancestor::q">
+    <xsl:when test="ancestor::tei:cell|ancestor::tei:table|ancestor::tei:item|ancestor::tei:list|ancestor::tei:quote|ancestor::tei:q">
         <!-- nested tables? what are we? HTML in the late nineties? let's just flatten the nested table instead -->
         <comment>[tei2folia WARNING] Nested table (or table in invalid context) occurs here, we flattened it. Results may be unexpected</comment>
         <part class="nestedtable">
