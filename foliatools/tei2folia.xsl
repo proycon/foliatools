@@ -597,7 +597,12 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 <xsl:template match="tei:gap" mode="structure">
-    <gap annotator="{@resp}" class="{@reason}"/>
+    <gap class="{@reason}">
+        <xsl:if test="normalize-space(@resp) != ''">
+            <xsl:attribute name="annotator"><xsl:value-of select="normalize-space(@resp)" /></xsl:attribute>
+            <!-- MAYBE TODO: old style annotator may conflict with processors? -->
+        </xsl:if>
+    </gap>
 </xsl:template>
 
 <xsl:template match="tei:interpGrp" mode="structure">
@@ -885,7 +890,12 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template match="tei:q|tei:quote" mode="markup"><xsl:call-template name="quote" /></xsl:template>
 
 <xsl:template name="gap">
-    <t-gap annotator="{@resp}" class="{@reason}"/>
+    <t-gap class="{@reason}">
+        <xsl:if test="normalize-space(@resp) != ''">
+            <xsl:attribute name="annotator"><xsl:value-of select="normalize-space(@resp)" /></xsl:attribute>
+            <!-- MAYBE TODO: old style annotator may conflict with processors? -->
+        </xsl:if>
+    </t-gap>
 </xsl:template>
 <xsl:template match="tei:gap" mode="markup"><xsl:call-template name="gap" /></xsl:template>
 
