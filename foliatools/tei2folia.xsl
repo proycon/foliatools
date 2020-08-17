@@ -904,9 +904,11 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 <xsl:template match="tei:gap" mode="markup"><xsl:call-template name="gap" /></xsl:template>
 
+<!--
 <xsl:template match="tei:formula" mode="markup">
     <t-gap class="formula"><xsl:value-of select="." /></t-gap>
 </xsl:template>
+-->
 
 <xsl:template match="tei:note[./tei:table|./tei:figure|./tei:list|./tei:p]" mode="markup">
 <xsl:if test="$quiet = 'false'">
