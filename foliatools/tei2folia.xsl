@@ -26,7 +26,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:strip-space elements="tei:l tei:p tei:interp tei:meta tei:interpGrp"/>
 
-<xsl:param name="docid"><xsl:choose><xsl:when test="//tei:publicationStmt/tei:idno/text()"><xsl:value-of select="//tei:publicationStmt/tei:idno/text()"/></xsl:when><xsl:otherwise>untitled</xsl:otherwise></xsl:choose></xsl:param>
+<xsl:param name="docid"><xsl:choose><xsl:when test="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='DOI']/text())"><xsl:value-of select="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='DOI']/text())" /></xsl:when><xsl:when test="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='ISSN']/text())"><xsl:value-of select="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='ISSN']/text())" /></xsl:when><xsl:when test="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='ISBN']/text())"><xsl:value-of select="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='ISBN']/text())" /></xsl:when><xsl:when test="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='DTADirName']/text())"><xsl:value-of select="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='DTADirName']/text())" /></xsl:when><xsl:when test="normalize-space(//tei:publicationStmt/tei:idno/text())"><xsl:value-of select="normalize-space(//tei:publicationStmt/tei:idno/text())"/></xsl:when><xsl:otherwise>untitled</xsl:otherwise></xsl:choose></xsl:param>
 <xsl:param name='generateIds'>true</xsl:param><!-- We actually rarely do this now -->
 <xsl:param name="quiet">false</xsl:param>
 
