@@ -631,7 +631,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </xsl:if>
 </xsl:template>
 
-<xsl:template match="note" mode="structure">
+<xsl:template match="tei:note" mode="structure">
     <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-note"><t><xsl:call-template name="note" /></t></part> <!-- this deliberately does not resolve to notes yet, our postprocessor creates the notes -->
     </xsl:if>
@@ -1063,14 +1063,14 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template match="*" mode="structure">
     <xsl:if test="$quiet = 'false'">
-    <xsl:message terminate="no">WARNING: Unknown tag in structure context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</xsl:message>
+    <xsl:message terminate="no">WARNING: Unknown tag in structure context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />); text: <xsl:value-of select="."/></xsl:message>
     </xsl:if>
     <comment>[tei2folia WARNING] Unhandled tag in structure context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</comment>
 </xsl:template>
 
 <xsl:template match="*" mode="markup">
     <xsl:if test="$quiet = 'false'">
-    <xsl:message terminate="no">WARNING: Unknown tag in markup context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />)</xsl:message>
+    <xsl:message terminate="no">WARNING: Unknown tag in markup context: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />); text: <xsl:value-of select="."/></xsl:message>
     </xsl:if>
     <xsl:value-of select="string(.)"/>
 </xsl:template>
