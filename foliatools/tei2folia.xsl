@@ -282,24 +282,13 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 <xsl:template name="p">
-    <xsl:choose>
-    <xsl:when test="parent::tei:list|parent::tei:figure">
-        <!-- sanity check that prevents us from generating invalid FoLiA -->
-        <xsl:if test="$quiet = 'false'">
-            <xsl:message terminate="no">WARNING: Rendering a paragraph directly in list/figure context is invalid! Paragraph will be ignored!</xsl:message>
-        </xsl:if>
-        <comment>[tei2folia WARNING] Rendering a paragraph directly in this context is invalid! Paragraph was ignored!</comment>
-    </xsl:when>
-    <xsl:otherwise>
-        <xsl:text>
-        </xsl:text>
-        <p>
-        <xsl:call-template name="setId" />
-        <xsl:attribute name="class"><xsl:value-of select="name(.)"/></xsl:attribute>
-        <xsl:call-template name="textandorstructure"/>
-        </p>
-    </xsl:otherwise>
-    </xsl:choose>
+    <xsl:text>
+    </xsl:text>
+    <p>
+    <xsl:call-template name="setId" />
+    <xsl:attribute name="class"><xsl:value-of select="name(.)"/></xsl:attribute>
+    <xsl:call-template name="textandorstructure"/>
+    </p>
 </xsl:template>
 
 <xsl:template name="s">
@@ -314,10 +303,10 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template name="w">
     <xsl:variable name="hastext"><xsl:choose><xsl:when test="normalize-space(translate(., '&#160;', ' ')) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
     <xsl:choose>
-    <xsl:when test="parent::tei:table|parent::tei:list">
+    <xsl:when test="parent::tei:table|parent::tei:list|parent::tei:table|parent::tei:row">
         <!-- sanity check to prevent invalid FoLiA -->
         <xsl:if test="$quiet = 'false'">
-            <xsl:message terminate="no">WARNING: Rendering a word directly in list/figure context is invalid! Word will be ignored!</xsl:message>
+            <xsl:message terminate="no">WARNING: Rendering a word directly in list/figure/table/row context is invalid! Word will be ignored!</xsl:message>
         </xsl:if>
         <comment>[tei2folia WARNING] Rendering a word directly in this context is invalid! Word was ignored!</comment>
     </xsl:when>
@@ -414,9 +403,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <xsl:template match="tei:table" mode="structure">
-    <xsl:if test="table/head">
+    <xsl:if test="./tei:head">
         <!-- move head out of table -->
-        <xsl:apply-templates select="tei:table/tei:head" mode="structure" />
+        <xsl:apply-templates select="./tei:head" mode="structure" />
     </xsl:if>
     <xsl:choose>
     <xsl:when test="ancestor::tei:cell|ancestor::tei:table|ancestor::tei:item|ancestor::tei:list|ancestor::tei:quote|ancestor::tei:q">
@@ -434,10 +423,14 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:otherwise>
         <!-- normal behaviour -->
         <table>
-        <xsl:apply-templates mode="structure" />
+        <xsl:apply-templates select="*[local-name() != 'trailer']" mode="structure"/>
         </table>
     </xsl:otherwise>
     </xsl:choose>
+    <xsl:if test="./tei:trailer">
+        <!-- move head out of figure -->
+        <xsl:apply-templates select="./tei:trailer" mode="structure" />
+    </xsl:if>
 </xsl:template>
 
 <xsl:template match="tei:cell" mode="structure">
@@ -473,9 +466,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <xsl:template match="tei:figure" mode="structure">
-    <xsl:if test="tei:figure/tei:head">
+    <xsl:if test="./tei:head">
         <!-- move head out of figure -->
-        <xsl:apply-templates select="tei:figure/tei:head" mode="structure" />
+        <xsl:apply-templates select="./tei:head" mode="structure" />
     </xsl:if>
     <xsl:choose>
     <xsl:when test="ancestor::list|ancestor::quote|ancestor::q">
@@ -494,6 +487,10 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </figure>
     </xsl:otherwise>
     </xsl:choose>
+    <xsl:if test="./tei:trailer">
+        <!-- move head out of figure -->
+        <xsl:apply-templates select="./tei:trailer" mode="structure" />
+    </xsl:if>
 </xsl:template>
 
 <xsl:template match="tei:figDesc" mode="structure">
@@ -503,13 +500,17 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <xsl:template match="tei:list" mode="structure">
-    <xsl:if test="tei:list/tei:head">
+    <xsl:if test="./tei:head">
         <!-- move head out of list -->
-        <xsl:apply-templates select="tei:table/tei:list" mode="structure" />
+        <xsl:apply-templates select="./tei:head" mode="structure" />
     </xsl:if>
     <list>
-        <xsl:apply-templates mode="structure"/>
+        <xsl:apply-templates select="*[local-name() != 'trailer']" mode="structure"/>
     </list>
+    <xsl:if test="./tei:trailer">
+        <!-- move head out of list -->
+        <xsl:apply-templates select="./tei:trailer" mode="structure" />
+    </xsl:if>
 </xsl:template>
 
 <!-- Handles both tei:item and preceding tei:label, in list context -->
