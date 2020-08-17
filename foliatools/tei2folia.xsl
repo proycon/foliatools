@@ -27,7 +27,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:strip-space elements="tei:l tei:p tei:interp tei:meta tei:interpGrp"/>
 
 <xsl:param name="docid"><xsl:choose><xsl:when test="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='DOI']/text())">DOI.<xsl:value-of select="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='DOI']/text())" /></xsl:when><xsl:when test="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='ISSN']/text())">ISSN.<xsl:value-of select="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='ISSN']/text())" /></xsl:when><xsl:when test="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='ISBN']/text())">ISBN.<xsl:value-of select="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='ISBN']/text())" /></xsl:when><xsl:when test="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='DTADirName']/text())"><xsl:value-of select="normalize-space(//tei:publicationStmt/tei:idno/tei:idno[@type='DTADirName']/text())" /></xsl:when><xsl:when test="normalize-space(//tei:publicationStmt/tei:idno/text())"><xsl:value-of select="normalize-space(//tei:publicationStmt/tei:idno/text())"/></xsl:when><xsl:otherwise>untitled</xsl:otherwise></xsl:choose></xsl:param>
-<xsl:param name='generateIds'>true</xsl:param><!-- We actually rarely do this now -->
+<xsl:param name='generateIds'>false</xsl:param>  <!-- better leave this up to postprocessing tools (e.g. foliaid) -->
 <xsl:param name="quiet">false</xsl:param>
 
 <xsl:key name="correctors" match="//tei:corr|//tei:supplied|//tei:del" use="@resp" />
@@ -193,6 +193,11 @@ Heavily adapted by Maarten van Gompel (Radboud University)
          <annotator processor="proc.tei2folia.xsl"/>
   </lemma-annotation>
  </xsl:if>
+ <xsl:if test="//tei:w/@lemmaref">
+  <relation-annotation set="unknown">
+         <annotator processor="proc.tei2folia.xsl"/>
+  </relation-annotation>
+ </xsl:if>
 <xsl:if test="//tei:text//tei:cor|//tei:text//tei:supplied|//tei:text//tei:del">
  <correction-annotation set="https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/tei2folia/corrections.foliaset.ttl">
          <annotator processor="proc.tei2folia.xsl"/>
@@ -253,7 +258,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <!-- process underlying text and/or structure-->
 <xsl:template name="textandorstructure">
-    <xsl:variable name="hasstructure"><xsl:choose><xsl:when test="tei:p|tei:div|tei:s|tei:w|tei:lg|tei:sp|tei:table|tei:row|tei:cell|tei:figure|tei:list|tei:item|tei:cell|tei:speaker|tei:head">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
+    <xsl:variable name="hasstructure"><xsl:choose><xsl:when test="tei:p|tei:div|tei:s|tei:w|tei:fw|tei:pc|tei:lg|tei:sp|tei:table|tei:row|tei:cell|tei:figure|tei:list|tei:item|tei:cell|tei:speaker|tei:head">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
     <xsl:variable name="hastext"><xsl:choose><xsl:when test="normalize-space(translate(., '&#160;', ' ')) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
     <xsl:variable name="hasmarkup"><xsl:choose><xsl:when test="tei:hi|tei:add|tei:name|tei:note|tei:corr|tei:supplied|tei:add|tei:l and normalize-space(translate(string(.),'&#160;', ' ')) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
 
@@ -280,18 +285,55 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:text>
     </xsl:text>
     <p>
+    <xsl:call-template name="setId" />
     <xsl:attribute name="class"><xsl:value-of select="name(.)"/></xsl:attribute>
     <xsl:call-template name="textandorstructure"/>
     </p>
 </xsl:template>
 
+<xsl:template name="s">
+    <xsl:text>
+    </xsl:text>
+    <s>
+        <xsl:call-template name="setId" />
+        <xsl:call-template name="textandorstructure"/>
+    </s>
+</xsl:template>
 
-<!-- Sentence ID -->
+<xsl:template name="w">
+    <xsl:text>
+    </xsl:text>
+    <w>
+        <xsl:call-template name="setId" />
+        <xsl:attribute name="class"><xsl:value-of select="name(.)"/><xsl:if test="@type">.<xsl:value-of select="@type"/></xsl:if></xsl:attribute> <!-- class can be w, pc, optionally with type like pc.interrogative -->
+        <xsl:if test="@join='right' or @join='both'"><xsl:attribute name="space">no</xsl:attribute></xsl:if>
+        <t><xsl:apply-templates mode="markup" /></t>
+        <!-- process inline annotations -->
+        <xsl:if test="@pos">
+            <pos>
+                <xsl:attribute name="class"><xsl:value-of select="@pos" /></xsl:attribute>
+                <xsl:if test="@msd">
+                    <feat subset="msd"><xsl:attribute name="class"><xsl:value of="@msd" /></xsl:attribute></feat>
+                </xsl:if>
+            </pos>
+        </xsl:if>
+        <xsl:if test="@lemma">
+            <lemma>
+                <xsl:attribute name="class"><xsl:value-of select="@lemma" /></xsl:attribute>
+                <xsl:if test="@lemmaRef">
+                    <relation class="lemmaref" xlink:type="simple" xlink:href="{@msd}"/>
+                </xsl:if>
+            </lemma>
+        </xsl:if>
+    </w>
+</xsl:template>
+
+
 <xsl:template name="setId">
  <xsl:if test="@xml:id or $generateIds='true'">
     <xsl:attribute name="xml:id">
         <xsl:choose>
-            <xsl:when test="@ID"><xsl:value-of select="@xml:id"/></xsl:when>
+            <xsl:when test="@xml:id"><xsl:value-of select="@xml:id"/></xsl:when>
             <xsl:otherwise>e<xsl:number level="any" count="*"/></xsl:otherwise>
         </xsl:choose>
     </xsl:attribute>
@@ -374,6 +416,14 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:call-template name="p"/>
 </xsl:template>
 
+<xsl:template match="tei:s" mode="structure">
+    <xsl:call-template name="s"/>
+</xsl:template>
+
+<xsl:template match="tei:w|tei:fw|tei:pc" mode="structure">
+    <xsl:call-template name="w"/>
+</xsl:template>
+
 <!-- we can't have tables, figures or lists inside paragraphs -->
 <xsl:template match="tei:p[./tei:table|./tei:figure|./tei:list]|tei:xcloser[./tei:list]|tei:xcloser[./tei:signed/tei:list]" mode="structure">
     <!-- just forget about the P and handle everything inside directly: -->
@@ -435,7 +485,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <item>
         <xsl:attribute name="n"><xsl:value-of select="string(preceding-sibling::*[1])" /></xsl:attribute>
         <xsl:choose>
-        <xsl:when test="tei:list|tei:table|tei:p|tei:s|tei:w">
+        <xsl:when test="tei:list|tei:table|tei:p|tei:s|tei:w|tei:fw">
         <xsl:if test="normalize-space(translate(string(preceding-sibling::*[1]) ,'&#160;', ' '))">
         <gap class="label">
         <content><xsl:value-of select="string(preceding-sibling::*[1])" /></content>
@@ -517,8 +567,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <xsl:template match="tei:interpGrp" mode="structure">
-<xsl:if test="./tei:interp">
-<comment>
+<xsl:if test="./tei:interp">w<comment>
 <xsl:for-each select="./tei:interp">
     interp[<xsl:value-of select="@type"/>]: <xsl:value-of select="@value" />
 </xsl:for-each>
@@ -543,9 +592,16 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <xsl:template match="tei:hi" mode="structure">
-    <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
+    <xsl:choose>
+    <xsl:when test=".//w|.//s|.//p">
+    <!-- styling is wrapped around structural elements, FoLiA requires the reverse -->
+    <comment>[tei2folia WARNING] styling wrapped around structural elements can not be converted yet (styling information lost)</comment>
+    <xsl:call-template name="textandorstructure"/>
+    </xsl:when>
+    <xsl:when test="normalize-space(translate(string(.),'&#160;', ' '))">
     <part class="temp-hi" space="no"><t><xsl:call-template name="hi" /></t></part>
-    </xsl:if>
+    </xsl:when>
+    </xsl:choose>
 </xsl:template>
 
 <xsl:template match="tei:add" mode="structure">
