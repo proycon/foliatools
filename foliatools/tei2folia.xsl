@@ -258,9 +258,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <!-- process underlying text and/or structure-->
 <xsl:template name="textandorstructure">
-    <xsl:variable name="hasstructure"><xsl:choose><xsl:when test="tei:p|tei:div|tei:s|tei:w|tei:fw|tei:pc|tei:lg|tei:sp|tei:table|tei:row|tei:cell|tei:figure|tei:list|tei:item|tei:cell|tei:speaker|tei:head">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
     <xsl:variable name="hastext"><xsl:choose><xsl:when test="normalize-space(translate(., '&#160;', ' ')) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
-    <xsl:variable name="hasmarkup"><xsl:choose><xsl:when test="tei:hi|tei:add|tei:name|tei:note|tei:corr|tei:supplied|tei:add|tei:l and normalize-space(translate(string(.),'&#160;', ' ')) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
+    <xsl:variable name="hasmarkup"><xsl:choose><xsl:when test="tei:hi|tei:add|tei:name|tei:note|tei:corr|tei:supplied|tei:add|tei:l and number($hastext) = 1">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
+    <xsl:variable name="hasstructure"><xsl:choose><xsl:when test="tei:p|tei:div|tei:s|tei:w|tei:fw|tei:pc|tei:lg|tei:sp|tei:table|tei:row|tei:cell|tei:figure|tei:list|tei:item|tei:cell|tei:speaker|tei:head">1</xsl:when><xsl:when test="number($hasmarkup = 1) and .//tei:w[1]|.//tei:s[1]|.//tei:p[1]">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
 
     <!--<xsl:comment>DEBUG:<xsl:value-of select="$hasstructure" /><xsl:value-of select="$hastext" /><xsl:value-of select="$hasmarkup" /></xsl:comment>-->
 
@@ -352,10 +352,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </div>
 </xsl:template>
 
-
-<xsl:template match="tei:head|tei:docTitle|tei:titlePart[not(ancestor::tei:docTitle)]" mode="structure">
+<xsl:template match="tei:head|tei:docTitle|tei:titlePart[not(ancestor::tei:docTitle)]|tei:docAuthor|tei:docImprint" mode="structure">
     <xsl:choose>
-     <xsl:when test="tei:list|tei:figure|ancestor::tei:item|ancestor::tei:figDesc">
+     <xsl:when test="ancestor::tei:list|ancestor::tei:figure|ancestor::tei:item|ancestor::tei:figDesc">
          <!-- render head as p because of incompatible subelements or super-elements -->
         <p>
         <xsl:attribute name="class">
@@ -373,6 +372,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <xsl:attribute name="class">
         <xsl:choose>
             <xsl:when test="@rend"><xsl:value-of select="@rend"/></xsl:when>
+            <xsl:when test="local-name(.) = 'docAuthor'">author</xsl:when>
+            <xsl:when test="local-name(.) = 'docImprint'">imprint</xsl:when>
+            <xsl:when test="local-name(.) = 'docDate'">date</xsl:when>
             <xsl:otherwise>unspecified</xsl:otherwise>
         </xsl:choose>
         </xsl:attribute>
@@ -596,9 +598,12 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template match="tei:hi" mode="structure">
     <xsl:choose>
-    <xsl:when test=".//w|.//s|.//p">
+    <xsl:when test=".//tei:w[1]|.//tei:s[1]|.//tei:p[1]">
     <!-- styling is wrapped around structural elements, FoLiA requires the reverse -->
-    <comment>[tei2folia WARNING] styling wrapped around structural elements can not be converted yet (styling information lost)</comment>
+    <xsl:if test="$quiet = 'false'">
+    <xsl:message terminate="no">[tei2folia WARNING] styling wrapped around structural elements can not be converted yet (styling information lost)</xsl:message>
+    </xsl:if>
+    <xsl:comment>tei2folia styling ignored: <xsl:value-of select="@rendition"/></xsl:comment>
     <xsl:call-template name="textandorstructure"/>
     </xsl:when>
     <xsl:when test="normalize-space(translate(string(.),'&#160;', ' '))">
@@ -685,7 +690,6 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template match="name" mode="markup">
 <xsl:call-template name="name" />
 </xsl:template>
-
 
 
 <xsl:template name="add">
