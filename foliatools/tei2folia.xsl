@@ -606,6 +606,10 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </gap>
 </xsl:template>
 
+<xsl:template match="tei:formula" mode="structure">
+    <gap class="formula"><content><xsl:value-of select="." /></content></gap>
+</xsl:template>
+
 <xsl:template match="tei:interpGrp" mode="structure">
 <xsl:if test="./tei:interp">w<comment>
 <xsl:for-each select="./tei:interp">
@@ -900,6 +904,10 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 <xsl:template match="tei:gap" mode="markup"><xsl:call-template name="gap" /></xsl:template>
 
+<xsl:template match="tei:formula" mode="markup">
+    <t-gap class="formula"><xsl:value-of select="." /></t-gap>
+</xsl:template>
+
 <xsl:template match="tei:note[./tei:table|./tei:figure|./tei:list|./tei:p]" mode="markup">
 <xsl:if test="$quiet = 'false'">
 <xsl:message>WARNING: There is a table, list or figure or paragraph in a note, the converter can't handle this currently</xsl:message>
@@ -955,10 +963,10 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <!-- *********************************** PAGEBREAK MAGIC **************************************************** -->
 
-<xsl:template match="tei:text/tei:pb|tei:table/tei:pb|tei:row/tei:pb|tei:list/tei:pb" mode="structure"><comment>Skipping pagebreak here</comment></xsl:template>
-<xsl:template match="tei:list/tei:lb|tei:row/tei:lb|tei:table/tei:lb" mode="structure"><comment>Skipping linebreak here</comment></xsl:template>
-<xsl:template match="tei:text/tei:pb|tei:table/tei:pb|tei:row/tei:pb|tei:list/tei:pb" mode="markup"><comment>Skipping pagebreak here</comment></xsl:template>
-<xsl:template match="tei:list/tei:lb|tei:row/tei:lb|tei:table/tei:lb" mode="markup"><comment>Skipping linebreak here</comment></xsl:template>
+<xsl:template match="tei:text/tei:pb|tei:table/tei:pb|tei:row/tei:pb|tei:list/tei:pb" mode="structure"><comment>[tei2folia WARNING] Skipping pagebreak here</comment></xsl:template>
+<xsl:template match="tei:list/tei:lb|tei:row/tei:lb|tei:table/tei:lb" mode="structure"><comment>[tei2folia WARNING] Skipping linebreak here</comment></xsl:template>
+<xsl:template match="tei:text/tei:pb|tei:table/tei:pb|tei:row/tei:pb|tei:list/tei:pb" mode="markup"><comment>[tei2folia WARNING] Skipping pagebreak here</comment></xsl:template>
+<xsl:template match="tei:list/tei:lb|tei:row/tei:lb|tei:table/tei:lb" mode="markup"><comment>[tei2folia WARNING] Skipping linebreak here</comment></xsl:template>
 
 <!-- I'm not entirely sure what this does but it looks well thought out (proycon) -->
 

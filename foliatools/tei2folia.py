@@ -151,7 +151,8 @@ def mergeparts(sequence):
             newtextcontent.append(part)
 
     if isinstance(parent, (folia.Table, folia.List)):
-        print("Unable to merge parts in table/list root. Deleting parts!",file=sys.stderr)
+        print("WARNING: Unable to merge parts in table/list root. Deleting parts!",file=sys.stderr)
+        parent.insert(index, folia.Comment, value="[tei2folia WARNING] Unable to merge parts in this context. Deleted " + str(len(sequence)) + " parts with text: " + " ".join(str(t) for t in newtextcontent))
         return None
 
     mergedelement = parent.insert(index, Mergedclass, cls="aggregated")
