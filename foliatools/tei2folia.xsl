@@ -282,13 +282,24 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 
 <xsl:template name="p">
-    <xsl:text>
-    </xsl:text>
-    <p>
-    <xsl:call-template name="setId" />
-    <xsl:attribute name="class"><xsl:value-of select="name(.)"/></xsl:attribute>
-    <xsl:call-template name="textandorstructure"/>
-    </p>
+    <xsl:choose>
+    <xsl:when test="parent::tei:list|parent::tei:figure">
+        <!-- sanity check that prevents us from generating invalid FoLiA -->
+        <xsl:if test="$quiet = 'false'">
+            <xsl:message terminate="no">WARNING: Rendering a paragraph directly in list/figure context is invalid! Paragraph will be ignored!</xsl:message>
+        </xsl:if>
+        <comment>[tei2folia WARNING] Rendering a paragraph directly in this context is invalid! Paragraph was ignored!</comment>
+    </xsl:when>
+    <xsl:otherwise>
+        <xsl:text>
+        </xsl:text>
+        <p>
+        <xsl:call-template name="setId" />
+        <xsl:attribute name="class"><xsl:value-of select="name(.)"/></xsl:attribute>
+        <xsl:call-template name="textandorstructure"/>
+        </p>
+    </xsl:otherwise>
+    </xsl:choose>
 </xsl:template>
 
 <xsl:template name="s">
@@ -601,9 +612,10 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:when test=".//tei:w[1]|.//tei:s[1]|.//tei:p[1]">
     <!-- styling is wrapped around structural elements, FoLiA requires the reverse -->
     <xsl:if test="$quiet = 'false'">
-    <xsl:message terminate="no">[tei2folia WARNING] styling wrapped around structural elements can not be converted yet (styling information lost)</xsl:message>
+    <xsl:message terminate="no">[tei2folia WARNING] styling wrapped around structural elements can not be converted yet (reduced to a comment)</xsl:message>
     </xsl:if>
-    <xsl:comment>tei2folia styling ignored: <xsl:value-of select="@rendition"/></xsl:comment>
+    <comment>[tei2folia WARNING] styling around structural element ignored: <xsl:value-of select="@rendition"/></comment>
+    <!-- TODO: we could let the postprocessor pick this up and reapply it -->
     <xsl:call-template name="textandorstructure"/>
     </xsl:when>
     <xsl:when test="normalize-space(translate(string(.),'&#160;', ' '))">
