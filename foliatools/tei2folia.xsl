@@ -308,6 +308,9 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <xsl:attribute name="class"><xsl:value-of select="name(.)"/><xsl:if test="@type">.<xsl:value-of select="@type"/></xsl:if></xsl:attribute> <!-- class can be w, pc, optionally with type like pc.interrogative -->
         <xsl:if test="@join='right' or @join='both'"><xsl:attribute name="space">no</xsl:attribute></xsl:if>
         <t><xsl:apply-templates mode="markup" /></t>
+        <xsl:if test="@norm">
+        <t class="norm"><xsl:value-of select="@norm"/></t>
+        </xsl:if>
         <!-- process inline annotations -->
         <xsl:if test="@pos">
             <pos>
