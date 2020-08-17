@@ -316,7 +316,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
             <pos>
                 <xsl:attribute name="class"><xsl:value-of select="@pos" /></xsl:attribute>
                 <xsl:if test="@msd">
-                    <feat subset="msd"><xsl:attribute name="class"><xsl:value of="@msd" /></xsl:attribute></feat>
+                    <feat subset="msd"><xsl:attribute name="class"><xsl:value-of select="@msd" /></xsl:attribute></feat>
                 </xsl:if>
             </pos>
         </xsl:if>
@@ -324,7 +324,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
             <lemma>
                 <xsl:attribute name="class"><xsl:value-of select="@lemma" /></xsl:attribute>
                 <xsl:if test="@lemmaRef">
-                    <relation class="lemmaref" xlink:type="simple" xlink:href="{@msd}"/>
+                    <relation class="lemmaref" xlink:type="simple" xlink:href="{@lemmaRef}"/>
                 </xsl:if>
             </lemma>
         </xsl:if>
