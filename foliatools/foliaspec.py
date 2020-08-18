@@ -496,7 +496,7 @@ def outputblock(block, target, varname, args, indent = ""):
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'annotationtype_string_map':
         if target == 'c++':
-            s += indent + "const map<AnnotationType::AnnotationType,string> ant_s_map = {\n"
+            s += indent + "const map<AnnotationType,string> ant_s_map = {\n"
             s += indent + "  { AnnotationType::NO_ANN, \"NONE\" },\n"
             done = {}
             for element in elements:
@@ -518,7 +518,7 @@ def outputblock(block, target, varname, args, indent = ""):
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'string_annotationtype_map':
         if target == 'c++':
-            s += indent + "const map<string,AnnotationType::AnnotationType> s_ant_map = {\n"
+            s += indent + "const map<string,AnnotationType> s_ant_map = {\n"
             s += indent + "  { \"NONE\", AnnotationType::NO_ANN },\n"
             done = {}
             for element in elements:
@@ -546,7 +546,7 @@ def outputblock(block, target, varname, args, indent = ""):
                     s += indent + "    AnnotationType." + element['properties']['annotationtype'] + ':  "' + element['properties']['xmltag'] + '" ,\n'
             s += indent + "}"
         elif target == 'c++':
-            s += indent + "const map<AnnotationType::AnnotationType,string> annotationtype_xml_map = {\n"
+            s += indent + "const map<AnnotationType,string> annotationtype_xml_map = {\n"
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties']:
                     if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
@@ -563,7 +563,7 @@ def outputblock(block, target, varname, args, indent = ""):
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'annotationtype_elementtype_map':
         if target == 'c++':
-            s += indent + "const map<AnnotationType::AnnotationType,ElementType> annotationtype_elementtype_map = {\n"
+            s += indent + "const map<AnnotationType,ElementType> annotationtype_elementtype_map = {\n"
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties']:
                     if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
