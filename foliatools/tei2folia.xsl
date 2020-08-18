@@ -599,7 +599,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <xsl:template match="tei:formula" mode="structure">
-    <gap class="formula"><content><xsl:value-of select="." /></content></gap>
+    <gap class="formula"><xsl:if test="normalize-space(.) != ''"><content><xsl:value-of select="." /></content></xsl:if></gap>
 </xsl:template>
 
 <xsl:template match="tei:interpGrp" mode="structure">
