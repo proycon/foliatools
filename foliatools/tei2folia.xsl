@@ -4,7 +4,7 @@
    xmlns:edate="http://exslt.org/dates-and-times"
    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
    xmlns:tei="http://www.tei-c.org/ns/1.0"
-   xmlns:xlink="https://www.w3.org/1999/xlink"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    exclude-result-prefixes="tei edate xlink" version="1.0"
    xmlns="http://ilk.uvt.nl/folia"
    xpath-default-namespace="http://www.tei-c.org/ns/1.0">
@@ -193,7 +193,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
          <annotator processor="proc.tei2folia.xsl"/>
   </lemma-annotation>
  </xsl:if>
- <xsl:if test="//tei:w/@lemmaref">
+ <xsl:if test="//tei:w/@lemmaref|//pb/@facs">
   <relation-annotation set="unknown">
          <annotator processor="proc.tei2folia.xsl"/>
   </relation-annotation>
@@ -848,11 +848,24 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <!-- Valid both as structural and as markup, easy -->
 <xsl:template name="lb"><br class="linebreak"/></xsl:template>
 <xsl:template name="cb"><br class="columnbreak"/></xsl:template>
-<xsl:template name="pb"><br class="pagebreak" newpage="yes" pagenr="{@n}"/></xsl:template>
+<xsl:template name="pb"><br class="pagebreak" newpage="yes"><xsl:if test="@n"><xsl:attribute name="pagenr"><xsl:value-of select="@n" /></xsl:attribute></xsl:if><xsl:call-template name="facs"/></br></xsl:template>
 
 <xsl:template match="tei:lb" mode="markup"><xsl:call-template name="lb" /></xsl:template>
 <xsl:template match="tei:cb" mode="markup"><xsl:call-template name="cb" /></xsl:template>
 <xsl:template match="tei:pb" mode="markup"><xsl:call-template name="pb" /></xsl:template>
+
+<xsl:template name="facs">
+    <xsl:choose>
+    <xsl:when test="substring(@facs,1,1) = '#'">
+        <!-- refers to the original TEI (to a facsimile section usually) -->
+        <relation class="facs" xlink:type="simple" format="application/tei+xml"><xsl:attribute name="xlink:href"><xsl:value-of select="$docid" />.tei.xml</xsl:attribute><xref><xsl:attribute name="id"><xsl:value-of select="@facs" /></xsl:attribute></xref></relation>
+    </xsl:when>
+    <xsl:when test="@facs">
+        <!-- refers to an image directly (we hope) -->
+        <relation class="facs" xlink:type="simple"><xsl:attribute name="xlink:href"><xsl:value-of select="@facs" /></xsl:attribute></relation>
+    </xsl:when>
+    </xsl:choose>
+</xsl:template>
 
 <!-- Converts an annotator with a link to a processor -->
 <xsl:template name="resp2processor"><xsl:attribute name="processor"><xsl:choose><xsl:when test="@resp">proc.corrector.<xsl:value-of select="translate(@resp, ' :&#160;', '')"/></xsl:when><xsl:otherwise>proc.tei2folia.xsl</xsl:otherwise></xsl:choose></xsl:attribute></xsl:template>
