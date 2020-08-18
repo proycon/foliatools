@@ -439,7 +439,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </cell>
 </xsl:template>
 
-<xsl:template match="tei:p|tei:speaker|tei:trailer|tei:closer|tei:opener|tei:lxx" mode="structure">
+<xsl:template match="tei:p|tei:speaker|tei:trailer|tei:closer|tei:opener|tei:lxx|tei:byline|tei:salute" mode="structure">
     <xsl:call-template name="p"/>
 </xsl:template>
 
@@ -455,14 +455,6 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <xsl:template match="tei:p[./tei:table|./tei:figure|./tei:list]|tei:xcloser[./tei:list]|tei:xcloser[./tei:signed/tei:list]" mode="structure">
     <!-- just forget about the P and handle everything inside directly: -->
     <xsl:apply-templates mode="structure" />
-</xsl:template>
-
-<!-- we can't have breaks in lists or table (rows)-->
-<xsl:template match="tei:table/tei:pb|tei:list/tei:pb|tei:row/tei:pb|tei:figure/tei:pb" mode="structure">
-    <xsl:if test="$quiet = 'false'">
-    <xsl:message>WARNING: Skipped over pagebreak in table/list/row/figure</xsl:message>
-    </xsl:if>
-    <comment>[tei2folia WARNING] Skipped over pagebreak here</comment>
 </xsl:template>
 
 <xsl:template match="tei:figure" mode="structure">
