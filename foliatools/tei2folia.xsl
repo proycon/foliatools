@@ -322,17 +322,17 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <t class="norm"><xsl:value-of select="@norm"/></t>
         </xsl:if>
         <!-- process inline annotations -->
-        <xsl:if test="@pos">
+        <xsl:if test="normalize-space(@pos) != ''">
             <pos>
-                <xsl:attribute name="class"><xsl:value-of select="@pos" /></xsl:attribute>
-                <xsl:if test="@msd">
+                <xsl:attribute name="class"><xsl:value-of select="normalize-space(@pos)" /></xsl:attribute>
+                <xsl:if test="normalize-space(@msd) != ''">
                     <feat subset="msd"><xsl:attribute name="class"><xsl:value-of select="@msd" /></xsl:attribute></feat>
                 </xsl:if>
             </pos>
         </xsl:if>
-        <xsl:if test="@lemma">
+        <xsl:if test="normalize-space(@lemma) != ''">
             <lemma>
-                <xsl:attribute name="class"><xsl:value-of select="@lemma" /></xsl:attribute>
+                <xsl:attribute name="class"><xsl:value-of select="normalize-space(@lemma)" /></xsl:attribute>
                 <xsl:if test="@lemmaRef">
                     <relation class="lemmaref" xlink:type="simple" xlink:href="{@lemmaRef}"/>
                 </xsl:if>
