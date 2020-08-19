@@ -40,6 +40,7 @@ setup(
             'folia2columns = foliatools.folia2columns:main',
             'folia2dcoi = foliatools.folia2dcoi:main',
             'folia2html = foliatools.folia2html:main',
+            'folia2salt = foliatools.folia2salt:main',
             'foliaquery = foliatools.foliaquery:main',
             'foliaquery1 = foliatools.foliaquery1:main', #old version
             'foliatextcontent = foliatools.foliatextcontent:main',
