@@ -63,18 +63,8 @@ def convert(f, **kwargs):
             E.nodes({
                     "{http://www.omg.org/XMI}type": "sDocumentStructure:SToken",
                     },
-                    E.labels({
-                        "{http://www.omg.org/XMI}type": "saltCore:SElementId",
-                        "namespace": "salt",
-                        "name": "id",
-                        "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#' + word.id
-                    }),
-                    E.labels({
-                        "{http://www.omg.org/XMI}type": "saltCore:SFeature",
-                        "namespace": "salt",
-                        "name": "SNAME",
-                        "value": "T::" + word.id
-                    }),
+                    *convert_identifier(word, **kwargs),
+                    *convert_type_information(word, **kwargs),
                     *convert_common_attributes(word,token_namespace, **kwargs),
                     *convert_inline_annotations(word, **kwargs)
             )
@@ -119,6 +109,52 @@ def convert(f, **kwargs):
 
         prevword = word
 
+    structure_nodes = []
+    structure_spanningrelations = []
+    #Create spans and text relations for all structure elements
+    for structure in doc.select(folia.AbstractStructureElement):
+        if not isinstance(structure, folia.Word): #word are already covered
+            span_nodes = [ map_id_to_nodenr[w.id] for w in structure.words() ]
+            if span_nodes:
+                namespace = "FoLiA/" + structure.XMLTAG + "/" + (structure.set if structure.set else "")
+                nodes_seqnr += 1
+                structure_nodes.append(
+                        E.nodes({
+                            "{http://www.omg.org/XMI}type": "sDocumentStructure:SSpan",
+                            },
+                            E.labels({ #we follow the example of the TCF->Salt converter here where it is used for sentences, a bit of weird entry, hopefully they knew what they were doing and this triggers some special behaviour for some of the converters? I just made it a bit more generic so it works for all structure types.
+                                "{http://www.omg.org/XMI}type": "saltCore:Annotation",
+                                "name": folia.annotationtype2str(structure.ANNOTATIONTYPE).lower(),
+                                "value": "T::" + folia.annotationtype2str(structure.ANNOTATIONTYPE).lower()
+                            }),
+                            *convert_identifier(structure, **kwargs),
+                            *convert_type_information(structure, **kwargs),
+                            *convert_common_attributes(structure, namespace, **kwargs),
+                        )
+                )
+
+                for nodenr in span_nodes:
+                    structure_spanningrelations.append(
+                         E.edges({
+                                "{http://www.omg.org/XMI}type": "sDocumentStructure:SSpanningRelation",
+                                 "source": f"//@nodes.{nodes_seqnr}", #the structure
+                                 "target": f"//@nodes.{nodenr}", #the token in the span
+                             },
+                             E.labels({
+                                "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                                "namespace": "salt",
+                                "name": "id",
+                                "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#sSpanRel' + str(len(structure_spanningrelations)+1)
+                            }),
+                            E.labels({
+                                "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                                "namespace": "salt",
+                                "name": "SNAME",
+                                "value": "T::sSpanRel" + str(len(structure_spanningrelations)+1)
+                            }),
+                        )
+                    )
+
 
 
     saltdoc = E.element( #sDocumentGraph
@@ -152,7 +188,9 @@ def convert(f, **kwargs):
                 }),
         ),
         *tokens,
+        *structure_nodes,
         *textrelations,
+        *structure_spanningrelations,
         name="sDocumentGraph", ns="sDocumentStructure")
 
     outputfile = os.path.basename(doc.filename).replace(".folia.xml","").replace(".xml","") + ".salt"
@@ -163,7 +201,7 @@ def convert(f, **kwargs):
     return saltdoc
 
 def convert_inline_annotations(word, **kwargs):
-    """Convert FoLiA inline annotations to salt labels on a token"""
+    """Convert FoLiA inline annotations to salt SAnnotation labels on a token"""
     for annotation in word.select(folia.AbstractInlineAnnotation):
         if kwargs['saltnamespace'] and (annotation.set is None or annotation.set == word.doc.defaultset(annotation.ANNOTATIONTYPE)):
            #add a simplified annotation in the Salt namespace, this facilitates
@@ -184,8 +222,41 @@ def convert_inline_annotations(word, **kwargs):
             for x in convert_features(annotation, namespace, **kwargs):
                 yield x
 
+def convert_identifier(annotation, **kwargs):
+    if annotation.id:
+        yield E.labels({
+            "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+            "namespace": "salt",
+            "name": "id",
+            "value": "T::salt:" + kwargs['corpusprefix'] + "/" + annotation.doc.id + '#' + annotation.id
+        })
+        yield E.labels({
+            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+            "namespace": "salt",
+            "name": "SNAME",
+            "value": "T::" + annotation.id
+        })
+
+def convert_type_information(annotation, **kwargs):
+    """Adds extra FoLiA type information, intended for salt nodes"""
+    if annotation.XMLTAG:
+        yield E.labels({
+            "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+            "namespace": "FoLiA",
+            "name": "elementtype",
+            "value": "T::" + annotation.XMLTAG
+        })
+    if annotation.ANNOTATIONTYPE:
+        yield E.labels({
+            "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+            "namespace": "FoLiA",
+            "name": "annotationtype",
+            "value": "T::" + folia.annotationtype2str(annotation.ANNOTATIONTYPE).lower()
+        })
+
 def convert_common_attributes(annotation,namespace, **kwargs):
-    """Convert common FoLiA attributes as salt SMetaAnnotation."""
+    """Convert common FoLiA attributes as salt SMetaAnnotation label."""
+
     if annotation.cls is not None:
         yield E.labels({
                     "{http://www.omg.org/XMI}type": "saltCore:SAnnotation",
