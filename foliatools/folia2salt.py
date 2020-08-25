@@ -6,6 +6,7 @@ import sys
 import os
 import argparse
 import glob
+from collections import OrderedDict
 import lxml.etree
 from lxml.builder import ElementMaker
 from foliatools import VERSION as TOOLVERSION
@@ -34,9 +35,40 @@ def convert(f, **kwargs):
     if not doc.declared(folia.AnnotationType.TOKEN):
         raise Exception("Only tokenized documents can be handled at the moment")
 
-    tokens, textrelations, text, map_id_to_nodenr, nodes_seqnr = convert_tokens(doc, **kwargs)
-    structure_nodes, structure_spanningrelations, nodes_seqnr = convert_structure_annotations(doc, map_id_to_nodenr, nodes_seqnr, **kwargs)
-    span_nodes, span_spanningrelations, nodes_seqnr = convert_span_annotations(doc, map_id_to_nodenr, nodes_seqnr, **kwargs)
+    layers = OrderedDict()
+
+    token_nodes, textrelations, text, map_id_to_nodenr, nodes_seqnr = convert_tokens(doc, layers, **kwargs)
+
+    text_node = E.nodes({
+                            "{http://www.omg.org/XMI}type": "sDocumentStructure:STextualDS",
+                        },
+                        E.labels({
+                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "namespace": "saltCommon",
+                            "name": "SDATA",
+                            "value": "T::" + text, #this can be huge!
+                        }),
+                        E.labels({
+                            "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                            "namespace": "salt",
+                            "name": "id",
+                            "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#sTextualDS'
+                        }),
+                        E.labels({
+                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "namespace": "salt",
+                            "name": "SNAME",
+                            "value": "T::sTextualDS"
+                        }),
+                )
+
+    structure_nodes, structure_spanningrelations, nodes_seqnr = convert_structure_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwargs)
+    span_nodes, span_spanningrelations, nodes_seqnr = convert_span_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwargs)
+
+    nodes = [text_node] + token_nodes + structure_nodes + span_nodes
+    edges = textrelations + structure_spanningrelations + span_spanningrelations
+
+    layers = list(build_layers(layers, nodes, edges)) #this modifies the nodes and edges as well
 
     #Create the document (sDocumentGraph)
     saltdoc = E.element( #sDocumentGraph
@@ -47,34 +79,9 @@ def convert(f, **kwargs):
             "name": "id",
             "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id
         }),
-        E.nodes({
-                    "{http://www.omg.org/XMI}type": "sDocumentStructure:STextualDS",
-                },
-                E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SFeature",
-                    "namespace": "saltCommon",
-                    "name": "SDATA",
-                    "value": "T::" + text, #this can be huge!
-                }),
-                E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SElementId",
-                    "namespace": "salt",
-                    "name": "id",
-                    "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#sTextualDS'
-                }),
-                E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SFeature",
-                    "namespace": "salt",
-                    "name": "SNAME",
-                    "value": "T::sTextualDS"
-                }),
-        ),
-        *tokens,
-        *structure_nodes,
-        *span_nodes,
-        *textrelations,
-        *structure_spanningrelations,
-        *span_spanningrelations,
+        *nodes,
+        *edges,
+        *layers,
         name="sDocumentGraph", ns="sDocumentStructure")
 
     outputfile = os.path.basename(doc.filename).replace(".folia.xml","").replace(".xml","") + ".salt"
@@ -84,7 +91,7 @@ def convert(f, **kwargs):
     print(f"Wrote {outputfile}",file=sys.stderr)
     return saltdoc
 
-def convert_tokens(doc, **kwargs):
+def convert_tokens(doc, layers, **kwargs):
     """Convert FoLiA tokens (w) to salt nodes. This function also extracts the text layer and links to it."""
     tokens = []
     textrelations = []
@@ -95,21 +102,26 @@ def convert_tokens(doc, **kwargs):
 
     text = ""
     prevword = None
+
+    #will be initialised on first iteration:
     token_namespace = None
+    layer = None
+
     for word in doc.words():
         if not word.id:
             raise Exception("Only documents in which all words have IDs can be converted. Consider preprocessing with foliaid first.")
         if token_namespace is None:
             #only needs to be done once
-            token_namespace = "FoLiA::w::" + (word.set if word.set else "")
+            layer, token_namespace = init_layer(layers, word)
 
         textstart = len(text)
         text += word.text()
         textend = len(text)
 
         nodes_seqnr += 1
+        word.nodes_seqnr = nodes_seqnr #associate it with the folia temporarily for a quick lookup later
         map_id_to_nodenr[word.id] = nodes_seqnr
-
+        layer['nodes'].append(nodes_seqnr)
 
         tokens.append(
             E.nodes({
@@ -118,7 +130,7 @@ def convert_tokens(doc, **kwargs):
                     *convert_identifier(word, **kwargs),
                     *convert_type_information(word, **kwargs),
                     *convert_common_attributes(word,token_namespace, **kwargs),
-                    *convert_inline_annotations(word, **kwargs)
+                    *convert_inline_annotations(word, layers, **kwargs)
             )
         )
 
@@ -163,7 +175,74 @@ def convert_tokens(doc, **kwargs):
 
     return (tokens, textrelations, text, map_id_to_nodenr, nodes_seqnr)
 
-def convert_inline_annotations(word, **kwargs):
+def init_layer(layers, element):
+    """Initialises a salt layer (in a temporary structure) and computes the namespace for a certain annotation type"""
+    if element.ANNOTATIONTYPE is None:
+        raise Exception("Unable to init layer for element " + repr(element))
+    namespace = "FoLiA::" + folia.annotationtype2str(element.ANNOTATIONTYPE).lower() + ("::" + element.set if element.set else "")
+    if namespace not in layers:
+        layers[namespace] = {
+            "type": folia.annotationtype2str(element.ANNOTATIONTYPE).lower(),
+            "set": element.set if element.set else "",
+            "nodes": [],
+            "edges": [],
+        }
+    return (layers[namespace], namespace)
+
+def build_layers(layers, nodes, edges):
+    """Builds the final salt layers from the temporary structure and modifies nodes and edges accordingly (adding the @layer attribute)"""
+    for i, (namespace, layer) in enumerate(layers.items()):
+        for n in layer["nodes"]:
+            if "layers" in nodes[n].attrib:
+                nodes[n].attrib["layers"] += f" //@layers.{i}"
+            else:
+                nodes[n].attrib["layers"] = f"//@layers.{i}"
+            if "layers" in edges[n].attrib:
+                edges[n].attrib["layers"] += f" //@layers.{i}"
+            else:
+                edges[n].attrib["layers"] = f"//@layers.{i}"
+
+        yield E.layers({
+                    "{http://www.omg.org/XMI}type": "saltCore:SLayer",
+                    "nodes": " ".join(f"//@nodes.{n}" for n in layer["nodes"]),
+                    "edges": " ".join(f"//@edges.{n}" for n in layer["edges"])
+                },
+                E.labels({
+                    "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                    "namespace": "salt",
+                    "name": "id",
+                    "value": "T::" + namespace
+                }),
+                E.labels({
+                    "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                    "namespace": "salt",
+                    "name": "SNAME",
+                    "value": "T::" + layer['type'] + (" ("+ layer['set']+")" if layer['set'] else "")
+                }),
+                E.labels({
+                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+                    "namespace": "FoLiA",
+                    "name": "set",
+                    "value": layer['set']
+                }),
+                E.labels({
+                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+                    "namespace": "FoLiA",
+                    "name": "annotationtype",
+                    "value": layer['type']
+                }),
+                E.labels({
+                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+                    "namespace": "FoLiA",
+                    "name": "namespace",
+                    "value": namespace
+                })
+            )
+
+
+
+
+def convert_inline_annotations(word, layers, **kwargs):
     """Convert FoLiA inline annotations to salt SAnnotation labels on a token"""
     for annotation in word.select(folia.AbstractInlineAnnotation):
         if kwargs['saltnamespace'] and (annotation.set is None or annotation.set == word.doc.defaultset(annotation.ANNOTATIONTYPE)):
@@ -177,7 +256,9 @@ def convert_inline_annotations(word, **kwargs):
                    })
 
         if not kwargs['saltonly']:
-            namespace = "FoLiA::" + annotation.XMLTAG + "::" + (annotation.set if annotation.set else "")
+            layer, namespace = init_layer(layers, annotation)
+            if word.nodes_seqnr is not None:
+                layer['nodes'].append(word.nodes_seqnr)
 
             for x in convert_common_attributes(annotation, namespace, **kwargs):
                 yield x
@@ -188,7 +269,7 @@ def convert_inline_annotations(word, **kwargs):
             for x in convert_higher_order(annotation, namespace, **kwargs):
                 yield x
 
-def convert_structure_annotations(doc, map_id_to_nodenr, nodes_seqnr, **kwargs):
+def convert_structure_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwargs):
     """Convert FoLiA structure annotations (sentences, paragraphs, etc) to salt SSpan nodes and SSpaningRelation edges.
     In this conversion the structure annotations directly reference the underlying tokens, rather than other underlying structural elements like FoLiA does.
     """
@@ -200,8 +281,10 @@ def convert_structure_annotations(doc, map_id_to_nodenr, nodes_seqnr, **kwargs):
         if not isinstance(structure, folia.Word): #word are already covered
             span_nodes = [ map_id_to_nodenr[w.id] for w in structure.words() ]
             if span_nodes:
-                namespace = "FoLiA::" + structure.XMLTAG + "::" + (structure.set if structure.set else "")
+                layer, namespace = init_layer(layers, structure)
                 nodes_seqnr += 1
+                structure.nodes_seqnr = nodes_seqnr #associate it with the folia temporarily for a quick lookup later
+                layer['nodes'].append(nodes_seqnr)
                 structure_nodes.append(
                         E.nodes({
                             "{http://www.omg.org/XMI}type": "sDocumentStructure:SSpan",
@@ -242,7 +325,7 @@ def convert_structure_annotations(doc, map_id_to_nodenr, nodes_seqnr, **kwargs):
                     )
     return (structure_nodes, structure_spanningrelations, nodes_seqnr)
 
-def convert_span_annotations(doc, map_id_to_nodenr, nodes_seqnr, **kwargs):
+def convert_span_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwargs):
     """Convert FoLiA span annotations (sentences, paragraphs, etc) to salt SSpan nodes and SSpaningRelation edges.
     In this conversion the span annotations directly reference the underlying tokens, rather than other underlying structural elements like FoLiA does.
     """
@@ -252,11 +335,12 @@ def convert_span_annotations(doc, map_id_to_nodenr, nodes_seqnr, **kwargs):
     #Create spans and text relations for all span elements:
     #only handles simple span elements that do not take span roles
     for span in doc.select(folia.AbstractSpanAnnotation):
-        if not any((isinstance(x, folia.AbstractSpanRole) for x in span.ACCEPTED_DATA)):
+        if not isinstance(span, folia.AbstractSpanRole) and  not any((isinstance(x, folia.AbstractSpanRole) for x in span.ACCEPTED_DATA)):
             span_token_nodes = [ map_id_to_nodenr[w.id] for w in span.wrefs() ]
             if span_token_nodes:
-                namespace = "FoLiA::" + span.XMLTAG + "::" + (span.set if span.set else "")
+                layer, namespace = init_layer(layers, span)
                 nodes_seqnr += 1
+                layer['nodes'].append(nodes_seqnr)
                 span_nodes.append(
                         E.nodes({
                             "{http://www.omg.org/XMI}type": "sDocumentspan:SSpan",
@@ -424,6 +508,7 @@ def convert_higher_order(annotation, namespace, **kwargs):
                     "name": "comment/" + str(seqnr + 1),
                     "value": "T::" + description.value
                 })
+
 
 
 
