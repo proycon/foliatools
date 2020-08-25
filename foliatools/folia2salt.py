@@ -37,36 +37,13 @@ def convert(f, **kwargs):
 
     layers = OrderedDict()
 
-    token_nodes, textrelations, text, map_id_to_nodenr, nodes_seqnr = convert_tokens(doc, layers, **kwargs)
-
-    text_node = E.nodes({
-                            "{http://www.omg.org/XMI}type": "sDocumentStructure:STextualDS",
-                        },
-                        E.labels({
-                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
-                            "namespace": "saltCommon",
-                            "name": "SDATA",
-                            "value": "T::" + text, #this can be huge!
-                        }),
-                        E.labels({
-                            "{http://www.omg.org/XMI}type": "saltCore:SElementId",
-                            "namespace": "salt",
-                            "name": "id",
-                            "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#sTextualDS'
-                        }),
-                        E.labels({
-                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
-                            "namespace": "salt",
-                            "name": "SNAME",
-                            "value": "T::sTextualDS"
-                        }),
-                )
+    nodes, textrelations, text, phonrelations, phon, map_id_to_nodenr, nodes_seqnr = convert_tokens(doc, layers, **kwargs)
 
     structure_nodes, structure_spanningrelations, nodes_seqnr = convert_structure_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwargs)
     span_nodes, span_spanningrelations, nodes_seqnr = convert_span_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwargs)
     syntax_nodes, syntax_dominancerelations, nodes_seqnr = convert_syntax_annotation(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwargs)
 
-    nodes = [text_node] + token_nodes + structure_nodes + span_nodes + syntax_nodes
+    nodes += structure_nodes + span_nodes + syntax_nodes
     edges = textrelations + structure_spanningrelations + span_spanningrelations + syntax_dominancerelations
 
     layers = list(build_layers(layers, nodes, edges)) #this modifies the nodes and edges as well
@@ -96,17 +73,28 @@ def convert_tokens(doc, layers, **kwargs):
     """Convert FoLiA tokens (w) to salt nodes. This function also extracts the text layer and links to it."""
     tokens = []
     textrelations = []
+    phonrelations = []
 
-    nodes_seqnr = 0 #first node will hold TextualDS
+    nodes_seqnr = 0
 
     map_id_to_nodenr = {}
 
     text = ""
     prevword = None
 
+    phon = ""
+
     #will be initialised on first iteration:
     token_namespace = None
     layer = None
+
+    if doc.declared(folia.TextContent):
+        textnode = nodes_seqnr
+        nodes_seqnr += 1
+    if doc.declared(folia.PhonContent):
+        if list(doc.select(folia.PhonContent)): #(not very efficient)
+            phonnode = nodes_seqnr
+            nodes_seqnr += 1
 
     for word in doc.words():
         if not word.id:
@@ -116,13 +104,23 @@ def convert_tokens(doc, layers, **kwargs):
             layer, token_namespace = init_layer(layers, word)
 
         textstart = len(text)
-        text += word.text()
+        try:
+            text += word.text()
+        except folia.NoSuchText:
+            pass
         textend = len(text)
 
-        nodes_seqnr += 1
+        phonstart = len(phon)
+        try:
+            phon += word.phon()
+        except folia.NoSuchPhon:
+            pass
+        phonend = len(phon)
+
         word.nodes_seqnr = nodes_seqnr #associate it with the folia temporarily for a quick lookup later
         map_id_to_nodenr[word.id] = nodes_seqnr
         layer['nodes'].append(nodes_seqnr)
+        nodes_seqnr += 1
 
         tokens.append(
             E.nodes({
@@ -136,45 +134,129 @@ def convert_tokens(doc, layers, **kwargs):
         )
 
 
-        textrelations.append(
-            E.edges({
-                    "{http://www.omg.org/XMI}type": "sDocumentStructure:STextualRelation",
-                    "source": f"//@nodes.{nodes_seqnr}",
-                    "target": "//@nodes.0"
-                    },
-                    E.labels({
-                        "{http://www.omg.org/XMI}type": "saltCore:SElementId",
-                        "namespace": "salt",
-                        "name": "id",
-                        "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#sTextRel' + str(len(textrelations)+1)
-                    }),
-                    E.labels({
-                        "{http://www.omg.org/XMI}type": "saltCore:SFeature",
-                        "namespace": "salt",
-                        "name": "SNAME",
-                        "value": "T::sTextRel" + str(len(textrelations)+1)
-                    }),
-                    E.labels({
-                        "{http://www.omg.org/XMI}type": "saltCore:SFeature",
-                        "namespace": "salt",
-                        "name": "SSTART",
-                        "value": f"N::{textstart}"
-                    }),
-                    E.labels({
-                        "{http://www.omg.org/XMI}type": "saltCore:SFeature",
-                        "namespace": "salt",
-                        "name": "SEND",
-                        "value": f"N::{textend}"
-                    })
+        if text and textstart != textend:
+            textrelations.append(
+                E.edges({
+                        "{http://www.omg.org/XMI}type": "sDocumentStructure:STextualRelation",
+                        "source": f"//@nodes.{nodes_seqnr}",
+                        "target": "//@nodes.{textnode}"
+                        },
+                        E.labels({
+                            "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                            "namespace": "salt",
+                            "name": "id",
+                            "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#sTextRel' + str(len(textrelations)+1)
+                        }),
+                        E.labels({
+                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "namespace": "salt",
+                            "name": "SNAME",
+                            "value": "T::sTextRel" + str(len(textrelations)+1)
+                        }),
+                        E.labels({
+                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "namespace": "salt",
+                            "name": "SSTART",
+                            "value": f"N::{textstart}"
+                        }),
+                        E.labels({
+                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "namespace": "salt",
+                            "name": "SEND",
+                            "value": f"N::{textend}"
+                        })
+                )
             )
-        )
 
-        if word.space or (prevword and word.parent != prevword.parent):
-            text += " "
+            if word.space or (prevword and word.parent != prevword.parent):
+                text += " "
+
+        if phon and phonstart != phonend:
+            phonrelations.append(
+                E.edges({
+                        "{http://www.omg.org/XMI}type": "sDocumentStructure:STextRelation",
+                        "source": f"//@nodes.{nodes_seqnr}",
+                        "target": "//@nodes.{phonnode}"
+                        },
+                        E.labels({
+                            "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                            "namespace": "salt",
+                            "name": "id",
+                            "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#sPhonRel' + str(len(phonrelations)+1)
+                        }),
+                        E.labels({
+                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "namespace": "salt",
+                            "name": "SNAME",
+                            "value": "T::sPhonRel" + str(len(phonrelations)+1)
+                        }),
+                        E.labels({
+                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "namespace": "salt",
+                            "name": "SSTART",
+                            "value": f"N::{phonstart}"
+                        }),
+                        E.labels({
+                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "namespace": "salt",
+                            "name": "SEND",
+                            "value": f"N::{phonend}"
+                        })
+                )
+            )
+
 
         prevword = word
 
-    return (tokens, textrelations, text, map_id_to_nodenr, nodes_seqnr)
+    nodes = []
+    if text:
+        nodes.append( E.nodes({
+                                "{http://www.omg.org/XMI}type": "sDocumentStructure:STextualDS",
+                            },
+                            E.labels({
+                                "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                                "namespace": "saltCommon",
+                                "name": "SDATA",
+                                "value": "T::" + text, #this can be huge!
+                            }),
+                            E.labels({
+                                "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                                "namespace": "salt",
+                                "name": "id",
+                                "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#TextContent'
+                            }),
+                            E.labels({
+                                "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                                "namespace": "salt",
+                                "name": "SNAME",
+                                "value": "T::TextContent"
+                            }),
+                    ))
+    if phon:
+        nodes.append(E.nodes({
+                                "{http://www.omg.org/XMI}type": "sDocumentStructure:STextualDS",
+                            },
+                            E.labels({
+                                "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                                "namespace": "saltCommon",
+                                "name": "SDATA",
+                                "value": "T::" + phon, #this can be huge!
+                            }),
+                            E.labels({
+                                "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                                "namespace": "salt",
+                                "name": "id",
+                                "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#PhonContent'
+                            }),
+                            E.labels({
+                                "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                                "namespace": "salt",
+                                "name": "SNAME",
+                                "value": "T::PhonContent"
+                            }),
+                    ))
+    nodes += tokens
+    return (nodes, textrelations, text, phonrelations, phon, map_id_to_nodenr, nodes_seqnr)
 
 def init_layer(layers, element):
     """Initialises a salt layer (in a temporary structure) and computes the namespace for a certain annotation type"""
@@ -281,7 +363,6 @@ def convert_structure_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **
             span_nodes = [ map_id_to_nodenr[w.id] for w in structure.words() ]
             if span_nodes:
                 layer, namespace = init_layer(layers, structure)
-                nodes_seqnr += 1
                 structure.nodes_seqnr = nodes_seqnr #associate it with the folia temporarily for a quick lookup later
                 layer['nodes'].append(nodes_seqnr)
                 structure_nodes.append(
@@ -322,6 +403,7 @@ def convert_structure_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **
                             }),
                         )
                     )
+                nodes_seqnr += 1
     return (structure_nodes, structure_spanningrelations, nodes_seqnr)
 
 def convert_span_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwargs):
@@ -334,11 +416,10 @@ def convert_span_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwarg
     #Create spans and text relations for all span elements:
     #only handles simple span elements that do not take span roles
     for span in doc.select(folia.AbstractSpanAnnotation):
-        if not isinstance(span, folia.AbstractSpanRole) and  not any((isinstance(x, folia.AbstractSpanRole) for x in span.ACCEPTED_DATA)) and not isinstance(span, folia.SyntacticUnit):
-            span_token_nodes = [ map_id_to_nodenr[w.id] for w in span.wrefs(False) ]
+        if not isinstance(span, (folia.AbstractSpanRole, folia.SyntacticUnit)) and  not any((isinstance(x, folia.AbstractSpanRole) for x in span.ACCEPTED_DATA)):
+            span_token_nodes = [ map_id_to_nodenr[w.id] for w in span.wrefs() ]
             if span_token_nodes:
                 layer, namespace = init_layer(layers, span)
-                nodes_seqnr += 1
                 layer['nodes'].append(nodes_seqnr)
 
                 span_nodes.append(
@@ -374,6 +455,7 @@ def convert_span_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwarg
                             })
                         )
                     )
+                nodes_seqnr += 1
     return (span_nodes, span_spanningrelations, nodes_seqnr)
 
 def convert_syntax_annotation(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwargs):
@@ -401,7 +483,6 @@ def convert_nested_span(span, layers, map_id_to_nodenr, nodes_seqnr, **kwargs):
             children_nodenr.append(child.nodes_seqnr)
 
     layer, namespace = init_layer(layers, span)
-    nodes_seqnr += 1
     span.nodes_seqnr = nodes_seqnr #we will need this to get the node number back from the parent elements
     layer['nodes'].append(nodes_seqnr)
 
@@ -438,6 +519,7 @@ def convert_nested_span(span, layers, map_id_to_nodenr, nodes_seqnr, **kwargs):
                 })
             )
         )
+    nodes_seqnr += 1
 
     return (nested_nodes, nested_relations, nodes_seqnr)
 
@@ -582,7 +664,7 @@ def main():
     parser.add_argument('-v','-V','--version',help="Show version information", action='version', version="FoLiA-tools v" + TOOLVERSION + ", using FoLiA v" + folia.FOLIAVERSION + " with library FoLiApy v" + folia.LIBVERSION, default=False)
     parser.add_argument('--recurse','-r',help="recurse into subdirectories", action='store_true', required=False)
     parser.add_argument('--extension','-e',type=str, help="extension", action='store', default="xml",required=False)
-    parser.add_argument('--corpusprefix',type=str, help="Corpus prefix for salt", action='store', default="/corpus",required=False)
+    parser.add_argument('--corpusprefix','-p', type=str, help="Corpus prefix for salt", action='store', default="/corpus",required=False)
     parser.add_argument('--saltnamespace','-s',help="Add simplified annotations in the salt namespace", action='store_true', required=False, default=False)
     parser.add_argument('--saltonly','-S',help="Skip complex annotations not in the salt namespace (use with --saltnamespace). This will ignore a lot of the information FoLiA provides!", action='store_true', required=False, default=False)
     parser.add_argument('files', nargs='*', help='Files (and/or directories) to convert')
