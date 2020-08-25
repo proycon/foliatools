@@ -64,9 +64,10 @@ def convert(f, **kwargs):
 
     structure_nodes, structure_spanningrelations, nodes_seqnr = convert_structure_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwargs)
     span_nodes, span_spanningrelations, nodes_seqnr = convert_span_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwargs)
+    syntax_nodes, syntax_dominancerelations, nodes_seqnr = convert_syntax_annotation(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwargs)
 
-    nodes = [text_node] + token_nodes + structure_nodes + span_nodes
-    edges = textrelations + structure_spanningrelations + span_spanningrelations
+    nodes = [text_node] + token_nodes + structure_nodes + span_nodes + syntax_nodes
+    edges = textrelations + structure_spanningrelations + span_spanningrelations + syntax_dominancerelations
 
     layers = list(build_layers(layers, nodes, edges)) #this modifies the nodes and edges as well
 
@@ -223,23 +224,21 @@ def build_layers(layers, nodes, edges):
                     "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
                     "namespace": "FoLiA",
                     "name": "set",
-                    "value": layer['set']
+                    "value": "T::" + layer['set']
                 }),
                 E.labels({
                     "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
                     "namespace": "FoLiA",
                     "name": "annotationtype",
-                    "value": layer['type']
+                    "value": "T::" + layer['type']
                 }),
                 E.labels({
                     "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
                     "namespace": "FoLiA",
                     "name": "namespace",
-                    "value": namespace
+                    "value": "T::" + namespace
                 })
             )
-
-
 
 
 def convert_inline_annotations(word, layers, **kwargs):
@@ -335,15 +334,16 @@ def convert_span_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwarg
     #Create spans and text relations for all span elements:
     #only handles simple span elements that do not take span roles
     for span in doc.select(folia.AbstractSpanAnnotation):
-        if not isinstance(span, folia.AbstractSpanRole) and  not any((isinstance(x, folia.AbstractSpanRole) for x in span.ACCEPTED_DATA)):
-            span_token_nodes = [ map_id_to_nodenr[w.id] for w in span.wrefs() ]
+        if not isinstance(span, folia.AbstractSpanRole) and  not any((isinstance(x, folia.AbstractSpanRole) for x in span.ACCEPTED_DATA)) and not isinstance(span, folia.SyntacticUnit):
+            span_token_nodes = [ map_id_to_nodenr[w.id] for w in span.wrefs(False) ]
             if span_token_nodes:
                 layer, namespace = init_layer(layers, span)
                 nodes_seqnr += 1
                 layer['nodes'].append(nodes_seqnr)
+
                 span_nodes.append(
                         E.nodes({
-                            "{http://www.omg.org/XMI}type": "sDocumentspan:SSpan",
+                            "{http://www.omg.org/XMI}type": "sDocumentStructure:SSpan",
                             },
                             *convert_identifier(span, **kwargs),
                             *convert_type_information(span, **kwargs),
@@ -356,7 +356,7 @@ def convert_span_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwarg
                 for nodenr in span_token_nodes:
                     span_spanningrelations.append(
                          E.edges({
-                                "{http://www.omg.org/XMI}type": "sDocumentspan:SSpanningRelation",
+                                "{http://www.omg.org/XMI}type": "sDocumentStructure:SSpanningRelation",
                                  "source": f"//@nodes.{nodes_seqnr}", #the span
                                  "target": f"//@nodes.{nodenr}", #the token in the span
                              },
@@ -375,6 +375,71 @@ def convert_span_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwarg
                         )
                     )
     return (span_nodes, span_spanningrelations, nodes_seqnr)
+
+def convert_syntax_annotation(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwargs):
+    syntax_nodes = []
+    syntax_relations = []
+    for syntaxlayer in doc.select(folia.SyntaxLayer):
+        for su in syntaxlayer.select(folia.SyntacticUnit, recursive=False):
+            nodes, relations, nodes_seqnr = convert_nested_span(su, layers, map_id_to_nodenr, nodes_seqnr, **kwargs)
+            syntax_nodes += nodes
+            syntax_relations += relations
+    return (syntax_nodes, syntax_relations, nodes_seqnr)
+
+def convert_nested_span(span, layers, map_id_to_nodenr, nodes_seqnr, **kwargs):
+    nested_nodes = []
+    nested_relations = []
+    #process children first
+    children_nodenr = []
+    for child in span.select( (span.__class__, folia.Word), recursive=False):
+        if child.__class__ is span.__class__:
+            nodes, relations, nodes_seqnr = convert_nested_span(child, layers, map_id_to_nodenr, nodes_seqnr, **kwargs)
+            nested_nodes += nodes
+            nested_relations += relations
+            children_nodenr.append(child.nodes_seqnr)
+        else:
+            children_nodenr.append(child.nodes_seqnr)
+
+    layer, namespace = init_layer(layers, span)
+    nodes_seqnr += 1
+    span.nodes_seqnr = nodes_seqnr #we will need this to get the node number back from the parent elements
+    layer['nodes'].append(nodes_seqnr)
+
+    nested_nodes.append(
+            E.nodes({
+                "{http://www.omg.org/XMI}type": "sDocumentStructure:SStructure", #salt calls nested hierarchies 'structure', not to be confused with what FoLiA calls structure (document structure)
+                },
+                *convert_identifier(span, **kwargs),
+                *convert_type_information(span, **kwargs),
+                *convert_common_attributes(span, namespace, **kwargs),
+                *convert_features(span, namespace, **kwargs),
+                *convert_higher_order(span, namespace, **kwargs),
+            )
+    )
+
+    for nodenr in children_nodenr:
+        nested_relations.append(
+             E.edges({
+                    "{http://www.omg.org/XMI}type": "sDocumentStructure:SDominanceRelation",
+                     "source": f"//@nodes.{nodes_seqnr}", #the span
+                     "target": f"//@nodes.{nodenr}", #the subspan or token
+                 },
+                 E.labels({
+                    "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                    "namespace": "salt",
+                    "name": "id",
+                    "value": "T::salt:" + kwargs['corpusprefix'] + "/" + span.doc.id + f"#sDomRel{nodes_seqnr}-{nodenr}"
+                }),
+                E.labels({
+                    "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                    "namespace": "salt",
+                    "name": "SNAME",
+                    "value": f"T::sDomRel{nodes_seqnr}-{nodenr}"
+                })
+            )
+        )
+
+    return (nested_nodes, nested_relations, nodes_seqnr)
 
 
 def convert_identifier(annotation, **kwargs):
