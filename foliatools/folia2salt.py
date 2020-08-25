@@ -34,6 +34,55 @@ def convert(f, **kwargs):
     if not doc.declared(folia.AnnotationType.TOKEN):
         raise Exception("Only tokenized documents can be handled at the moment")
 
+    tokens, textrelations, text, map_id_to_nodenr, nodes_seqnr = convert_tokens(doc, **kwargs)
+    structure_nodes, structure_spanningrelations, nodes_seqnr = convert_structure_annotations(doc, map_id_to_nodenr, nodes_seqnr, **kwargs)
+
+    #Create the document (sDocumentGraph)
+    saltdoc = E.element( #sDocumentGraph
+        {"{http://www.omg.org/XMI}version":"2.0"},
+        E.labels({ # document ID
+            "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+            "namespace": "salt",
+            "name": "id",
+            "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id
+        }),
+        E.nodes({
+                    "{http://www.omg.org/XMI}type": "sDocumentStructure:STextualDS",
+                },
+                E.labels({
+                    "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                    "namespace": "saltCommon",
+                    "name": "SDATA",
+                    "value": "T::" + text, #this can be huge!
+                }),
+                E.labels({
+                    "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                    "namespace": "salt",
+                    "name": "id",
+                    "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#sTextualDS'
+                }),
+                E.labels({
+                    "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                    "namespace": "salt",
+                    "name": "SNAME",
+                    "value": "T::sTextualDS"
+                }),
+        ),
+        *tokens,
+        *structure_nodes,
+        *textrelations,
+        *structure_spanningrelations,
+        name="sDocumentGraph", ns="sDocumentStructure")
+
+    outputfile = os.path.basename(doc.filename).replace(".folia.xml","").replace(".xml","") + ".salt"
+    xml = lxml.etree.tostring(saltdoc, xml_declaration=True, pretty_print=True, encoding='utf-8')
+    with open(outputfile,'wb') as f:
+        f.write(xml)
+    print(f"Wrote {outputfile}",file=sys.stderr)
+    return saltdoc
+
+def convert_tokens(doc, **kwargs):
+    """Convert FoLiA tokens (w) to salt nodes. This function also extracts the text layer and links to it."""
     tokens = []
     textrelations = []
 
@@ -49,7 +98,7 @@ def convert(f, **kwargs):
             raise Exception("Only documents in which all words have IDs can be converted. Consider preprocessing with foliaid first.")
         if token_namespace is None:
             #only needs to be done once
-            token_namespace = "FoLiA/w/" + (word.set if word.set else "")
+            token_namespace = "FoLiA::w::" + (word.set if word.set else "")
 
         textstart = len(text)
         text += word.text()
@@ -109,6 +158,31 @@ def convert(f, **kwargs):
 
         prevword = word
 
+    return (tokens, textrelations, text, map_id_to_nodenr, nodes_seqnr)
+
+def convert_inline_annotations(word, **kwargs):
+    """Convert FoLiA inline annotations to salt SAnnotation labels on a token"""
+    for annotation in word.select(folia.AbstractInlineAnnotation):
+        if kwargs['saltnamespace'] and (annotation.set is None or annotation.set == word.doc.defaultset(annotation.ANNOTATIONTYPE)):
+           #add a simplified annotation in the Salt namespace, this facilitates
+           #conversion to other formats
+           yield E.labels({
+                       "{http://www.omg.org/XMI}type": "saltCore:SAnnotation",
+                       "namespace": "salt",
+                       "name": annotation.XMLTAG,
+                       "value": "T::" + annotation.cls
+                   })
+
+        if not kwargs['saltonly']:
+            namespace = "FoLiA::" + annotation.XMLTAG + "::" + (annotation.set if annotation.set else "")
+
+            for x in convert_common_attributes(annotation, namespace, **kwargs):
+                yield x
+
+            for x in convert_features(annotation, namespace, **kwargs):
+                yield x
+
+def convert_structure_annotations(doc, map_id_to_nodenr, nodes_seqnr, **kwargs):
     structure_nodes = []
     structure_spanningrelations = []
     #Create spans and text relations for all structure elements
@@ -116,7 +190,7 @@ def convert(f, **kwargs):
         if not isinstance(structure, folia.Word): #word are already covered
             span_nodes = [ map_id_to_nodenr[w.id] for w in structure.words() ]
             if span_nodes:
-                namespace = "FoLiA/" + structure.XMLTAG + "/" + (structure.set if structure.set else "")
+                namespace = "FoLiA::" + structure.XMLTAG + "::" + (structure.set if structure.set else "")
                 nodes_seqnr += 1
                 structure_nodes.append(
                         E.nodes({
@@ -154,73 +228,8 @@ def convert(f, **kwargs):
                             }),
                         )
                     )
+    return (structure_nodes, structure_spanningrelations, nodes_seqnr)
 
-
-
-    saltdoc = E.element( #sDocumentGraph
-        {"{http://www.omg.org/XMI}version":"2.0"},
-        E.labels({ # document ID
-            "{http://www.omg.org/XMI}type": "saltCore:SElementId",
-            "namespace": "salt",
-            "name": "id",
-            "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id
-        }),
-        E.nodes({
-                    "{http://www.omg.org/XMI}type": "sDocumentStructure:STextualDS",
-                },
-                E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SFeature",
-                    "namespace": "saltCommon",
-                    "name": "SDATA",
-                    "value": "T::" + text, #this can be huge!
-                }),
-                E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SElementId",
-                    "namespace": "salt",
-                    "name": "id",
-                    "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#sTextualDS'
-                }),
-                E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SFeature",
-                    "namespace": "salt",
-                    "name": "SNAME",
-                    "value": "T::sTextualDS"
-                }),
-        ),
-        *tokens,
-        *structure_nodes,
-        *textrelations,
-        *structure_spanningrelations,
-        name="sDocumentGraph", ns="sDocumentStructure")
-
-    outputfile = os.path.basename(doc.filename).replace(".folia.xml","").replace(".xml","") + ".salt"
-    xml = lxml.etree.tostring(saltdoc, xml_declaration=True, pretty_print=True, encoding='utf-8')
-    with open(outputfile,'wb') as f:
-        f.write(xml)
-    print(f"Wrote {outputfile}",file=sys.stderr)
-    return saltdoc
-
-def convert_inline_annotations(word, **kwargs):
-    """Convert FoLiA inline annotations to salt SAnnotation labels on a token"""
-    for annotation in word.select(folia.AbstractInlineAnnotation):
-        if kwargs['saltnamespace'] and (annotation.set is None or annotation.set == word.doc.defaultset(annotation.ANNOTATIONTYPE)):
-           #add a simplified annotation in the Salt namespace, this facilitates
-           #conversion to other formats
-           yield E.labels({
-                       "{http://www.omg.org/XMI}type": "saltCore:SAnnotation",
-                       "namespace": "salt",
-                       "name": annotation.XMLTAG,
-                       "value": "T::" + annotation.cls
-                   })
-
-        if not kwargs['saltonly']:
-            namespace = "FoLiA/" + annotation.XMLTAG + "/" + (annotation.set if annotation.set else "")
-
-            for x in convert_common_attributes(annotation, namespace, **kwargs):
-                yield x
-
-            for x in convert_features(annotation, namespace, **kwargs):
-                yield x
 
 def convert_identifier(annotation, **kwargs):
     if annotation.id:
@@ -302,13 +311,19 @@ def convert_common_attributes(annotation,namespace, **kwargs):
         yield E.labels({
                     "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
                     "namespace": namespace,
-                    "name": "processor",
+                    "name": "processor/id",
+                    "value": "T::" + annotation.processor.id
+                })
+        yield E.labels({
+                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+                    "namespace": namespace,
+                    "name": "processor/name",
                     "value": "T::" + annotation.processor.name
                 })
         yield E.labels({
                     "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
                     "namespace": namespace,
-                    "name": "processor_type",
+                    "name": "processor/type",
                     "value": "T::" + annotation.processor.type
                 })
 
