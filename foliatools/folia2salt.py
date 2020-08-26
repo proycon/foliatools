@@ -12,7 +12,7 @@ from lxml.builder import ElementMaker
 from foliatools import VERSION as TOOLVERSION
 import folia.main as folia
 
-E = ElementMaker(nsmap={"sDocumentStructure":"sDocumentStucture", "xmi":"http://www.omg.org/XMI", "saltCore":"saltCore" })
+E = ElementMaker(nsmap={"sDocumentStructure":"sDocumentStructure", "xmi":"http://www.omg.org/XMI", "xsi": "http://www.w3.org/2001/XMLSchema-instance", "saltCore":"saltCore","saltCommon":"saltCommon", "sCorpusStructure":"sCorpusStructure" })
 
 
 def processdir(d, **kwargs):
@@ -48,25 +48,24 @@ def convert(f, **kwargs):
     layers = list(build_layers(layers, nodes, edges)) #this modifies the nodes and edges as well
 
     #Create the document (sDocumentGraph)
-    saltdoc = E.element( #sDocumentGraph
+    saltdoc = getattr(E,"{sDocumentStructure}SDocumentGraph")(
         {"{http://www.omg.org/XMI}version":"2.0"},
         E.labels({ # document ID
-            "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SElementId",
             "namespace": "salt",
             "name": "id",
             "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id
         }),
         *nodes,
         *edges,
-        *layers,
-        name="sDocumentGraph", ns="sDocumentStructure")
+        *layers)
 
 
     metadata = []
     if doc.metadata:
         for key, value in doc.metadata.items():
             metadata.append( E.labels({
-                "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+                "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                 "namespace": "FoLiA::meta",
                 "name": key,
                 "value": "T::" + str(value)
@@ -74,26 +73,26 @@ def convert(f, **kwargs):
 
 
     corpusdoc = E.nodes( #sDocument
-                        {"{http://www.omg.org/XMI}type": "sCorpusStructure:SDocument"},
+                        {"{http://www.w3.org/2001/XMLSchema-instance}type": "sCorpusStructure:SDocument"},
                         E.labels({ # document ID
-                            "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SElementId",
                             "namespace": "salt",
                             "name": "id",
                             "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id
                         }),
                         E.labels({
-                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                             "namespace": "salt",
                             "name": "SNAME",
                             "value": "T::" + doc.id
                         }),
                         E.labels({
-                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                             "namespace": "salt",
                             "name": "SDOCUMENT_GRAPH",
                         }),
                         E.labels({
-                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                             "namespace": "salt",
                             "name": "SDOCUMENT_GRAPH_LOCATION",
                             "value": "T::file:" + os.path.join(os.path.realpath(kwargs['outputdir']), kwargs['corpusprefix'], doc.id + ".salt")
@@ -164,7 +163,7 @@ def convert_tokens(doc, layers, **kwargs):
 
         tokens.append(
             E.nodes({
-                    "{http://www.omg.org/XMI}type": "sDocumentStructure:SToken",
+                "{http://www.w3.org/2001/XMLSchema-instance}type": "sDocumentStructure:SToken",
                     },
                     *convert_identifier(word, **kwargs),
                     *convert_type_information(word, **kwargs),
@@ -177,30 +176,30 @@ def convert_tokens(doc, layers, **kwargs):
         if text and textstart != textend:
             textrelations.append(
                 E.edges({
-                        "{http://www.omg.org/XMI}type": "sDocumentStructure:STextualRelation",
+                    "{http://www.w3.org/2001/XMLSchema-instance}type": "sDocumentStructure:STextualRelation",
                         "source": f"//@nodes.{nodes_seqnr}",
                         "target": "//@nodes.{textnode}"
                         },
                         E.labels({
-                            "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SElementId",
                             "namespace": "salt",
                             "name": "id",
                             "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id + '#sTextRel' + str(len(textrelations)+1)
                         }),
                         E.labels({
-                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                             "namespace": "salt",
                             "name": "SNAME",
                             "value": "T::sTextRel" + str(len(textrelations)+1)
                         }),
                         E.labels({
-                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                             "namespace": "salt",
                             "name": "SSTART",
                             "value": f"N::{textstart}"
                         }),
                         E.labels({
-                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                             "namespace": "salt",
                             "name": "SEND",
                             "value": f"N::{textend}"
@@ -214,30 +213,30 @@ def convert_tokens(doc, layers, **kwargs):
         if phon and phonstart != phonend:
             phonrelations.append(
                 E.edges({
-                        "{http://www.omg.org/XMI}type": "sDocumentStructure:STextRelation",
+                    "{http://www.w3.org/2001/XMLSchema-instance}type": "sDocumentStructure:STextRelation",
                         "source": f"//@nodes.{nodes_seqnr}",
                         "target": "//@nodes.{phonnode}"
                         },
                         E.labels({
-                            "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SElementId",
                             "namespace": "salt",
                             "name": "id",
                             "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id + '#sPhonRel' + str(len(phonrelations)+1)
                         }),
                         E.labels({
-                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                             "namespace": "salt",
                             "name": "SNAME",
                             "value": "T::sPhonRel" + str(len(phonrelations)+1)
                         }),
                         E.labels({
-                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                             "namespace": "salt",
                             "name": "SSTART",
                             "value": f"N::{phonstart}"
                         }),
                         E.labels({
-                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                             "namespace": "salt",
                             "name": "SEND",
                             "value": f"N::{phonend}"
@@ -251,22 +250,22 @@ def convert_tokens(doc, layers, **kwargs):
     nodes = []
     if text:
         nodes.append( E.nodes({
-                                "{http://www.omg.org/XMI}type": "sDocumentStructure:STextualDS",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "sDocumentStructure:STextualDS",
                             },
                             E.labels({
-                                "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                                "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                                 "namespace": "saltCommon",
                                 "name": "SDATA",
                                 "value": "T::" + text, #this can be huge!
                             }),
                             E.labels({
-                                "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                                "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SElementId",
                                 "namespace": "salt",
                                 "name": "id",
                                 "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id + '#TextContent'
                             }),
                             E.labels({
-                                "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                                "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                                 "namespace": "salt",
                                 "name": "SNAME",
                                 "value": "T::TextContent"
@@ -274,22 +273,22 @@ def convert_tokens(doc, layers, **kwargs):
                     ))
     if phon:
         nodes.append(E.nodes({
-                                "{http://www.omg.org/XMI}type": "sDocumentStructure:STextualDS",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "sDocumentStructure:STextualDS",
                             },
                             E.labels({
-                                "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                                "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                                 "namespace": "saltCommon",
                                 "name": "SDATA",
                                 "value": "T::" + phon, #this can be huge!
                             }),
                             E.labels({
-                                "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                                "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SElementId",
                                 "namespace": "salt",
                                 "name": "id",
                                 "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id + '#PhonContent'
                             }),
                             E.labels({
-                                "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                                "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                                 "namespace": "salt",
                                 "name": "SNAME",
                                 "value": "T::PhonContent"
@@ -326,36 +325,36 @@ def build_layers(layers, nodes, edges):
                 edges[n].attrib["layers"] = f"//@layers.{i}"
 
         yield E.layers({
-                    "{http://www.omg.org/XMI}type": "saltCore:SLayer",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SLayer",
                     "nodes": " ".join(f"//@nodes.{n}" for n in layer["nodes"]),
                     "edges": " ".join(f"//@edges.{n}" for n in layer["edges"])
                 },
                 E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                    "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SElementId",
                     "namespace": "salt",
                     "name": "id",
                     "value": "T::" + namespace
                 }),
                 E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                    "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                     "namespace": "salt",
                     "name": "SNAME",
                     "value": "T::" + layer['type'] + (" ("+ layer['set']+")" if layer['set'] else "")
                 }),
                 E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+                    "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": "FoLiA",
                     "name": "set",
                     "value": "T::" + layer['set']
                 }),
                 E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+                    "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": "FoLiA",
                     "name": "annotationtype",
                     "value": "T::" + layer['type']
                 }),
                 E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+                    "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": "FoLiA",
                     "name": "namespace",
                     "value": "T::" + namespace
@@ -370,7 +369,7 @@ def convert_inline_annotations(word, layers, **kwargs):
            #add a simplified annotation in the Salt namespace, this facilitates
            #conversion to other formats
            yield E.labels({
-                       "{http://www.omg.org/XMI}type": "saltCore:SAnnotation",
+               "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SAnnotation",
                        "namespace": "salt",
                        "name": annotation.XMLTAG,
                        "value": "T::" + annotation.cls
@@ -407,10 +406,10 @@ def convert_structure_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **
                 layer['nodes'].append(nodes_seqnr)
                 structure_nodes.append(
                         E.nodes({
-                            "{http://www.omg.org/XMI}type": "sDocumentStructure:SSpan",
+                            "{http://www.w3.org/2001/XMLSchema-instance}type": "sDocumentStructure:SSpan",
                             },
                             E.labels({ #we follow the example of the TCF->Salt converter here where it is used for sentences, a bit of weird entry, hopefully they knew what they were doing and this triggers some special behaviour for some of the converters? I just made it a bit more generic so it works for all structure types.
-                                "{http://www.omg.org/XMI}type": "saltCore:SAnnotation",
+                                      "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SAnnotation",
                                 "name": folia.annotationtype2str(structure.ANNOTATIONTYPE).lower(),
                                 "value": "T::" + folia.annotationtype2str(structure.ANNOTATIONTYPE).lower()
                             }),
@@ -425,18 +424,18 @@ def convert_structure_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **
                 for nodenr in span_nodes:
                     structure_spanningrelations.append(
                          E.edges({
-                                "{http://www.omg.org/XMI}type": "sDocumentStructure:SSpanningRelation",
+                             "{http://www.w3.org/2001/XMLSchema-instance}type": "sDocumentStructure:SSpanningRelation",
                                  "source": f"//@nodes.{nodes_seqnr}", #the structure
                                  "target": f"//@nodes.{nodenr}", #the token in the span
                              },
                              E.labels({
-                                "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                                 "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SElementId",
                                 "namespace": "salt",
                                 "name": "id",
                                 "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id + '#sStructureSpanRel' + str(len(structure_spanningrelations)+1)
                             }),
                             E.labels({
-                                "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                                "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                                 "namespace": "salt",
                                 "name": "SNAME",
                                 "value": "T::sStructureSpanRel" + str(len(structure_spanningrelations)+1)
@@ -464,7 +463,7 @@ def convert_span_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwarg
 
                 span_nodes.append(
                         E.nodes({
-                            "{http://www.omg.org/XMI}type": "sDocumentStructure:SSpan",
+                            "{http://www.w3.org/2001/XMLSchema-instance}type": "sDocumentStructure:SSpan",
                             },
                             *convert_identifier(span, **kwargs),
                             *convert_type_information(span, **kwargs),
@@ -477,18 +476,18 @@ def convert_span_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwarg
                 for nodenr in span_token_nodes:
                     span_spanningrelations.append(
                          E.edges({
-                                "{http://www.omg.org/XMI}type": "sDocumentStructure:SSpanningRelation",
+                             "{http://www.w3.org/2001/XMLSchema-instance}type": "sDocumentStructure:SSpanningRelation",
                                  "source": f"//@nodes.{nodes_seqnr}", #the span
                                  "target": f"//@nodes.{nodenr}", #the token in the span
                              },
                              E.labels({
-                                "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                                 "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SElementId",
                                 "namespace": "salt",
                                 "name": "id",
                                 "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id + '#sSpanRel' + str(len(span_spanningrelations)+1)
                             }),
                             E.labels({
-                                "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                                "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                                 "namespace": "salt",
                                 "name": "SNAME",
                                 "value": "T::sSpanRel" + str(len(span_spanningrelations)+1)
@@ -528,7 +527,7 @@ def convert_nested_span(span, layers, map_id_to_nodenr, nodes_seqnr, **kwargs):
 
     nested_nodes.append(
             E.nodes({
-                "{http://www.omg.org/XMI}type": "sDocumentStructure:SStructure", #salt calls nested hierarchies 'structure', not to be confused with what FoLiA calls structure (document structure)
+                "{http://www.w3.org/2001/XMLSchema-instance}type": "sDocumentStructure:SStructure", #salt calls nested hierarchies 'structure', not to be confused with what FoLiA calls structure (document structure)
                 },
                 *convert_identifier(span, **kwargs),
                 *convert_type_information(span, **kwargs),
@@ -541,18 +540,18 @@ def convert_nested_span(span, layers, map_id_to_nodenr, nodes_seqnr, **kwargs):
     for nodenr in children_nodenr:
         nested_relations.append(
              E.edges({
-                    "{http://www.omg.org/XMI}type": "sDocumentStructure:SDominanceRelation",
+                 "{http://www.w3.org/2001/XMLSchema-instance}type": "sDocumentStructure:SDominanceRelation",
                      "source": f"//@nodes.{nodes_seqnr}", #the span
                      "target": f"//@nodes.{nodenr}", #the subspan or token
                  },
                  E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                     "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SElementId",
                     "namespace": "salt",
                     "name": "id",
                     "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + span.doc.id + f"#sDomRel{nodes_seqnr}-{nodenr}"
                 }),
                 E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                    "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                     "namespace": "salt",
                     "name": "SNAME",
                     "value": f"T::sDomRel{nodes_seqnr}-{nodenr}"
@@ -567,13 +566,13 @@ def convert_nested_span(span, layers, map_id_to_nodenr, nodes_seqnr, **kwargs):
 def convert_identifier(annotation, **kwargs):
     if annotation.id:
         yield E.labels({
-            "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SElementId",
             "namespace": "salt",
             "name": "id",
             "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + annotation.doc.id + '#' + annotation.id
         })
         yield E.labels({
-            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
             "namespace": "salt",
             "name": "SNAME",
             "value": "T::" + annotation.id
@@ -583,14 +582,14 @@ def convert_type_information(annotation, **kwargs):
     """Adds extra FoLiA type information as SMetaAnnotation labels (on salt nodes)"""
     if annotation.XMLTAG:
         yield E.labels({
-            "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
             "namespace": "FoLiA",
             "name": "elementtype",
             "value": "T::" + annotation.XMLTAG
         })
     if annotation.ANNOTATIONTYPE:
         yield E.labels({
-            "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
             "namespace": "FoLiA",
             "name": "annotationtype",
             "value": "T::" + folia.annotationtype2str(annotation.ANNOTATIONTYPE).lower()
@@ -601,7 +600,7 @@ def convert_common_attributes(annotation,namespace, **kwargs):
 
     if annotation.cls is not None:
         yield E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SAnnotation",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SAnnotation",
                     "namespace": namespace,
                     "name": "class",
                     "value": "T::" + annotation.cls
@@ -609,7 +608,7 @@ def convert_common_attributes(annotation,namespace, **kwargs):
 
     if annotation.id is not None:
         yield E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": namespace,
                     "name": "id",
                     "value": "T::" + annotation.id
@@ -617,7 +616,7 @@ def convert_common_attributes(annotation,namespace, **kwargs):
 
     if annotation.confidence is not None:
         yield E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": namespace,
                     "name": "confidence",
                     "value": "N::" + str(annotation.confidence)
@@ -625,7 +624,7 @@ def convert_common_attributes(annotation,namespace, **kwargs):
 
     if annotation.n is not None:
         yield E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": namespace,
                     "name": "n",
                     "value": "T::" + annotation.n
@@ -633,7 +632,7 @@ def convert_common_attributes(annotation,namespace, **kwargs):
 
     if annotation.href is not None:
         yield E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": namespace,
                     "name": "href",
                     "value": "T::" + annotation.href
@@ -641,7 +640,7 @@ def convert_common_attributes(annotation,namespace, **kwargs):
 
     if annotation.datetime is not None:
         yield E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": namespace,
                     "name": "datetime",
                     "value": "T::" + annotation.datetime.strftime("%Y-%m-%dT%H:%M:%S") #MAYBE TODO: I'm not sure if XMI/salt has a specific date type possibly?
@@ -650,19 +649,19 @@ def convert_common_attributes(annotation,namespace, **kwargs):
 
     if annotation.processor:
         yield E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": namespace,
                     "name": "processor/id",
                     "value": "T::" + annotation.processor.id
                 })
         yield E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": namespace,
                     "name": "processor/name",
                     "value": "T::" + annotation.processor.name
                 })
         yield E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": namespace,
                     "name": "processor/type",
                     "value": "T::" + annotation.processor.type
@@ -672,7 +671,7 @@ def convert_features(annotation, namespace, **kwargs):
     """Convert FoLiA features to SAnnotation labels (on salt nodes)"""
     for feature in annotation.select(folia.Feature, recursive=False):
         yield E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SAnnotation",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SAnnotation",
                     "namespace": namespace,
                     "name": "feature/" + feature.subset,
                     "value": "T::" + feature.cls
@@ -682,7 +681,7 @@ def convert_higher_order(annotation, namespace, **kwargs):
     """Convert certain FoLiA higher-order features to SAnnotation labels (on salt nodes)"""
     for seqnr, description in enumerate(annotation.select(folia.Description, recursive=False)):
         yield E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": namespace,
                     "name": "description/" + str(seqnr + 1),
                     "value": "T::" + description.value
@@ -690,7 +689,7 @@ def convert_higher_order(annotation, namespace, **kwargs):
 
     for seqnr, comment in enumerate(annotation.select(folia.Comment, recursive=False)):
         yield E.labels({
-                    "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+            "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": namespace,
                     "name": "comment/" + str(seqnr + 1),
                     "value": "T::" + description.value
@@ -699,25 +698,25 @@ def convert_higher_order(annotation, namespace, **kwargs):
 
 def convert_corpus(corpusdocs, **kwargs):
     edges = [ E.edges({
-                        "{http://www.omg.org/XMI}type": "sCorpusStructure:SCorpusDocumentRelation",
+        "{http://www.w3.org/2001/XMLSchema-instance}type": "sCorpusStructure:SCorpusDocumentRelation",
                         "source": f"//@nodes.0",
                         "target": "//@nodes." + str(i+1),
                       },
                     E.labels({ # document ID
-                        "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                              "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SElementId",
                         "namespace": "salt",
                         "name": "id",
                         "value": "T::salt:/corpDocRel" + str(i+1)
                     }),
                     E.labels({
-                        "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                        "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                         "namespace": "salt",
                         "name": "SNAME",
                         "value": "T::corpDocRel" + str(i+1)
                     })
              )
              for i,_ in enumerate(corpusdocs) ]
-    saltproject = E.element( #sDocumentGraph
+    saltproject = getattr(E,"{saltCommon}SaltProject")( #sDocumentGraph
         {"{http://www.omg.org/XMI}version":"2.0"},
         E.sCorpusGraphs(
             E.labels({ # document ID
@@ -744,8 +743,7 @@ def convert_corpus(corpusdocs, **kwargs):
             ),
             *corpusdocs,
             *edges,
-        ),
-        name="SaltProject",ns="saltCommon"
+        )
     )
     outputfile = os.path.join(kwargs['outputdir'], "saltProject.salt")
     xml = lxml.etree.tostring(saltproject, xml_declaration=True, pretty_print=True, encoding='utf-8')
