@@ -16,17 +16,16 @@ E = ElementMaker(nsmap={"sDocumentStructure":"sDocumentStucture", "xmi":"http://
 
 
 def processdir(d, **kwargs):
-    success = False
     print("Searching in  " + d,file=sys.stderr)
+    corpusdocs = []
     extension = kwargs.get('extension','xml').strip('.')
     for f in glob.glob(os.path.join(d ,'*')):
-        r = True
         if f[-len(extension) - 1:] == '.' + extension:
-            r = convert(f, **kwargs)
+            _, corpusdoc = convert(f, **kwargs)
+            corpusdocs.append(corpusdoc)
         elif kwargs.get('recurse') and os.path.isdir(f):
-            r = processdir(f,**kwargs)
-        if not r: success = False
-    return success
+            corpusdocs += processdir(f,**kwargs)
+    return corpusdocs
 
 def convert(f, **kwargs):
     """Convert a FoLiA document to Salt XML"""
@@ -55,19 +54,60 @@ def convert(f, **kwargs):
             "{http://www.omg.org/XMI}type": "saltCore:SElementId",
             "namespace": "salt",
             "name": "id",
-            "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id
+            "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id
         }),
         *nodes,
         *edges,
         *layers,
         name="sDocumentGraph", ns="sDocumentStructure")
 
-    outputfile = os.path.basename(doc.filename).replace(".folia.xml","").replace(".xml","") + ".salt"
+
+    metadata = []
+    if doc.metadata:
+        for key, value in doc.metadata.items():
+            metadata.append( E.labels({
+                "{http://www.omg.org/XMI}type": "saltCore:SMetaAnnotation",
+                "namespace": "FoLiA::meta",
+                "name": key,
+                "value": "T::" + str(value)
+            }) )
+
+
+    corpusdoc = E.nodes( #sDocument
+                        {"{http://www.omg.org/XMI}type": "sCorpusStructure:SDocument"},
+                        E.labels({ # document ID
+                            "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                            "namespace": "salt",
+                            "name": "id",
+                            "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id
+                        }),
+                        E.labels({
+                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "namespace": "salt",
+                            "name": "SNAME",
+                            "value": "T::" + doc.id
+                        }),
+                        E.labels({
+                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "namespace": "salt",
+                            "name": "SDOCUMENT_GRAPH",
+                        }),
+                        E.labels({
+                            "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                            "namespace": "salt",
+                            "name": "SDOCUMENT_GRAPH_LOCATION",
+                            "value": "T::file:" + os.path.join(os.path.realpath(kwargs['outputdir']), kwargs['corpusprefix'], doc.id + ".salt")
+                        }),
+                        *metadata
+                        )
+
+
+    outputfile = os.path.join(kwargs['outputdir'], kwargs['corpusprefix'], doc.id + ".salt")
     xml = lxml.etree.tostring(saltdoc, xml_declaration=True, pretty_print=True, encoding='utf-8')
     with open(outputfile,'wb') as f:
         f.write(xml)
     print(f"Wrote {outputfile}",file=sys.stderr)
-    return saltdoc
+    return saltdoc, corpusdoc
 
 def convert_tokens(doc, layers, **kwargs):
     """Convert FoLiA tokens (w) to salt nodes. This function also extracts the text layer and links to it."""
@@ -145,7 +185,7 @@ def convert_tokens(doc, layers, **kwargs):
                             "{http://www.omg.org/XMI}type": "saltCore:SElementId",
                             "namespace": "salt",
                             "name": "id",
-                            "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#sTextRel' + str(len(textrelations)+1)
+                            "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id + '#sTextRel' + str(len(textrelations)+1)
                         }),
                         E.labels({
                             "{http://www.omg.org/XMI}type": "saltCore:SFeature",
@@ -182,7 +222,7 @@ def convert_tokens(doc, layers, **kwargs):
                             "{http://www.omg.org/XMI}type": "saltCore:SElementId",
                             "namespace": "salt",
                             "name": "id",
-                            "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#sPhonRel' + str(len(phonrelations)+1)
+                            "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id + '#sPhonRel' + str(len(phonrelations)+1)
                         }),
                         E.labels({
                             "{http://www.omg.org/XMI}type": "saltCore:SFeature",
@@ -223,7 +263,7 @@ def convert_tokens(doc, layers, **kwargs):
                                 "{http://www.omg.org/XMI}type": "saltCore:SElementId",
                                 "namespace": "salt",
                                 "name": "id",
-                                "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#TextContent'
+                                "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id + '#TextContent'
                             }),
                             E.labels({
                                 "{http://www.omg.org/XMI}type": "saltCore:SFeature",
@@ -246,7 +286,7 @@ def convert_tokens(doc, layers, **kwargs):
                                 "{http://www.omg.org/XMI}type": "saltCore:SElementId",
                                 "namespace": "salt",
                                 "name": "id",
-                                "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#PhonContent'
+                                "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id + '#PhonContent'
                             }),
                             E.labels({
                                 "{http://www.omg.org/XMI}type": "saltCore:SFeature",
@@ -393,7 +433,7 @@ def convert_structure_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **
                                 "{http://www.omg.org/XMI}type": "saltCore:SElementId",
                                 "namespace": "salt",
                                 "name": "id",
-                                "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#sStructureSpanRel' + str(len(structure_spanningrelations)+1)
+                                "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id + '#sStructureSpanRel' + str(len(structure_spanningrelations)+1)
                             }),
                             E.labels({
                                 "{http://www.omg.org/XMI}type": "saltCore:SFeature",
@@ -445,7 +485,7 @@ def convert_span_annotations(doc, layers, map_id_to_nodenr, nodes_seqnr, **kwarg
                                 "{http://www.omg.org/XMI}type": "saltCore:SElementId",
                                 "namespace": "salt",
                                 "name": "id",
-                                "value": "T::salt:" + kwargs['corpusprefix'] + "/" + doc.id + '#sSpanRel' + str(len(span_spanningrelations)+1)
+                                "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + doc.id + '#sSpanRel' + str(len(span_spanningrelations)+1)
                             }),
                             E.labels({
                                 "{http://www.omg.org/XMI}type": "saltCore:SFeature",
@@ -509,7 +549,7 @@ def convert_nested_span(span, layers, map_id_to_nodenr, nodes_seqnr, **kwargs):
                     "{http://www.omg.org/XMI}type": "saltCore:SElementId",
                     "namespace": "salt",
                     "name": "id",
-                    "value": "T::salt:" + kwargs['corpusprefix'] + "/" + span.doc.id + f"#sDomRel{nodes_seqnr}-{nodenr}"
+                    "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + span.doc.id + f"#sDomRel{nodes_seqnr}-{nodenr}"
                 }),
                 E.labels({
                     "{http://www.omg.org/XMI}type": "saltCore:SFeature",
@@ -530,7 +570,7 @@ def convert_identifier(annotation, **kwargs):
             "{http://www.omg.org/XMI}type": "saltCore:SElementId",
             "namespace": "salt",
             "name": "id",
-            "value": "T::salt:" + kwargs['corpusprefix'] + "/" + annotation.doc.id + '#' + annotation.id
+            "value": "T::salt:/" + kwargs['corpusprefix'] + "/" + annotation.doc.id + '#' + annotation.id
         })
         yield E.labels({
             "{http://www.omg.org/XMI}type": "saltCore:SFeature",
@@ -657,6 +697,64 @@ def convert_higher_order(annotation, namespace, **kwargs):
                 })
 
 
+def convert_corpus(corpusdocs, **kwargs):
+    edges = [ E.edges({
+                        "{http://www.omg.org/XMI}type": "sCorpusStructure:SCorpusDocumentRelation",
+                        "source": f"//@nodes.0",
+                        "target": "//@nodes." + str(i+1),
+                      },
+                    E.labels({ # document ID
+                        "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                        "namespace": "salt",
+                        "name": "id",
+                        "value": "T::salt:/corpDocRel" + str(i+1)
+                    }),
+                    E.labels({
+                        "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                        "namespace": "salt",
+                        "name": "SNAME",
+                        "value": "T::corpDocRel" + str(i+1)
+                    })
+             )
+             for i,_ in enumerate(corpusdocs) ]
+    saltproject = E.element( #sDocumentGraph
+        {"{http://www.omg.org/XMI}version":"2.0"},
+        E.sCorpusGraphs(
+            E.labels({ # document ID
+                "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                "namespace": "salt",
+                "name": "SNAME",
+                "value": "T::" +  kwargs['corpusprefix']
+            }),
+            E.nodes({
+                    "{http://www.omg.org/XMI}type": "sCorpusStructure:SCorpus",
+                    },
+                    E.labels({ # document ID
+                        "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                        "namespace": "salt",
+                        "name": "id",
+                        "value": "T::salt:/" + kwargs['corpusprefix']
+                    }),
+                    E.labels({
+                        "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                        "namespace": "salt",
+                        "name": "SNAME",
+                        "value": "T::" + kwargs['corpusprefix']
+                    }),
+            ),
+            *corpusdocs,
+            *edges,
+        ),
+        name="SaltProject",ns="saltCommon"
+    )
+    outputfile = os.path.join(kwargs['outputdir'], "saltProject.salt")
+    xml = lxml.etree.tostring(saltproject, xml_declaration=True, pretty_print=True, encoding='utf-8')
+    with open(outputfile,'wb') as f:
+        f.write(xml)
+    print(f"Wrote project file {outputfile}",file=sys.stderr)
+    return saltproject
+
+
 
 
 def main():
@@ -664,27 +762,32 @@ def main():
     parser.add_argument('-v','-V','--version',help="Show version information", action='version', version="FoLiA-tools v" + TOOLVERSION + ", using FoLiA v" + folia.FOLIAVERSION + " with library FoLiApy v" + folia.LIBVERSION, default=False)
     parser.add_argument('--recurse','-r',help="recurse into subdirectories", action='store_true', required=False)
     parser.add_argument('--extension','-e',type=str, help="extension", action='store', default="xml",required=False)
-    parser.add_argument('--corpusprefix','-p', type=str, help="Corpus prefix for salt", action='store', default="/corpus",required=False)
+    parser.add_argument('--corpusprefix','-p', type=str, help="Corpus prefix for salt", action='store', default="foliacorpus",required=False)
     parser.add_argument('--saltnamespace','-s',help="Add simplified annotations in the salt namespace", action='store_true', required=False, default=False)
+    parser.add_argument('--outputdir','-o',type=str, help="Output directory", action='store', default=".", required=False)
     parser.add_argument('--saltonly','-S',help="Skip complex annotations not in the salt namespace (use with --saltnamespace). This will ignore a lot of the information FoLiA provides!", action='store_true', required=False, default=False)
     parser.add_argument('files', nargs='*', help='Files (and/or directories) to convert')
     args = parser.parse_args()
 
+
+    os.makedirs(os.path.join(os.path.realpath(args.outputdir), args.corpusprefix), exist_ok=True)
+    kwargs = args.__dict__
+
     if args.files:
-        success = True
+        corpusdocs = []
         skipnext = False
         for file in args.files:
-            r = False
             if os.path.isdir(file):
-                r = processdir(file, **args.__dict__)
+                corpusdocs += processdir(file, **args.__dict__)
             elif os.path.isfile(file):
-                saltdoc = convert(file, **args.__dict__)
+                saltdoc, corpusdoc = convert(file, **args.__dict__)
+                corpusdocs.append(corpusdoc)
             else:
                 print("ERROR: File or directory not found: " + file,file=sys.stderr)
                 sys.exit(3)
-            if not r: success= False
-        if not success:
+        if not corpusdocs:
             sys.exit(1)
+        convert_corpus(corpusdocs, **args.__dict__)
     else:
         print("ERROR: No files specified. Add --help for usage details.",file=sys.stderr)
         sys.exit(2)
