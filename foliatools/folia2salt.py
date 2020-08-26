@@ -720,22 +720,22 @@ def convert_corpus(corpusdocs, **kwargs):
         {"{http://www.omg.org/XMI}version":"2.0"},
         E.sCorpusGraphs(
             E.labels({ # document ID
-                "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+              "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                 "namespace": "salt",
                 "name": "SNAME",
                 "value": "T::" +  kwargs['corpusprefix']
             }),
             E.nodes({
-                    "{http://www.omg.org/XMI}type": "sCorpusStructure:SCorpus",
+                "{http://www.w3.org/2001/XMLSchema-instance}type": "sCorpusStructure:SCorpus",
                     },
                     E.labels({ # document ID
-                        "{http://www.omg.org/XMI}type": "saltCore:SElementId",
+                              "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SElementId",
                         "namespace": "salt",
                         "name": "id",
                         "value": "T::salt:/" + kwargs['corpusprefix']
                     }),
                     E.labels({
-                        "{http://www.omg.org/XMI}type": "saltCore:SFeature",
+                        "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SFeature",
                         "namespace": "salt",
                         "name": "SNAME",
                         "value": "T::" + kwargs['corpusprefix']
