@@ -178,7 +178,7 @@ def convert_tokens(doc, layers, **kwargs):
                 E.edges({
                     "{http://www.w3.org/2001/XMLSchema-instance}type": "sDocumentStructure:STextualRelation",
                         "source": f"//@nodes.{nodes_seqnr}",
-                        "target": "//@nodes.{textnode}"
+                        "target": f"//@nodes.{textnode}"
                         },
                         E.labels({
                             "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SElementId",
@@ -619,7 +619,7 @@ def convert_common_attributes(annotation,namespace, **kwargs):
             "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": namespace,
                     "name": "confidence",
-                    "value": "N::" + str(annotation.confidence)
+                    "value": "F::" + str(annotation.confidence)
                 })
 
     if annotation.n is not None:
