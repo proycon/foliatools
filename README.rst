@@ -41,15 +41,16 @@ A number of command-line tools are readily available for working with FoLiA, to 
 - ``foliaid`` -- Assigns IDs to elements in FoLiA documents
 - ``foliafreqlist`` -- Output a frequency list on tokenised FoLiA documents.
 - ``foliamerge`` -- Merges annotations from two or more FoLiA documents.
-- ``foliatextcontent`` -- A tool for adding or stripping text redundancy, supports adding offset information.
+- ``foliatextcontent`` -- A tool for adding or stripping text redundancy (i.e. text associated with multiple structural levels), supports computing and adding offset information.
 - ``foliaupgrade`` -- Upgrades a document to the latest FoLiA version.
 - ``alpino2folia`` -- Convert Alpino-DS XML to FoLiA XML
 - ``dcoi2folia`` -- Convert D-Coi XML to FoLiA XML
 - ``conllu2folia`` -- Convert files in the `CONLL-U format <http://http://universaldependencies.org/format.html>`_ to FoLiA XML.
 - ``rst2folia`` -- Convert ReStructuredText, a lightweight non-intrusive text markup language, to FoLiA, using `docutils <http://docutils.sourceforge.net/>`_.
 - ``tei2folia`` -- Convert a subset of TEI to FoLiA.
+- ``folia2salt`` -- Convert FoLiA XML to `Salt <https://corpus-tools.org/salt/>`_, which in turn enables further conversions (annis, paula, TCF, TigerXML, and others) through `Pepper <https://corpus-tools.org/pepper/>`_.
 
-All of these tools are written in Python, and thus require a Python (2.7, 3 or higher) installation to run. More tools are added as time progresses.
+All of these tools are written in Python, and thus require a Python 3 installation to run. More tools are added as time progresses.
 
 Installation
 ---------------
