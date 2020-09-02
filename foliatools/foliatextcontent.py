@@ -19,7 +19,7 @@ def usage():
     print("  by Maarten van Gompel (proycon)",file=sys.stderr)
     print("  Centre for Language and Speech Technology",file=sys.stderr)
     print("  Radboud University Nijmegen",file=sys.stderr)
-    print("  2015-2019 - Licensed under GPLv3",file=sys.stderr)
+    print("  2015-2020 - Licensed under GPLv3",file=sys.stderr)
     print("",file=sys.stderr)
     print(__doc__,file=sys.stderr)
     print("",file=sys.stderr)
@@ -223,8 +223,11 @@ def settext(element, cls='current', offsets=True, forceoffsetref=False, debug=Fa
                         if debug: print("Setting offset for text in  " + repr(ancestors[0]) + " to " + str(offset) + ", reference " + repr(element) ,file=sys.stderr)
                         src.offset = offset
                     elif forceoffsetref:
+                        if debug: print("Setting offset with explicit reference for text in  " + repr(ancestors[0]) + " to " + str(offset) + ", reference " + repr(element) ,file=sys.stderr)
                         src.offset = offset
-                        src.ref = element
+                        if element.id is None:
+                            raise Exception("Unable to use element " + repr(element) + " as an explicit reference for offsets, because it has no ID. Consider processing the document with foliaid first to automatically assign IDs.")
+                        src.ref = element.id
                     prevsrc = src
 
                 newtextsequence.append(e)
@@ -311,7 +314,7 @@ class settings:
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "E:hsSpPdDtTXMe:wT:Fc", ["help"])
+        opts, args = getopt.getopt(sys.argv[1:], "E:hsSpPdDtT:XMe:wT:Fc", ["help"])
     except getopt.GetoptError as err:
         print(str(err),file=sys.stderr)
         usage()
@@ -337,7 +340,7 @@ def main():
         elif o == '-p':
             settings.Classes.append(folia.Paragraph)
         elif o == '-T':
-            settings.Classes += [ folia.XML2CLASS[tag] for tag in a.split(',') ]
+            settings.Classes += [ folia.XML2CLASS[tag] for tag in a.split(',') if tag ]
         elif o == '-X':
             settings.offsets = False
         elif o == '-e':
