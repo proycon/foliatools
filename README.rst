@@ -21,7 +21,7 @@ FoLiA Tools
 
 A number of command-line tools are readily available for working with FoLiA, to various ends. The following tools are currently available:
 
-- ``foliavalidator`` -- Tests if documents are valid FoLiA XML. **Always use this to test your documents if you produce your own FoLiA documents!**. See the extra documentation: :ref:`foliavalidator`
+- ``foliavalidator`` -- Tests if documents are valid FoLiA XML. **Always use this to test your documents if you produce your own FoLiA documents!**. See the extra documentation in the dedicated scetion below.
 - ``foliaquery`` -- Advanced query tool that searches FoLiA documents for a specified pattern, or modifies a document according to the query. Supports FQL (FoLiA Query Language) and CQL (Corpus Query Language).
 - ``foliaeval`` -- Evaluation tool, can compute various evaluation metrics for selected annotation types, either against
   a gold standard reference or as a measure of inter-annotated agreement.
@@ -48,8 +48,8 @@ A number of command-line tools are readily available for working with FoLiA, to 
 - ``dcoi2folia`` -- Convert D-Coi XML to FoLiA XML
 - ``conllu2folia`` -- Convert files in the `CONLL-U format <http://http://universaldependencies.org/format.html>`_ to FoLiA XML.
 - ``rst2folia`` -- Convert ReStructuredText, a lightweight non-intrusive text markup language, to FoLiA, using `docutils <http://docutils.sourceforge.net/>`_.
-- ``tei2folia`` -- Convert a subset of TEI to FoLiA. See the extra documentation: :ref:`tei2folia`
-- ``folia2salt`` -- Convert FoLiA XML to `Salt <https://corpus-tools.org/salt/>`_, which in turn enables further conversions (annis, paula, TCF, TigerXML, and others) through `Pepper <https://corpus-tools.org/pepper/>`_. See the extra documentation: :ref:`folia2salt`
+- ``tei2folia`` -- Convert a subset of TEI to FoLiA. See the extra documentation in the section below.
+- ``folia2salt`` -- Convert FoLiA XML to `Salt <https://corpus-tools.org/salt/>`_, which in turn enables further conversions (annis, paula, TCF, TigerXML, and others) through `Pepper <https://corpus-tools.org/pepper/>`_. See the extra documentation in the dedicated section below.
 
 
 All of these tools are written in Python, and thus require a Python 3 installation to run. More tools are added as time progresses.
@@ -99,7 +99,6 @@ Specific Tools
 
 This section contains some extra important information for a few of the included tools.
 
-.. _foliavalidator:
 
 Validating FoLiA documents using foliavalidator
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -111,6 +110,7 @@ formal validation offered by FoLiA is something that sets it apart from many alt
 tool to perform validation is ``foliavalidator`` (or its alternative C++ implementation ``folialint`` as part of `FoLiA-utils <https://github.com/LanguageMachines/foliautils/>`_).
 
 Validation can proceed on two levels:
+
 1. **shallow validation** - Validates the full FoLiA document, checks if all elements are valid FoLiA elements,
    properly used, and if the document structure is valid. Checks if all the proper annotation declarations are present
    and if there are no inconsistencies in the text if text is specified on multiple levels (text redundancy). Note that
@@ -128,7 +128,6 @@ explicitly asked to do so, such as automatically declaring missing annotations.
 
 Another feature of the validator is that it can get as a converter to convert FoLiA documents to `explicit form <https://folia.readthedocs.io/en/latest/form.html>`_ (using the ``--explicit`` parameter). Explicit form is a more verbose form of XML serialisation that is easier to parse to certain tools as it makes explicit certain details that are left implicit in normal form.
 
-.. _tei2folia:
 
 TEI to FoLiA conversion
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -163,8 +162,6 @@ Specifically not supported (yet), non-exhaustive list:
 * Contextual information
 * Feature structures (``<fs>``, ``<f>``)
 
-
-.. _folia2salt:
 
 FoLiA to Salt
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
