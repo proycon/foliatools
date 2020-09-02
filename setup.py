@@ -23,7 +23,9 @@ setup(
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Topic :: Text Processing :: Linguistic",
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Operating System :: POSIX",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
