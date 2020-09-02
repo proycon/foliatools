@@ -2,7 +2,13 @@
 # -*- coding: utf8 -*-
 
 """
-This tool operates on some of the redundancy regarding text context that may occur in FoLiA documents. It can remove text redundancy entirely or it can add text content elements on the higher (untokenised) levels, adding offset information and mark-up element if present. Secondly, the tool may also add text-markup elements for substrings (str element) (provided there is no overlap).
+This tool operates on the text redundancy that may occur in FoLiA documents,
+i.e. the ability to express the same text on multiple structural levels.
+It can remove text redundancy entirely or it can infer text for the higher
+(untokenised) levels, adding offset information and mark-up elements if present.
+
+Secondly, the tool may also add text-markup elements for substrings (str element)
+(provided there is no overlap).
 """
 
 from __future__ import print_function, unicode_literals, division, absolute_import
@@ -21,7 +27,7 @@ def usage():
     print("  Radboud University Nijmegen",file=sys.stderr)
     print("  2015-2020 - Licensed under GPLv3",file=sys.stderr)
     print("",file=sys.stderr)
-    print(__doc__,file=sys.stderr)
+    print("Description: " + __doc__,file=sys.stderr)
     print("",file=sys.stderr)
     print("Usage: foliatextcontent [options] file-or-dir1 file-or-dir2 ..etc..",file=sys.stderr)
     print("",file=sys.stderr)
