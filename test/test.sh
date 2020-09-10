@@ -173,7 +173,7 @@ if [ $? -ne 0 ]; then
     echo "...${boldred}FAILED${normal}" >&2
     FAILURE=1
 else
-  foliavalidator test.txt.folia.xml
+  foliavalidator test.folia.xml
   if [ $? -ne 0 ]; then
       echo "...VALIDATOR ${boldred}FAILED${normal}" >&2
       FAILURE=1
@@ -189,7 +189,7 @@ if [ $? -ne 0 ]; then
     echo "...${boldred}FAILED${normal}" >&2
     FAILURE=1
 else
-  foliavalidator test2.txt.folia.xml
+  foliavalidator test2.folia.xml
   if [ $? -ne 0 ]; then
       echo "...VALIDATOR ${boldred}FAILED${normal}" >&2
       FAILURE=1
@@ -204,7 +204,7 @@ if [ $? -ne 0 ]; then
     echo "...${boldred}FAILED${normal}" >&2
     FAILURE=1
 else
-  foliavalidator test2.txt.folia.xml
+  foliavalidator test2.folia.xml
   if [ $? -ne 0 ]; then
       echo "...VALIDATOR ${boldred}FAILED${normal}" >&2
       FAILURE=1
