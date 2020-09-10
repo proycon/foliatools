@@ -2,7 +2,7 @@
 #-*- coding:utf-8 -*-
 
 #---------------------------------------------------------------
-# TEI to FoLiA Converter
+# Text to FoLiA Converter
 #   by Maarten van Gompel
 #   Centre for Language Studies
 #   Radboud University Nijmegen
@@ -60,7 +60,11 @@ def convert(filename, **kwargs):
             else:
                 if not line.strip():
                     #empty line, add buffer
-                    body.append(folia.Paragraph, folia.TextContent(doc,*buffer))
+                    try:
+                        body.append(folia.Paragraph, folia.TextContent(doc,*buffer))
+                    except ValueError:
+                        #text is probably empty and could not be added (may have contained only control characters which were stripped autoamtically by the library)
+                        pass
                     buffer = []
                 else:
                     buffer.append(line.strip())
@@ -98,7 +102,7 @@ def main():
             print(doc.xmlstring())
         else:
             filename = os.path.basename(filename)
-            if filename[-4:] == '.xml':
+            if filename[-4:] in ('.xml','.txt'):
                 filename = filename[:-4] + '.folia.xml'
             else:
                 filename += '.folia.xml'
