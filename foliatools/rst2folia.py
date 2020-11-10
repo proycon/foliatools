@@ -209,7 +209,9 @@ class FoLiATranslator(nodes.NodeVisitor):
                 id = self.generate_id(parentid, tag)
                 parentclass = folia.XML2CLASS[parenttag]
                 currentclass = folia.XML2CLASS[tag]
-                if not parentclass.accepts(currentclass):
+                try:
+                    parentclass.accepts(currentclass)
+                except ValueError:
                     print("WARNING: Adding " + tag + " to " + parenttag + " would violate FoLiA constraints. Skipping this element!",file=sys.stderr)
                     self.path.append( (None, None) )
                     return
@@ -231,7 +233,7 @@ class FoLiATranslator(nodes.NodeVisitor):
     def closestructure(self, tag):
         """Generic depart function for structure elements"""
         _tag, id = self.path.pop()
-        if tag is None: #we skip this one (nesting violates folia constraints)
+        if tag is None or _tag is None: #we skip this one (nesting violates folia constraints)
             return
         elif not tag == _tag:
             raise Exception("Mismatch in closestructure, expected closure for " + tag + ", got " + _tag)
