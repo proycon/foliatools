@@ -351,6 +351,12 @@ class FoLiATranslator(nodes.NodeVisitor):
         if not self.ignore_depart(node):
             self.closestructure('p')
 
+    def visit_container(self, node):
+        self.initstructure('div',cls="division")
+
+    def depart_container(self, node):
+        self.closestructure('div')
+
     def visit_section(self, node):
         self.initstructure('div',cls="section")
 
