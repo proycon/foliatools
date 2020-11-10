@@ -224,10 +224,7 @@ class FoLiATranslator(nodes.NodeVisitor):
         if attribs:
             for key, value in attribs.items():
                 if key == "cls": key = "class"
-                if sys.version < '3':
-                    o += " " + key + "=\"" + unicode(value) + "\""
-                elif sys.version >= '3':
-                    o += " " + key + "=\"" + str(value) + "\""
+                o += " " + key + "=\"" + str(value) + "\""
         o += ">\n"
         self.content.append(o)
 
