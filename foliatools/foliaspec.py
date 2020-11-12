@@ -691,7 +691,7 @@ def outputblock(block, target, varname, args, indent = ""):
                 if element['class'].endswith('Layer'):
                     if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties']:
                         s += indent + "    AnnotationType." + element['properties']['annotationtype'] + ':  ' + element['class'] + ' ,\n'
-            s += indent + "    AnnotationType.PREDICATE:  ElementType::SemanticRolesLayer\n"
+            s += indent + "    AnnotationType.PREDICATE:  SemanticRolesLayer\n"
             s += indent + "}"
         elif target == 'rust':
             s += indent + "match " + args[0] + " {\n"
