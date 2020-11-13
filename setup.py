@@ -65,6 +65,7 @@ setup(
             'foliaupgrade = foliatools.foliaupgrade:main',
             'folialangid = foliatools.folialangid:main',
             'foliabench = foliatools.foliabench:main',
+            'foliasplit = foliatools.foliasplit:main',
         ]
     },
     #include_package_data=True,
