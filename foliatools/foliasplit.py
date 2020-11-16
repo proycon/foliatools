@@ -18,6 +18,9 @@ def split(doc, expression, batchsize=1, copymetadata=False, require_submetadata=
     childdoc = None
     prevmatch = None
     docnr = 0
+    substituted = False #ensure we only substitute once per batch (when external is enabled)
+    if external:
+        proc = doc.provenance.append(folia.Processor.create(name="foliasplit", version=TOOLVERSION))
     for match in query(doc):
         if require_submetadata and match.metadata is None:
             continue
@@ -37,7 +40,8 @@ def split(doc, expression, batchsize=1, copymetadata=False, require_submetadata=
             childdoc.annotator2processor_map = deepcopy(doc.annotator2processor_map)
             childdoc.groupannotations = deepcopy(doc.groupannotations)
             childdoc.provenance = deepcopy(doc.provenance)
-            childdoc.provenance.append(folia.Processor.create(name="foliasplit", version=TOOLVERSION))
+            if not external:
+                childdoc.provenance.append(folia.Processor.create(name="foliasplit", version=TOOLVERSION))
             childdoc.alias_set = deepcopy(doc.alias_set)
             childdoc.set_alias = deepcopy(doc.set_alias)
             childdoc.textclasses = deepcopy(doc.textclasses)
@@ -53,6 +57,15 @@ def split(doc, expression, batchsize=1, copymetadata=False, require_submetadata=
                         childdoc.metadata[key] = value
             #add main body element (text or speech)
             body = childdoc.append(doc.data[0].__class__(childdoc, id=doc.id + id_suffix + "."  + doc.data[0].XMLTAG))
+            if external:
+                if substituted:
+                    match.parent.data.remove(match)
+                else:
+                    i = match.parent.getindex(match)
+                    if i == -1:
+                        raise Exception("Unable to find child from parent! This shouldn't happen")
+                    match.parent.data[i] = folia.External(doc, src=childdoc.id + ".folia.xml", id=childdoc.id, processor=proc)
+                    substituted = True
         matchcopy = match.copy(childdoc, id_suffix if alter_ids else "")
         matchcopy.metadata = None
         body.append(matchcopy)
@@ -60,9 +73,12 @@ def split(doc, expression, batchsize=1, copymetadata=False, require_submetadata=
             yield childdoc
             childdoc = None
             body = None
+            substituted = False
         prevmatch = match
     if childdoc:
         yield childdoc
+
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -77,11 +93,20 @@ def main():
     parser.add_argument("--external","-x",  action='store_true', help="Replace split-off elements with <external> elements in the original input document (this only works if they are directly under the root element)", required=False)
     parser.add_argument("files", nargs="*", help="The FoLiA documents to split")
     args = parser.parse_args()
+
+    if args.external and args.batchsize > 1:
+        print("WARNING: You are using the external mechanism with a batchsize greater than 1, this may produce wrongly ordered output depending on your query and your input. Please inspect your parent document to make sure the results are sensible.",file=sys.stderr)
+
     for filename in args.files:
         doc = folia.Document(file=filename)
         for i, childdoc in enumerate(split(doc, args.query, args.batchsize, args.copymetadata, args.submetadata, args.suffixtemplate, args.alterids, args.external)):
-            print(f"#{i} - " + childdoc.id + ".folia.xml", file=sys.stderr)
+            print("#" + str(i+1) + " - " + childdoc.id + ".folia.xml", file=sys.stderr)
             childdoc.save(os.path.join(args.outputdir, childdoc.id) + ".folia.xml")
+
+        if args.external:
+            print("Saving parent document - " + os.path.basename(filename), file=sys.stderr)
+            doc.save(os.path.join(args.outputdir, os.path.basename(filename)))
+
 
 if __name__ == "__main__":
     main()
