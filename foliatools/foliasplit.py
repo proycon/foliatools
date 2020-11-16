@@ -97,6 +97,9 @@ def main():
     if args.external and args.batchsize > 1:
         print("WARNING: You are using the external mechanism with a batchsize greater than 1, this may produce wrongly ordered output depending on your query and your input. Please inspect your parent document to make sure the results are sensible.",file=sys.stderr)
 
+    if len(args.files) < 1:
+        print("No files specified. Run with --help for usage info.", file=sys.stderr)
+
     for filename in args.files:
         doc = folia.Document(file=filename)
         for i, childdoc in enumerate(split(doc, args.query, args.batchsize, args.copymetadata, args.submetadata, args.suffixtemplate, args.alterids, args.external)):

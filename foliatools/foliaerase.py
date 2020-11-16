@@ -61,7 +61,7 @@ def main():
     args = parser.parse_args()
 
     if len(args.files) < 1:
-        print("No files specified! Do --help for usage info!", file=sys.stderr)
+        print("No files specified. Run with --help for usage info.", file=sys.stderr)
 
     for file in args.files:
         doc = foliaerase(file, parsetypes(args.types), keepversion=not args.upgrade)
