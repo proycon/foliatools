@@ -90,7 +90,7 @@ def main():
     parser.add_argument('--submetadata',help="Only split elements that have associated submetadata (extra parameter as the query can't capture this)", action='store_true', required=False)
     parser.add_argument('--query','-q',type=str, help="Query to select elements to split, this is an FQL SELECT expression without the SELECT statement, it can be as simple as the element type, e.g. s for sentences or more complex like: 'div OF https://your.set WHERE class = \"chapter\"' ", action='store', required=True)
     parser.add_argument('--outputdir','-o',type=str, help="Output directory", action='store', required=False,default=".")
-    parser.add_argument("--external","-x",  action='store_true', help="Replace split-off elements with <external> elements in the original input document (this only works if they are directly under the root element)", required=False)
+    parser.add_argument("--external","-x",  action='store_true', help="Replace split-off elements with <external> elements in the original input document. Output the input document (this may overwrite the input if you it's in your immediate working dir and you didn't specify a custom --outputdir!)" , required=False)
     parser.add_argument("files", nargs="*", help="The FoLiA documents to split")
     args = parser.parse_args()
 
