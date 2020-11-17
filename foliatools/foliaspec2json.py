@@ -17,7 +17,7 @@ if spec is None:
 
 def main(var=None):
     try:
-        var = sys.argv[1]
+        var = sys.argv[2]
         if var[0] == '-': var = None
     except:
         var = None
