@@ -13,7 +13,7 @@ from foliatools import VERSION as TOOLVERSION
 import folia.main as folia
 import folia.fql as fql
 
-def split(doc, expression, batchsize=1, copymetadata=False, require_submetadata=False,  suffix_template="_{:04d}", alter_ids=False, external=False, callback=None):
+def split(doc, expression, batchsize=1, copymetadata=False, require_submetadata=False,  suffix_template="_{:04d}", alter_ids=False, external=False, callback=None, deep=False):
     query = fql.Query("SELECT " + expression)
     childdoc = None
     prevmatch = None
@@ -66,7 +66,10 @@ def split(doc, expression, batchsize=1, copymetadata=False, require_submetadata=
                         raise Exception("Unable to find child from parent! This shouldn't happen")
                     match.parent.data[i] = folia.External(doc, src=childdoc.id + ".folia.xml", id=childdoc.id, processor=proc)
                     substituted = True
-        matchcopy = match.copy(childdoc, id_suffix if alter_ids else "")
+        if deep:
+            matchcopy = match.copy(childdoc, id_suffix if alter_ids else "") #deep copy
+        else:
+            matchcopy = match.move(childdoc, id_suffix if alter_ids else "") #shallow copy
         matchcopy.metadata = None
         body.append(matchcopy)
         if len(body.data) == batchsize:
@@ -86,6 +89,7 @@ def main():
     parser.add_argument('--copymetadata','-m',help="Copy all metadata from the parent document to the children", action='store_true', required=False)
     parser.add_argument('--batchsize','-b',type=int, help="Batch size: create documents with this many matches", action='store', required=False, default=1)
     parser.add_argument('--alterids','-i',help="Alter the IDs of all split elements by appending a suffix", action='store_true', required=False)
+    parser.add_argument('--deep',help="Make a deep copy (slower)", action='store_true', required=False)
     parser.add_argument('--suffixtemplate',help="A template for adding suffixes to IDs, in Python's format syntax", action='store_true', required=False, default="_{:04d}")
     parser.add_argument('--submetadata',help="Only split elements that have associated submetadata (extra parameter as the query can't capture this)", action='store_true', required=False)
     parser.add_argument('--query','-q',type=str, help="Query to select elements to split, this is an FQL SELECT expression without the SELECT statement, it can be as simple as the element type, e.g. s for sentences or more complex like: 'div OF https://your.set WHERE class = \"chapter\"' ", action='store', required=True)
@@ -102,7 +106,7 @@ def main():
 
     for filename in args.files:
         doc = folia.Document(file=filename)
-        for i, childdoc in enumerate(split(doc, args.query, args.batchsize, args.copymetadata, args.submetadata, args.suffixtemplate, args.alterids, args.external)):
+        for i, childdoc in enumerate(split(doc, args.query, args.batchsize, args.copymetadata, args.submetadata, args.suffixtemplate, args.alterids, args.external, args.deep)):
             print("#" + str(i+1) + " - " + childdoc.id + ".folia.xml", file=sys.stderr)
             childdoc.save(os.path.join(args.outputdir, childdoc.id) + ".folia.xml")
 
