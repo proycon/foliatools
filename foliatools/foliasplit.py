@@ -35,16 +35,25 @@ def split(doc, expression, batchsize=1, copymetadata=False, require_submetadata=
             childdoc = folia.Document(id=doc.id + id_suffix )
             if copymetadata:
                 childdoc.metadata = deepcopy(doc.metadata)
-            childdoc.annotations = deepcopy(doc.annotations)
-            childdoc.annotators = deepcopy(doc.annotators)
-            childdoc.annotator2processor_map = deepcopy(doc.annotator2processor_map)
-            childdoc.groupannotations = deepcopy(doc.groupannotations)
+            if deep:
+                childdoc.annotations = deepcopy(doc.annotations)
+                childdoc.annotators = deepcopy(doc.annotators)
+                childdoc.annotator2processor_map = deepcopy(doc.annotator2processor_map)
+                childdoc.groupannotations = deepcopy(doc.groupannotations)
+                childdoc.alias_set = deepcopy(doc.alias_set)
+                childdoc.set_alias = deepcopy(doc.set_alias)
+                childdoc.textclasses = deepcopy(doc.textclasses)
+            else:
+                childdoc.annotations = doc.annotations
+                childdoc.annotators = doc.annotators
+                childdoc.annotator2processor_map = doc.annotator2processor_map
+                childdoc.groupannotations = doc.groupannotations
+                childdoc.alias_set = doc.alias_set
+                childdoc.set_alias = doc.set_alias
+                childdoc.textclasses = doc.textclasses
             childdoc.provenance = deepcopy(doc.provenance)
             if not external:
                 childdoc.provenance.append(folia.Processor.create(name="foliasplit", version=TOOLVERSION))
-            childdoc.alias_set = deepcopy(doc.alias_set)
-            childdoc.set_alias = deepcopy(doc.set_alias)
-            childdoc.textclasses = deepcopy(doc.textclasses)
             if match.metadata:
                 #copy submetadata to new document's metadata
                 try:
