@@ -106,7 +106,7 @@ def main():
 
     for filename in args.files:
         doc = folia.Document(file=filename)
-        for i, childdoc in enumerate(split(doc, args.query, args.batchsize, args.copymetadata, args.submetadata, args.suffixtemplate, args.alterids, args.external, args.deep)):
+        for i, childdoc in enumerate(split(doc, args.query, args.batchsize, args.copymetadata, args.submetadata, args.suffixtemplate, args.alterids, args.external, None, args.deep)):
             print("#" + str(i+1) + " - " + childdoc.id + ".folia.xml", file=sys.stderr)
             childdoc.save(os.path.join(args.outputdir, childdoc.id) + ".folia.xml")
 
