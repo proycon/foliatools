@@ -117,6 +117,7 @@ def main():
     fql.Query("SELECT " + args.query)
 
     for filename in args.files:
+        print("Loading " + filename, file=sys.stderr)
         doc = folia.Document(file=filename)
         for i, childdoc in enumerate(split(doc, args.query, args.batchsize, args.copymetadata, args.submetadata, args.suffixtemplate, args.alterids, args.external, None, args.deep)):
             print("#" + str(i+1) + " - " + childdoc.id + ".folia.xml", file=sys.stderr)
