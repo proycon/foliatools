@@ -113,6 +113,9 @@ def main():
     if len(args.files) < 1:
         print("No files specified. Run with --help for usage info.", file=sys.stderr)
 
+    #parse query prior to reading files just to make sure there are no syntax errors
+    fql.Query("SELECT " + args.query)
+
     for filename in args.files:
         doc = folia.Document(file=filename)
         for i, childdoc in enumerate(split(doc, args.query, args.batchsize, args.copymetadata, args.submetadata, args.suffixtemplate, args.alterids, args.external, None, args.deep)):
