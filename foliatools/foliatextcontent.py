@@ -14,7 +14,6 @@ Secondly, the tool may also add text-markup elements for substrings (str element
 from __future__ import print_function, unicode_literals, division, absolute_import
 
 import getopt
-import io
 import sys
 import os
 import glob
@@ -188,7 +187,7 @@ def gettextsequence(element, cls, debug=False):
                     for x in gettextsequence(e, cls, debug):
                         foundtext = True
                         if x[0] is None:
-                            abort = True
+                            #abort = True
                             break
                         yield x
                     #if abort:
@@ -283,7 +282,7 @@ def processelement(element, settings):
                         settext(element, cls, settings.offsets, settings.forceoffsetref, settings.debug)
 
 
-def process(filename, outputfile = None):
+def process(filename):
     print("Converting " + filename,file=sys.stderr)
     doc = folia.Document(file=filename, processor=folia.Processor.create(name="foliatextcontent", version=TOOLVERSION, src="https://github.com/proycon/foliatools") )
 
@@ -302,14 +301,13 @@ def process(filename, outputfile = None):
     else:
         print(doc.xmlstring())
 
-def processdir(d, outputfile = None):
+def processdir(d):
     print("Searching in  " + d, file=sys.stderr)
     for f in glob.glob(os.path.join(d ,'*')):
         if f[-len(settings.extension) - 1:] == '.' + settings.extension:
-            process(f, outputfile)
+            process(f)
         elif settings.recurse and os.path.isdir(f):
             processdir(f)
-
 
 
 class settings:
@@ -338,8 +336,6 @@ def main():
         usage()
         sys.exit(2)
 
-
-    outputfile = None
 
 
     for o, a in opts:
@@ -380,7 +376,6 @@ def main():
             raise Exception("No such option: " + o)
 
 
-    if outputfile: outputfile = io.open(outputfile,'w',encoding=settings.encoding)
 
     if len(settings.Classes) > 1:
         settings.forceoffsetref = False
@@ -388,9 +383,9 @@ def main():
     if args:
         for x in args:
             if os.path.isdir(x):
-                processdir(x,outputfile)
+                processdir(x)
             elif os.path.isfile(x):
-                process(x, outputfile)
+                process(x)
             else:
                 print("ERROR: File or directory not found: " + x,file=sys.stderr)
                 sys.exit(3)
