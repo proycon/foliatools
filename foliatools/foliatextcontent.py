@@ -53,7 +53,8 @@ def linkstrings(element, cls='current',debug=False):
     if element.hastext(cls,strict=True) and element.hasannotation(folia.String):
         text = element.textcontent(cls, correctionhandling=folia.CorrectionHandling.EITHER)
 
-        for string in element.select(folia.String, None, False):
+        for string in element.select(folia.String, False, False):
+            if string.id and debug: print("Found string " + string.id + " (" + cls + ")",file=sys.stderr)
             try:
                 stringtextcontent = string.textcontent(cls, correctionhandling=folia.CorrectionHandling.EITHER)
                 stringtext = stringtextcontent.text()
@@ -65,6 +66,10 @@ def linkstrings(element, cls='current',debug=False):
                 continue
 
             if debug: print("Finding string '" + stringtext + "' in text: ", text.text(), file=sys.stderr)
+
+            if stringoffset is None:
+                if debug: print("No offset information found for the text of this string, skipping this one...", file=sys.stderr)
+                continue
 
             offset = 0 #current offset cursor
             length = len(stringtext)
@@ -276,9 +281,8 @@ def process(filename, outputfile = None):
 
     if settings.linkstrings:
         for element in doc.select(folia.AbstractStructureElement):
-            if settings.linkstrings:
-                for cls in element.doc.textclasses:
-                    linkstrings(element, cls, settings.debug)
+            for cls in element.doc.textclasses:
+                linkstrings(element, cls, settings.debug)
 
     if settings.Classes:
         for e in doc.data:
@@ -362,6 +366,7 @@ def main():
         elif o == '-r':
             settings.recurse = True
         elif o == '-D':
+            print("Debug enabled",file=sys.stderr)
             settings.debug = True
         else:
             raise Exception("No such option: " + o)
