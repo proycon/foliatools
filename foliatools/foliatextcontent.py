@@ -41,7 +41,7 @@ def usage():
     print("  -T                           Add text content for the specified elements (comma separated list of folia xml tags)"    ,file=sys.stderr)
     print("  -X                           Do NOT add offset information"    ,file=sys.stderr)
     print("  -F                           Force offsets to refer to the specified structure only (only works if you specified a single element type for -T!!!)"    ,file=sys.stderr)
-    print("  -M                           Add substring markup linking to string elements (if any, and when there is no overlap)"    ,file=sys.stderr)
+    print("  -M                           Add substring markup linking to string elements (if any, and when there is no overlap). This also supports strings inside corrections and adds correction markup in that case."    ,file=sys.stderr)
     print("  -e [encoding]                Output encoding (default: utf-8)",file=sys.stderr)
     print("  -w                           Edit file(s) (overwrites input files), will output to stdout otherwise" ,file=sys.stderr)
     print("  -D                           Debug" ,file=sys.stderr)
@@ -54,7 +54,7 @@ def linkstrings(element, cls='current',debug=False):
     if element.hastext(cls,strict=True) and element.hasannotation(folia.String):
         text = element.textcontent(cls, correctionhandling=folia.CorrectionHandling.EITHER)
 
-        for string in element.select(folia.String, False, False):
+        for string in element.select(folia.String, False, True):
             if string.id and debug: print("Found string " + string.id + " (" + cls + ")",file=sys.stderr)
             try:
                 stringtextcontent = string.textcontent(cls, correctionhandling=folia.CorrectionHandling.EITHER)
@@ -90,7 +90,14 @@ def linkstrings(element, cls='current',debug=False):
                             replaceindex = i
                             if string.id:
                                 kwargs['idref'] = string.id
-                            replace = [subtext[:reloffset], folia.TextMarkupString(element.doc, *stringtext, **kwargs), subtext[reloffset+length:]]
+                            markup = folia.TextMarkupString(element.doc, *stringtext, **kwargs)
+                            if isinstance(string.parent, folia.AbstractCorrectionChild):
+                                correction = string.ancestor(folia.Correction) #does not handle nested annotations, only grabs the deepest one
+                                kwargs = {}
+                                if correction.id:
+                                    kwargs['idref'] = correction.id
+                                markup = folia.TextMarkupCorrection(element.doc, markup, idref=correction.id)
+                            replace = [subtext[:reloffset], markup, subtext[reloffset+length:]]
                             break
 
                 elif isinstance(subtext, folia.AbstractTextMarkup):
