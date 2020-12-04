@@ -19,6 +19,7 @@ import sys
 import os
 import glob
 import folia.main as folia
+from foliatools import VERSION as TOOLVERSION
 
 def usage():
     print("foliatextcontent",file=sys.stderr)
@@ -277,7 +278,7 @@ def processelement(element, settings):
 
 def process(filename, outputfile = None):
     print("Converting " + filename,file=sys.stderr)
-    doc = folia.Document(file=filename)
+    doc = folia.Document(file=filename, processor=folia.Processor.create(name="foliatextcontent", version=TOOLVERSION, src="https://github.com/proycon/foliatools") )
 
     if settings.linkstrings:
         for element in doc.select(folia.AbstractStructureElement):
