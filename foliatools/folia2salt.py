@@ -692,7 +692,7 @@ def convert_higher_order(annotation, namespace, **kwargs):
             "{http://www.w3.org/2001/XMLSchema-instance}type": "saltCore:SMetaAnnotation",
                     "namespace": namespace,
                     "name": "comment/" + str(seqnr + 1),
-                    "value": "T::" + description.value
+                    "value": "T::" + comment.value
                 })
 
 
