@@ -560,8 +560,14 @@
     <xsl:when test="@class = 'italic' or @class = 'i' or @class = 'italics'">
         <i><xsl:apply-templates /></i>
     </xsl:when>
-     <xsl:when test="@class = 'strong'">
+    <xsl:when test="@class = 'strong'">
         <strong><xsl:apply-templates /></strong>
+    </xsl:when>
+    <xsl:when test="@class = 'superscript'">
+        <sup><xsl:apply-templates /></sup>
+    </xsl:when>
+    <xsl:when test="@class = 'subscript'">
+        <sub><xsl:apply-templates /></sub>
     </xsl:when>
     <xsl:when test="@class = 'em' or @class = 'emph' or @class = 'emphasis'">
         <em><xsl:apply-templates /></em>
