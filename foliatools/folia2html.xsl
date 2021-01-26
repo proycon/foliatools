@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:imdi="http://www.mpi.nl/IMDI/Schema/IMDI" xmlns:folia="http://ilk.uvt.nl/folia" xmlns:exsl="http://exslt.org/common" xmlns:dc="http://purl.org/dc/elements/1.1/">
 
+<xsl:param name="css"></xsl:param>
+
 <xsl:output method="html" encoding="UTF-8" omit-xml-declaration="yes" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" indent="yes" />
 
 <xsl:strip-space elements="*" />
@@ -8,6 +10,7 @@
 
 <xsl:variable name="folia_version" select="'2.0.2'" />
 <xsl:variable name="version" select="'2.0.5'" />
+
 
 <xsl:template match="/folia:FoLiA">
   <html>
@@ -370,6 +373,11 @@
                     font-style: italic;
                 }
         </style>
+        <xsl:if test="$css">
+        <link rel="stylesheet">
+            <xsl:attribute name="href"><xsl:value-of select="$css" /></xsl:attribute>
+        </link>
+        </xsl:if>
   </head>
     <body>
     	<xsl:comment><![CDATA[[if lte IE 10]>
