@@ -581,10 +581,11 @@
         <em><xsl:apply-templates /></em>
     </xsl:when>
     <xsl:otherwise>
-        <span class="style_{@class}"><xsl:apply-templates /></span>
+        <span><xsl:attribute name="class">style_<xsl:choose><xsl:when test="@class"><xsl:value-of select="@class" /></xsl:when><xsl:otherwise>none</xsl:otherwise></xsl:choose><xsl:for-each select="folia:feat"><xsl:text> style_</xsl:text><xsl:value-of select="@subset" />_<xsl:value-of select="translate(normalize-space(@class), ' .{}[]#+=\@/,', '')" /></xsl:for-each></xsl:attribute><xsl:apply-templates /></span>
     </xsl:otherwise>
     </xsl:choose>
 </xsl:template>
+
 
 
 
