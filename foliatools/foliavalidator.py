@@ -107,7 +107,7 @@ def commandparser(parser):
     parser.add_argument('-D','--debug',type=int,help="Debug level", action='store',default=0)
     parser.add_argument('-b','--traceback',help="Provide a full traceback on validation errors", action='store_true', default=False)
     parser.add_argument('-x','--explicit',help="Serialise to explicit form, this generates more verbose XML and simplified the job for parsers as implicit information is made explicit", action='store_true', default=False)
-    parser.add_argument('--fixunassignedprocessor',help="Fixes invalid FoLiA that does not explicitly assign a processor to an annotation when multiple processors are possible (and there is therefore no default). The last processor will be used in this case.", action='store_true', default=False)
+    parser.add_argument('--fixunassignedprocessor',help="Fixes invalid FoLiA that does not explicitly assign a processor to an annotation when multiple processors are possible (and there is therefore no default). The first processor will be used in this case.", action='store_true', default=False)
     return parser
 
 def main():
