@@ -396,18 +396,21 @@
 
 <xsl:template match="folia:text">
  <div class="text">
+    <xsl:if test="folia:feat"><xsl:attribute name="class"><xsl:call-template name="feat_to_css" /></xsl:attribute></xsl:if>
  	<xsl:apply-templates />
  </div>
 </xsl:template>
 
 <xsl:template match="folia:div">
  <div class="div">
+   <xsl:if test="folia:feat"><xsl:attribute name="class"><xsl:call-template name="feat_to_css" /></xsl:attribute></xsl:if>
    <xsl:apply-templates />
  </div>
 </xsl:template>
 
 <xsl:template match="folia:p">
  <p id="{@xml:id}">
+    <xsl:if test="folia:feat"><xsl:attribute name="class"><xsl:call-template name="feat_to_css" /></xsl:attribute></xsl:if>
     <xsl:apply-templates />
  </p>
 </xsl:template>
@@ -457,6 +460,7 @@
 
 <xsl:template name="headinternal">
     <span id="{@xml:id}" class="head">
+        <xsl:attribute name="class">head<xsl:call-template name="feat_to_css" /></xsl:attribute>
         <xsl:apply-templates />
     </span>
 </xsl:template>
@@ -464,36 +468,41 @@
 
 <xsl:template match="folia:entry">
 <dl class="entry">
+    <xsl:if test="folia:feat"><xsl:attribute name="class"><xsl:call-template name="feat_to_css" /></xsl:attribute></xsl:if>
     <xsl:apply-templates />
 </dl>
 </xsl:template>
 
 <xsl:template match="folia:term">
 <dt>
+    <xsl:if test="folia:feat"><xsl:attribute name="class"><xsl:call-template name="feat_to_css" /></xsl:attribute></xsl:if>
     <xsl:apply-templates />
 </dt>
 </xsl:template>
 
 <xsl:template match="folia:def">
 <dd>
+    <xsl:if test="folia:feat"><xsl:attribute name="class"><xsl:call-template name="feat_to_css" /></xsl:attribute></xsl:if>
     <xsl:apply-templates />
 </dd>
 </xsl:template>
 
 <xsl:template match="folia:ex">
 <dd class="example">
+    <xsl:if test="folia:feat"><xsl:attribute name="class"><xsl:call-template name="feat_to_css" /></xsl:attribute></xsl:if>
     <xsl:apply-templates />
 </dd>
 </xsl:template>
 
 <xsl:template match="folia:list">
 <ul>
+    <xsl:if test="folia:feat"><xsl:attribute name="class"><xsl:call-template name="feat_to_css" /></xsl:attribute></xsl:if>
     <xsl:apply-templates />
 </ul>
 </xsl:template>
 
 <xsl:template match="folia:item">
-    <li><xsl:apply-templates /></li>
+    <li><xsl:if test="folia:feat"><xsl:attribute name="class"><xsl:call-template name="feat_to_css" /></xsl:attribute></xsl:if><xsl:apply-templates /></li>
 </xsl:template>
 
 <xsl:template match="folia:note">
@@ -517,7 +526,8 @@
 
 
 <xsl:template match="folia:s">
-    <span id="{@xml:id}" class="s">
+    <span id="{@xml:id}">
+        <xsl:attribute name="class">s<xsl:call-template name="feat_to_css" /></xsl:attribute>
         <xsl:apply-templates />
     </span>
 </xsl:template>
@@ -587,6 +597,7 @@
 </xsl:template>
 
 
+<xsl:template name="feat_to_css"><xsl:if test="folia:feat"><xsl:for-each select="folia:feat"><xsl:text> feat_</xsl:text><xsl:value-of select="@subset" />_<xsl:value-of select="translate(normalize-space(@class), ' .{}[]#+=\@/,', '')" /></xsl:for-each></xsl:if></xsl:template>
 
 
 <xsl:template match="folia:t-str">
