@@ -602,11 +602,17 @@
 
 <xsl:template match="folia:t-str">
     <xsl:choose>
-        <xsl:when test="@xlink:href">
+        <xsl:when test="@xlink:href and @class">
             <a href="{@xlink:href}"><span class="str_{@class}"><xsl:apply-templates /></span></a>
         </xsl:when>
-        <xsl:otherwise>
+        <xsl:when test="@xlink:href">
+            <a href="{@xlink:href}"><span class="str"><xsl:apply-templates /></span></a>
+        </xsl:when>
+        <xsl:when test="@class">
             <span class="str_{@class}"><xsl:apply-templates /></span>
+        </xsl:when>
+        <xsl:otherwise>
+            <span class="str"><xsl:apply-templates /></span>
         </xsl:otherwise>
     </xsl:choose>
 </xsl:template>
