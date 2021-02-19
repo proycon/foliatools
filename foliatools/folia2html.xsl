@@ -960,7 +960,7 @@
 </xsl:template>
 
 <xsl:template match="folia:t-hbr">
-<span class="hbr">&shy;</span>
+<span class="hbr">&#173;</span>
 </xsl:template>
 
 <xsl:template match="folia:figure">
