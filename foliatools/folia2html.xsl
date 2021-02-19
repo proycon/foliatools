@@ -948,6 +948,10 @@
  <br />
 </xsl:template>
 
+<xsl:template match="folia:t-hbr">
+<span class="hbr">&shy;</span>
+</xsl:template>
+
 <xsl:template match="folia:figure">
  <div class="figure">
   <img>
