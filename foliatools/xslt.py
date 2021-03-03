@@ -39,6 +39,7 @@ def usage():
     print("  -E [extension]               Set extension (default: xml)",file=sys.stderr)
     print("  -q                           Ignore errors",file=sys.stderr)
     print("  -s [url]                     Associate a CSS Stylesheet (URL, may be relative)",file=sys.stderr)
+    print("  -T                           Retain tokenisation",file=sys.stderr)
     print("  -t [textclass]               Text class to output",file=sys.stderr)
 
 
@@ -81,7 +82,7 @@ def process(inputfilename, outputfilename=None):
 
 def main(xsltfilename, outputextension, usagetext):
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "o:E:hrqs:t:", ["help"])
+        opts, args = getopt.getopt(sys.argv[1:], "o:E:hrqs:Tt:", ["help"])
     except getopt.GetoptError as err:
         print(str(err), file=sys.stderr)
         usage()
@@ -98,7 +99,7 @@ def main(xsltfilename, outputextension, usagetext):
         if o == '-h' or o == '--help':
             usage()
             sys.exit(0)
-        elif o == '-t':
+        elif o == '-T':
             settings.retaintokenisation = True
         elif o == '-e':
             settings.encoding = a
