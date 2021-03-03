@@ -39,6 +39,7 @@ def usage():
     print("  -E [extension]               Set extension (default: xml)",file=sys.stderr)
     print("  -q                           Ignore errors",file=sys.stderr)
     print("  -s [url]                     Associate a CSS Stylesheet (URL, may be relative)",file=sys.stderr)
+    print("  -t [textclass]               Text class to output",file=sys.stderr)
 
 
 
@@ -52,6 +53,7 @@ class settings:
     outputextension = 'UNDEFINED'
     usage = "UNDEFINED"
     css = ""
+    textclass = "current"
 
 def processdir(d, outputfilename = None):
     print("Searching in  " + d, file=sys.stderr)
@@ -64,10 +66,11 @@ def processdir(d, outputfilename = None):
 
 def process(inputfilename, outputfilename=None):
     try:
+        kwargs = {}
         if settings.css:
-            kwargs = {'css': settings.css}
-        else:
-            kwargs = {}
+            kwargs['css'] = settings.css
+        if settings.textclass:
+            kwargs['textclass'] = settings.textclass
         transform(settings.xsltfilename, inputfilename, outputfilename, settings.encoding, **kwargs)
     except Exception as e:
         if settings.ignoreerrors:
@@ -78,7 +81,7 @@ def process(inputfilename, outputfilename=None):
 
 def main(xsltfilename, outputextension, usagetext):
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "o:E:hrqs:", ["help"])
+        opts, args = getopt.getopt(sys.argv[1:], "o:E:hrqs:t:", ["help"])
     except getopt.GetoptError as err:
         print(str(err), file=sys.stderr)
         usage()
@@ -109,6 +112,8 @@ def main(xsltfilename, outputextension, usagetext):
             settings.ignoreerrors = True
         elif o == '-s':
             settings.css = a
+        elif o == '-t':
+            settings.textclass = a
         else:
             raise Exception("No such option: " + o)
 

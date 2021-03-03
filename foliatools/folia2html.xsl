@@ -2,6 +2,7 @@
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:imdi="http://www.mpi.nl/IMDI/Schema/IMDI" xmlns:folia="http://ilk.uvt.nl/folia" xmlns:exsl="http://exslt.org/common" xmlns:dc="http://purl.org/dc/elements/1.1/">
 
 <xsl:param name="css"></xsl:param>
+<xsl:param name="textclass">current</xsl:param>
 
 <xsl:output method="html" encoding="UTF-8" omit-xml-declaration="yes" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" indent="yes" />
 
@@ -538,12 +539,12 @@
 
 <xsl:variable name="ancestors_ok">not(ancestor::folia:original) and not(ancestor::folia:suggestion) and not(ancestor::folia:alt) and not(ancestor::folia:altlayers)</xsl:variable><!-- Checks if all ancestors are authoritative -->
 <xsl:variable name="ancestors_nosubtoken">not(ancestor::folia:morpheme) and not(ancestor::folia:phoneme)</xsl:variable><!-- Checks if all ancestors are authoritative -->
-<xsl:variable name="textclass_current">(not(@class) or (@class='current'))</xsl:variable>
+<xsl:variable name="textclass_ok">((($textclass="current") and not(@class)) or (@class=$textclass))</xsl:variable>
 
 <xsl:template match="folia:w">
     <xsl:variable name="wid" select="@xml:id" />
     <xsl:if test="$ancestors_ok">
-        <span id="{@xml:id}"><xsl:attribute name="class">word<xsl:if test="//folia:wref[@id=$wid and not(ancestor::folia:altlayers)]"> sh</xsl:if><xsl:if test=".//folia:correction or .//folia:errordetection"> cor</xsl:if></xsl:attribute><span class="t"><xsl:value-of select="string(.//folia:t[$ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str) and (not(@class) or @class = 'current')])"/></span><xsl:call-template name="inlineannotations" /></span>
+        <span id="{@xml:id}"><xsl:attribute name="class">word<xsl:if test="//folia:wref[@id=$wid and not(ancestor::folia:altlayers)]"> sh</xsl:if><xsl:if test=".//folia:correction or .//folia:errordetection"> cor</xsl:if></xsl:attribute><span class="t"><xsl:value-of select="string(.//folia:t[$ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str) and $textclass_ok])"/></span><xsl:call-template name="inlineannotations" /></span>
     <xsl:choose>
        <xsl:when test="@space = 'no'"></xsl:when>
        <xsl:otherwise>
@@ -560,7 +561,7 @@
     <!-- Test presence of text in deeper structure elements, if they exist we don't
          render this text but rely on the text in the deeper structure  -->
     <!-- Next, check if text element is authoritative (ancestors_ok) and have the proper class -->
-    <xsl:if test="not(following-sibling::*//folia:t[$textclass_current and $ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str)])"><xsl:if test="$textclass_current and $ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str)"><xsl:apply-templates /></xsl:if></xsl:if>
+    <xsl:if test="not(following-sibling::*//folia:t[$textclass_ok and $ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str)])"><xsl:if test="$textclass_current and $ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str)"><xsl:apply-templates /></xsl:if></xsl:if>
 </xsl:template>
 
 
