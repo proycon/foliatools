@@ -561,7 +561,7 @@
     <!-- Test presence of text in deeper structure elements, if they exist we don't
          render this text but rely on the text in the deeper structure  -->
     <!-- Next, check if text element is authoritative (ancestors_ok) and have the proper class -->
-    <xsl:if test="not(following-sibling::*//folia:t[$textclass_ok and $ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str)])"><xsl:if test="$textclass_current and $ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str)"><xsl:apply-templates /></xsl:if></xsl:if>
+    <xsl:if test="not(following-sibling::*//folia:t[$textclass_ok and $ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str)])"><xsl:if test="$textclass_ok and $ancestors_ok and $ancestors_nosubtoken and not(ancestor::folia:str)"><xsl:apply-templates /></xsl:if></xsl:if>
 </xsl:template>
 
 
@@ -708,7 +708,7 @@
                 <span class="attrvalue">
                     <xsl:for-each select="folia:morpheme">
                         <span class="morpheme">
-                            <xsl:value-of select="./folia:t[$textclass_current]" />
+                            <xsl:value-of select="./folia:t[$textclass_ok]" />
                             <xsl:if test="@class">
                                 <span class="details">(<xsl:value-of select="@class" />)</span>
                             </xsl:if>
