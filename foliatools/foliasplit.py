@@ -65,7 +65,10 @@ def split(doc, expression, batchsize=1, copymetadata=False, require_submetadata=
                     for key, value in submetadata.items():
                         childdoc.metadata[key] = value
             #add main body element (text or speech)
-            body = childdoc.append(doc.data[0].__class__(childdoc, id=doc.id + id_suffix + "."  + doc.data[0].XMLTAG))
+            bodyid = doc.id + id_suffix + "."  + doc.data[0].XMLTAG
+            if bodyid in doc:
+                bodyid = bodyid + ".split"
+            body = childdoc.append(doc.data[0].__class__(childdoc, id=bodyid))
             if external:
                 if substituted:
                     match.parent.data.remove(match)
@@ -122,6 +125,7 @@ def main():
         for i, childdoc in enumerate(split(doc, args.query, args.batchsize, args.copymetadata, args.submetadata, args.suffixtemplate, args.alterids, args.external, None, args.deep)):
             print("#" + str(i+1) + " - " + childdoc.id + ".folia.xml", file=sys.stderr)
             childdoc.save(os.path.join(args.outputdir, childdoc.id) + ".folia.xml")
+            del childdoc
 
         if args.external:
             print("Saving parent document - " + os.path.basename(filename), file=sys.stderr)
