@@ -15,6 +15,7 @@ def main():
     usage = """folia2html
   by Maarten van Gompel (proycon)
   Centre for Language and Speech Technology, Radboud University Nijmegen
+  & KNAW Humanities Cluster
   2016-2021 - Licensed under GPLv3
 
 """ + __doc__ + """
