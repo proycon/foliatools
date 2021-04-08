@@ -356,7 +356,10 @@
                     font-weight: bold;
                     background: #ddd;
                 }
-
+                span.ref {
+                    text-decoration: underline;
+                    color: blue;
+                }
                 div.note {
                     font-size: 80%;
                     border-bottom: 1px #ddd dotted;
@@ -622,6 +625,16 @@
     <span class="gap"><xsl:apply-templates /></span>
 </xsl:template>
 
+<xsl:template match="folia:t-ref">
+    <xsl:choose>
+        <xsl:when test="@xlink:href">
+            <a href="{@xlink:href}"><span class="ref"><xsl:attribute name="title"><xsl:value-of select="@xlink:href"/></xsl:attribute><xsl:choose><xsl:when test="*"> <xsl:apply-templates /> </xsl:when> <xsl:otherwise><a href="#ref.{@id}">*</a></xsl:otherwise></xsl:choose></span></a>
+        </xsl:when>
+        <xsl:otherwise>
+            <span class="ref"><xsl:attribute name="title"><xsl:value-of select="./@id"/></xsl:attribute><xsl:choose><xsl:when test="*"> <xsl:apply-templates /> </xsl:when> <xsl:otherwise><a href="#ref.{@id}">*</a></xsl:otherwise></xsl:choose></span>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
 
 <xsl:template name="contentannotation_text">
     <xsl:if test="folia:t">
