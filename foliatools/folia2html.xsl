@@ -7,6 +7,8 @@
 <xsl:output method="html" encoding="UTF-8" omit-xml-declaration="yes" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" indent="yes" />
 
 <xsl:strip-space elements="*" />
+<!-- This converter currently does not respect FoLiA's xml:space="preserve" property, so
+     explicit spaces may be lost in conversion! -->
 
 
 <xsl:variable name="folia_version" select="'2.0.2'" />
@@ -984,7 +986,7 @@
 </xsl:template>
 
 <xsl:template match="folia:t-hspace">
-<span class="hspace">&#160;</span>
+<span class="hspace">&#xA0;</span>
 </xsl:template>
 
 <xsl:template match="folia:figure">
