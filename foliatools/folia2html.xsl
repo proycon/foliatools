@@ -4,19 +4,22 @@
 <xsl:param name="css"></xsl:param>
 <xsl:param name="textclass">current</xsl:param>
 
-<xsl:output method="html" encoding="UTF-8" omit-xml-declaration="yes" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" indent="yes" />
+<xsl:output method="html" encoding="UTF-8" omit-xml-declaration="yes" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" indent="no" />
 
-<xsl:strip-space elements="*" />
-<!-- This converter currently does not respect FoLiA's xml:space="preserve" property, so
-     explicit spaces may be lost in conversion! -->
+<!-- Note: This converter currently does not respect FoLiA's xml:space="preserve" property, so
+     explicit spaces may be squashed to a single one in conversion! -->
+
+<!-- This stylesheet does not use XSL's strip-spaces and output should not be blindly pretty-formatted if whitespace behaviour
+     is to be retained as best as possible -->
 
 
-<xsl:variable name="folia_version" select="'2.0.2'" />
-<xsl:variable name="version" select="'2.0.5'" />
+<xsl:variable name="folia_version" select="'2.5.0'" />
+<xsl:variable name="version" select="'2.5.0'" />
 
 
 <xsl:template match="/folia:FoLiA">
-  <html>
+   <html><xsl:text>
+   </xsl:text>
    <xsl:comment>
        HTML generated from FoLiA input through folia2html.xsl v<xsl:value-of select="$version" /> for FoLiA v<xsl:value-of select="$folia_version" />. Note that this viewer is limited! It is client-side only and fully static (there is no scripting, interactive parts are pure CSS). This viewer won't scale well, don't use it for huge FoLiA documents. For a more powerful alternative for visualising and editing FoLiA, see FLAT: https://github.com/proycon/flat
    </xsl:comment>
@@ -26,9 +29,12 @@
            -->
       <xsl:attribute name="dir">rtl</xsl:attribute>
   </xsl:if>
-  <head>
-        <meta http-equiv="content-type" content="application/xhtml+xml; charset=utf-8"/>
-        <meta name="generator" content="folia2html.xsl" />
+<xsl:text>
+</xsl:text>
+<head><xsl:text>
+        </xsl:text><meta http-equiv="content-type" content="application/xhtml+xml; charset=utf-8"/><xsl:text>
+        </xsl:text><meta name="generator" content="folia2html.xsl" /><xsl:text>
+        </xsl:text>
         <xsl:choose>
             <xsl:when test="folia:metadata/folia:foreign-data/dc:title">
                 <title><xsl:value-of select="folia:metadata/folia:foreign-data/dc:title" /></title>
@@ -43,6 +49,8 @@
                 <title><xsl:value-of select="@xml:id" /></title>
             </xsl:otherwise>
         </xsl:choose>
+        <xsl:text>
+        </xsl:text>
         <xsl:choose>
             <xsl:when test="metadata/@src">
                 <!-- metadata is external, include the link -->
@@ -71,6 +79,8 @@
                         </xsl:choose>
                     </xsl:attribute>
                 </meta>
+                <xsl:text>
+                </xsl:text>
                 <meta name="language">
                     <xsl:attribute name="content">
                         <xsl:choose>
@@ -84,6 +94,8 @@
                         </xsl:choose>
                     </xsl:attribute>
                 </meta>
+                <xsl:text>
+                </xsl:text>
                 <meta name="publisher">
                     <xsl:attribute name="content">
                         <xsl:choose>
@@ -97,6 +109,8 @@
                         </xsl:choose>
                     </xsl:attribute>
                 </meta>
+                <xsl:text>
+                </xsl:text>
                 <meta name="license">
                     <xsl:attribute name="content">
                         <xsl:choose>
@@ -116,6 +130,8 @@
                         </xsl:choose>
                     </xsl:attribute>
                 </meta>
+                <xsl:text>
+                </xsl:text>
                 <meta name="source">
                     <xsl:attribute name="content">
                         <xsl:choose>
@@ -129,8 +145,12 @@
                         </xsl:choose>
                     </xsl:attribute>
                 </meta>
+                <xsl:text>
+                </xsl:text>
             </xsl:otherwise>
         </xsl:choose>
+        <xsl:text>
+        </xsl:text>
         <style type="text/css">
  				body {
 					/*background: #222222;*/
@@ -379,21 +399,35 @@
                     font-style: italic;
                 }
         </style>
+        <xsl:text>
+        </xsl:text>
         <xsl:if test="$css">
+        <xsl:text>
+        </xsl:text>
         <link rel="stylesheet">
             <xsl:attribute name="href"><xsl:value-of select="$css" /></xsl:attribute>
         </link>
+        <xsl:text>
+        </xsl:text>
         </xsl:if>
+        <xsl:text>
+        </xsl:text>
   </head>
+        <xsl:text>
+        </xsl:text>
     <body>
     	<xsl:comment><![CDATA[[if lte IE 10]>
 		<div id="iewarning">
 			The FoLiA viewer does not work properly with Internet Explorer, please consider upgrading to Mozilla Firefox or Google Chrome instead.
 		</div>
 		<![endif]]]></xsl:comment>
+        <xsl:text>
+        </xsl:text>
         <xsl:apply-templates />
-    </body>
-  </html>
+        </body>
+<xsl:text>
+</xsl:text>
+</html>
 </xsl:template>
 
 <xsl:template match="folia:meta">
@@ -639,8 +673,7 @@
 </xsl:template>
 
 <xsl:template name="contentannotation_text">
-    <xsl:if test="folia:t">
-            <xsl:for-each select="folia:t">
+    <xsl:if test="folia:t"><xsl:for-each select="folia:t">
                 <span class="attrlabel">Text
                 <xsl:if test="count(../folia:t) &gt; 1">
                     (<xsl:value-of select="@class" />)
@@ -1038,7 +1071,7 @@
 </xsl:template>
 
 <xsl:template match="folia:comment">
-  <xsl:comment><xsl:value-of select="." /></xsl:comment>
+    <xsl:comment><xsl:value-of select="." /></xsl:comment>
 </xsl:template>
 
 
@@ -1204,8 +1237,6 @@
   </xsl:call-template>
 
 </xsl:template>
-
-
 
 
 </xsl:stylesheet>

@@ -22,10 +22,10 @@ def transform(xsltfilename, sourcefilename, targetfilename = None, encoding = 'u
     if targetfilename:
         print("Wrote " + targetfilename,file=sys.stderr)
         f = io.open(targetfilename, 'w',encoding='utf-8')
-        f.write(str(lxml.etree.tostring(transformed, pretty_print=True, encoding=encoding),encoding))
+        f.write(str(lxml.etree.tostring(transformed, pretty_print=False, encoding=encoding),encoding))
         f.close()
     else:
-        print(str(lxml.etree.tostring(transformed, pretty_print=True, encoding=encoding),encoding))
+        print(str(lxml.etree.tostring(transformed, pretty_print=False, encoding=encoding),encoding))
 
 
 def usage():
