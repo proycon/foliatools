@@ -1018,6 +1018,10 @@
   </td>
 </xsl:template>
 
+<xsl:template match="folia:comment">
+  <xsl:comment><xsl:value-of select="." /></xsl:comment>
+</xsl:template>
+
 
 <xsl:template match="folia:su" mode="xml2layout">
  <!-- Enrich SU for conversion to SVG -->
