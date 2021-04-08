@@ -983,6 +983,10 @@
 <span class="hbr">&#173;</span>
 </xsl:template>
 
+<xsl:template match="folia:t-hspace">
+<span class="hspace">&#160;</span>
+</xsl:template>
+
 <xsl:template match="folia:figure">
  <div class="figure">
   <img>
