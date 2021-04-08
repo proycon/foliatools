@@ -32,7 +32,6 @@ def usage():
     print(settings.usage,file=sys.stderr)
     print("",file=sys.stderr)
     print("Parameters for output:"        ,file=sys.stderr)
-    print("  -o [filename]                Output to file (instead of default stdout)"    ,file=sys.stderr)
     print("  -e [encoding]                Output encoding (default: utf-8)" ,file=sys.stderr)
     print("Parameters for processing directories:",file=sys.stderr)
     print("  -r                           Process recursively",file=sys.stderr)
@@ -56,23 +55,22 @@ class settings:
     css = ""
     textclass = "current"
 
-def processdir(d, outputfilename = None):
+def processdir(d):
     print("Searching in  " + d, file=sys.stderr)
     for f in glob.glob(os.path.join(d,'*')):
         if f[-len(settings.extension) - 1:] == '.' + settings.extension and f[-len(settings.outputextension) - 1:] != '.' + settings.outputextension:
-            outputfilename =  f[:-len(settings.extension) - 1] + '.' + settings.outputextension
-            process(f, outputfilename)
+            process(f)
         elif settings.recurse and os.path.isdir(f):
-            processdir(f, outputfilename)
+            processdir(f)
 
-def process(inputfilename, outputfilename=None):
+def process(inputfilename):
     try:
         kwargs = {}
         if settings.css:
             kwargs['css'] = settings.css
         if settings.textclass:
             kwargs['textclass'] = settings.textclass
-        transform(settings.xsltfilename, inputfilename, outputfilename, settings.encoding, **kwargs)
+        transform(settings.xsltfilename, inputfilename, None, settings.encoding, **kwargs)
     except Exception as e:
         if settings.ignoreerrors:
             print("ERROR: An exception was raised whilst processing " + inputfilename + ":", e, file=sys.stderr)
@@ -92,8 +90,6 @@ def main(xsltfilename, outputextension, usagetext):
     settings.outputextension = outputextension
     settings.usage = usagetext
 
-    outputfilename = ""
-
 
     for o, a in opts:
         if o == '-h' or o == '--help':
@@ -105,8 +101,6 @@ def main(xsltfilename, outputextension, usagetext):
             settings.encoding = a
         elif o == '-E':
             settings.extension = a
-        elif o == '-o':
-            outputfilename = a
         elif o == '-r':
             settings.recurse = True
         elif o == '-q':
@@ -123,8 +117,7 @@ def main(xsltfilename, outputextension, usagetext):
             if os.path.isdir(x):
                 processdir(x)
             elif os.path.isfile(x):
-                if len(args) > 1: outputfilename = outputfilename =  x[:-len(settings.extension) - 1] + '.' + settings.outputextension
-                process(x, outputfilename)
+                process(x)
             else:
                 print("ERROR: File or directory not found: " + x, file=sys.stderr)
                 sys.exit(3)
