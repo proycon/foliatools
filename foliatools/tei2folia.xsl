@@ -62,11 +62,11 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <!-- *************************************************** DOCUMENT & METADATA ************************************************** -->
 
-<xsl:template match="TEI|TEI.2">
+<xsl:template match="TEI|TEI.2|teiTrim">
     <xsl:message terminate="yes">ERROR: TEI document lacks proper XML namespace declarations! Run tei2folia --forcenamespace to try to recover automatically or add xmlns="http://www.tei-c.org/ns/1.0" manually.</xsl:message>
 </xsl:template>
 
-<xsl:template match="tei:TEI|tei:TEI.2">
+<xsl:template match="tei:TEI|tei:TEI.2|tei:teiTrim">
 <FoLiA xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://ilk.uvt.nl/folia" version="2.3.0" generator="tei2folia.xsl">
   <xsl:attribute name="xml:id"><xsl:value-of select="$docid"/></xsl:attribute>
   <metadata type="native">
