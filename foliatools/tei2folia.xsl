@@ -108,7 +108,17 @@ Heavily adapted by Maarten van Gompel (Radboud University)
   </metadata>
   <text>
     <xsl:attribute name="xml:id"><xsl:value-of select="$docid"/>.text</xsl:attribute>
-    <xsl:apply-templates select="//tei:text/*" mode="structure"/>
+    <xsl:choose>
+    <xsl:when test="./tei:body">
+        <!-- We see this behaviour in some files, no tei:text but directly a body, not sure if it's valid TEI but we can deal with it  -->
+        <div class="body">
+            <xsl:apply-templates select="//tei:body/*" mode="structure"/>
+        </div>
+    </xsl:when>
+    <xsl:otherwise>
+        <xsl:apply-templates select="/text/tei:text/*" mode="structure"/>
+    </xsl:otherwise>
+    </xsl:choose>
   </text>
 </FoLiA>
 </xsl:template>
@@ -439,7 +449,16 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     </cell>
 </xsl:template>
 
-<xsl:template match="tei:p|tei:speaker|tei:trailer|tei:closer|tei:opener|tei:lxx|tei:byline|tei:salute" mode="structure">
+<xsl:template match="tei:p|tei:speaker|tei:trailer|tei:closer|tei:opener|tei:lxx|tei:byline|tei:salute|tei:para|tei:remark" mode="structure">
+    <xsl:call-template name="p"/>
+</xsl:template>
+
+<!-- These are not real TEI elements but they occur in some dialects and we squash them to paragraphs -->
+<xsl:template match="tei:para|tei:remark|tei:folio" mode="structure">
+    <xsl:if test="$quiet = 'false'">
+    <xsl:message terminate="no">NOTICE: Found an unofficial TEI element that doesn't exist in the P5 specification <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />), we're converting these to a FoLiA paragraph</xsl:message>
+    </xsl:if>
+    <comment>[tei2folia WARNING] Unofficial TEI element: <xsl:value-of select="name(.)"/> (in <xsl:value-of select="name(parent::node())" />) was converted to a paragraph</comment>
     <xsl:call-template name="p"/>
 </xsl:template>
 
