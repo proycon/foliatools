@@ -477,7 +477,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:template>
 
 <!-- we can't have tables, figures or lists inside these pseudo-TEI elements either -->
-<xsl:template match="tei:para[./tei:table|./tei:figure|./tei:list]" mode="structure">
+<xsl:template match="tei:para[./tei:table|./tei:figure|./tei:list]|tei:remark[./tei:table|./tei:figure|./tei:list]" mode="structure">
     <!-- just forget about the P and handle everything inside directly: -->
     <xsl:apply-templates mode="structure" />
 </xsl:template>
