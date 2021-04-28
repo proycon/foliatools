@@ -72,6 +72,8 @@ def convert(filename, transformer, parser=None, **kwargs):
         if data.find(b"xmlns=\"http://www.tei-c.org/ns/1.0\"") == -1:
             data = data.replace(b"<TEI ",b"<TEI xmlns=\"http://www.tei-c.org/ns/1.0\" ")
             data = data.replace(b"<TEI.2 ",b"<TEI.2 xmlns=\"http://www.tei-c.org/ns/1.0\" ")
+            data = data.replace(b"<teiTrim ",b"<teiTrim xmlns=\"http://www.tei-c.org/ns/1.0\" ")
+            data = data.replace(b"<teiTrim>",b"<teiTrim xmlns=\"http://www.tei-c.org/ns/1.0\">")
         parsedsource = lxml.etree.fromstring(data, parser)
         del data
     else:
