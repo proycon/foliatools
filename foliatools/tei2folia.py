@@ -80,6 +80,8 @@ def convert(filename, transformer, parser=None, **kwargs):
         with open(filename,'rb') as f:
             parsedsource = lxml.etree.parse(f, parser)
     transformed = transformer(parsedsource,quiet="true")
+    if 'intermediate' in kwargs and kwargs['intermediate']:
+        print(str(lxml.etree.tostring(transformed,encoding='utf-8'),'utf-8'))
     try:
         doc = folia.Document(tree=transformed, debug=kwargs.get('debug',0))
     except folia.DeepValidationError as e:
@@ -251,6 +253,7 @@ def main():
     parser.add_argument('-D','--debug',type=int,help="Debug level", action='store',default=0)
     parser.add_argument('-q','--quiet',help="Do not output warnings", action='store_true',default=False)
     parser.add_argument('-b','--traceback',help="Provide a full traceback on validation errors", action='store_true', default=False)
+    parser.add_argument('-I','--intermediate',help="Dump intermediate output on validation error", action='store_true', default=False)
     parser.add_argument('-P','--leaveparts',help="Do *NOT* resolve temporary parts", action='store_true', default=False)
     parser.add_argument('-N','--leavenotes',help="Do *NOT* resolve inline notes (t-gap)", action='store_true', default=False)
     parser.add_argument('-i','--ids',help="Generate IDs for all structural elements", action='store_true', default=False)
