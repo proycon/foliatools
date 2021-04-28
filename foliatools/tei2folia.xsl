@@ -457,6 +457,12 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:apply-templates mode="structure" />
 </xsl:template>
 
+<!-- we can't have tables, figures or lists inside these pseudo-TEI elements either -->
+<xsl:template match="tei:para[./tei:table]" mode="structure">
+    <!-- just forget about the P and handle everything inside directly: -->
+    <xsl:apply-templates mode="structure" />
+</xsl:template>
+
 <xsl:template match="tei:figure" mode="structure">
     <xsl:if test="./tei:head">
         <!-- move head out of figure -->
