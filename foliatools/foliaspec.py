@@ -314,6 +314,7 @@ def setelementproperties_cpp(element,indent, defer,done):
                     if 'WordReference' in value:
                         value += tuple( e  for e in sorted(flattenclasses(spec['wrefables'])) )
                 s += indent + outputvar(element['class'] + '::PROPS.' + prop.upper(),  value, target) + '\n'
+    s += indent + 'element_props[' + element['class'] + '_t] = &' + element['class'] + '::PROPS;\n'
     done[element['class']] = True
     return s
 
