@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.com/proycon/foliatools.svg?branch=master
-    :target: https://travis-ci.com/proycon/foliatools
+.. image:: https://github.com/proycon/foliatools/actions/workflows/foliatools.yml/badge.svg?branch=master
+    :target: https://github.com/proycon/foliatools/actions/
 
 .. image:: http://readthedocs.org/projects/foliatools/badge/?version=latest
 	:target: http://foliatools.readthedocs.io/en/latest/?badge=latest
