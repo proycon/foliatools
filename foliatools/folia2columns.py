@@ -153,15 +153,16 @@ def resize(s, i, spacing):
     #print '[' + s + ']', len(s), spacing[i]
     return s
 
-def processdir(d, outputfile = None):
+def processdir(d, outputfile = None, i = 0):
     print("Searching in  " + d, file=sys.stderr)
     for f in glob.glob(os.path.join(d, '*')):
         if f[-len(settings.extension) - 1:] == '.' + settings.extension:
-            process(f, outputfile)
+            process(f, outputfile, i)
+            i = i + 1
         elif settings.recurse and os.path.isdir(f):
-            processdir(f, outputfile)
+            i = processdir(f, outputfile, i)
 
-def process(filename, outputfile=None):
+def process(filename, outputfile=None, filesProcessed=0ho):
     try:
         print("Processing " + filename, file=sys.stderr)
         doc = folia.Document(file=filename)
@@ -195,7 +196,7 @@ def process(filename, outputfile=None):
                 else:
                     spacing.append(settings.nicespacing)
 
-        if settings.output_header:
+        if settings.output_header and not(outputfile and filesProcessed > 0): #avoid continuously reprinting header when printing multiple files to single file
 
             if settings.csv:
                 columns = [ '"' + x.upper()  + '"' for x in settings.columnconf ]
