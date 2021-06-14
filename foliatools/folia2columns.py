@@ -162,7 +162,7 @@ def processdir(d, outputfile = None, i = 0):
         elif settings.recurse and os.path.isdir(f):
             i = processdir(f, outputfile, i)
 
-def process(filename, outputfile=None, filesProcessed=0ho):
+def process(filename, outputfile=None, filesProcessed=0):
     try:
         print("Processing " + filename, file=sys.stderr)
         doc = folia.Document(file=filename)
