@@ -40,6 +40,10 @@ def usage():
     print("                               parid   - output paragraph ID", file=sys.stderr)
     print("                               N     - word/token number (absolute)", file=sys.stderr)
     print("                               n     - word/token number (relative to sentence)", file=sys.stderr)
+    print("  -u [units]                   Desired token unit, choose from:", file=sys.stderr)
+    print("                               word      - output words (default)", file=sys.stderr)
+    print("                               sentence  - output sentences", file=sys.stderr)
+    print("                               paragraph - output paragraphs", file=sys.stderr)
     print("Options:", file=sys.stderr)
     print("  --csv                        Output in CSV format", file=sys.stderr)
     print("  -o [filename]                Output to a single output file instead of stdout", file=sys.stderr)
@@ -67,10 +71,11 @@ class settings:
     recurse = False
     encoding = 'utf-8'
     columnconf = []
+    unit = "word"
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "o:OPhHSc:x:E:rq", ["help", "csv"])
+        opts, args = getopt.getopt(sys.argv[1:], "o:OPhHSc:x:E:rqu:", ["help", "csv"])
     except getopt.GetoptError as err:
         print(str(err), file=sys.stderr)
         usage()
@@ -85,6 +90,13 @@ def main():
         elif o == '-h':
             usage()
             sys.exit(0)
+        elif o == '-u':
+            if a in ['word','sentence','paragraph']:
+                settings.unit = a
+            else:
+                print("ERROR: Unknown unit (-u) type specified: choose from word, sentence, paragraph", file=sys.stderr)
+                usage()
+                sys.exit(2)
         elif o == '-H':
             settings.output_header = False
         elif o == '-S':
@@ -209,18 +221,27 @@ def process(filename, outputfile=None):
 
         wordnum = 0
 
+        def getunitfromdoc():
+            if settings.unit == "word":
+                return doc.words()
+            elif settings.unit == "sentence":
+                return doc.sentences()
+            elif settings.unit == "paragraph":
+                return doc.paragraphs()
+            else:
+                return doc.words()
 
-
-        for i, w in enumerate(doc.words()):
-            if w.sentence() != prevsen and i > 0:
-                if settings.sentencespacing:
-                    if outputfile:
-                        outputfile.write('\n')
-                    else:
-                        print()
-                wordnum = 0
-            prevsen = w.sentence()
-            wordnum += 1
+        for i, w in enumerate(getunitfromdoc()):
+            if settings.unit == "word":
+                if w.sentence() != prevsen and i > 0:
+                    if settings.sentencespacing:
+                        if outputfile:
+                            outputfile.write('\n')
+                        else:
+                            print()
+                    wordnum = 0
+                prevsen = w.sentence()
+                wordnum += 1
             columns = []
             for c in settings.columnconf:
                 if c == 'id':
