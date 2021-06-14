@@ -278,9 +278,9 @@ def process(filename, outputfile=None, filesProcessed=0):
                         columns.append(w.annotation(folia.PhonAnnotation).cls)
                     except:
                         columns.append('-')
-                elif c == 'senid':
+                elif c == 'senid' and settings.unit == "word":
                     columns.append(w.sentence().id)
-                elif c == 'parid':
+                elif c == 'parid' and (settings.unit == "word" or settings.unit == "sentence"):
                     try:
                         columns.append(w.paragraph().id)
                     except:
