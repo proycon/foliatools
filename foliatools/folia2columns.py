@@ -52,6 +52,7 @@ def usage():
     print("  -H                           Suppress header output", file=sys.stderr)
     print("  -S                           Suppress sentence spacing  (no whitespace between sentences)", file=sys.stderr)
     print("  -x [sizeinchars]             Space columns for human readability (instead of plain tab-separated columns)", file=sys.stderr)
+    print("  -t                           Output tokenized rather than untokenized paragraphs/sentences when -u sentence or -u paragraph is used", file=sys.stderr)
     print("Parameters for processing directories:", file=sys.stderr)
     print("  -r                           Process recursively", file=sys.stderr)
     print("  -E [extension]               Set extension (default: xml)", file=sys.stderr)
@@ -72,10 +73,11 @@ class settings:
     encoding = 'utf-8'
     columnconf = []
     unit = "word"
+    tok = False
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "o:OPhHSc:x:E:rqu:", ["help", "csv"])
+        opts, args = getopt.getopt(sys.argv[1:], "o:OPhHSc:x:E:rqu:t", ["help", "csv"])
     except getopt.GetoptError as err:
         print(str(err), file=sys.stderr)
         usage()
@@ -112,6 +114,8 @@ def main():
             settings.autooutput_cwd = True
         elif o == '-x':
             settings.nicespacing = int(a)
+        elif o == '-t':
+            settings.tok = True
         elif o == '-E':
             settings.extension = a
         elif o == '-r':
@@ -248,36 +252,107 @@ def process(filename, outputfile=None, filesProcessed=0):
                 if c == 'id':
                     columns.append(w.id)
                 elif c == 'text':
-                    columns.append(w.text())
+                    if settings.unit == "word":
+                        columns.append(w.text())
+                    else:
+                        if settings.tok:
+                            wordspar = []
+                            for j, word in enumerate(w.words()):
+                                wordspar.append(word.text())
+                            if wordspar:
+                                columns.append(' '.join(wordspar))
+                        else:
+                            columns.append(w.text())
                 elif c == 'n':
                     columns.append(str(wordnum))
                 elif c == 'N':
                     columns.append(str(i+1))
                 elif c == 'pos':
-                    try:
-                        columns.append(w.annotation(folia.PosAnnotation).cls)
-                    except:
-                        columns.append('-')
+                    if settings.unit == "paragraph" or settings.unit == "sentence":
+                        pospar = []
+                        for j, word in enumerate(w.words()):
+                            try:
+                                pospar.append(word.annotation(folia.LemmaAnnotation).cls)
+                            except:
+                                pass
+                        if pospar:
+                            columns.append(' '.join(pospar))
+                        else:
+                            columns.append('-')
+                    else:
+                        try:
+                            columns.append(w.annotation(folia.PosAnnotation).cls)
+                        except:
+                            columns.append('-')
                 elif c == 'poshead':
-                    try:
-                        columns.append(w.annotation(folia.PosAnnotation).feat('head'))
-                    except:
-                        columns.append('-')
+                    if settings.unit == "paragraph" or settings.unit == "sentence":
+                        posheadpar = []
+                        for j, word in enumerate(w.words()):
+                            try:
+                                posheadpar.append(word.annotation(folia.LemmaAnnotation).cls)
+                            except:
+                                pass
+                        if posheadpar:
+                            columns.append(' '.join(posheadpar))
+                        else:
+                            columns.append('-')
+                    else:
+                        try:
+                            columns.append(w.annotation(folia.PosAnnotation).feat('head'))
+                        except:
+                            columns.append('-')
                 elif c == 'lemma':
-                    try:
-                        columns.append(w.annotation(folia.LemmaAnnotation).cls)
-                    except:
-                        columns.append('-')
+                    if settings.unit == "paragraph" or settings.unit == "sentence":
+                        lemmapar = []
+                        for j, word in enumerate(w.words()):
+                            try:
+                                lemmapar.append(word.annotation(folia.LemmaAnnotation).cls)
+                            except:
+                                pass
+                        if lemmapar:
+                            columns.append(' '.join(lemmapar))
+                        else:
+                            columns.append('-')
+                        
+                    else:
+                        try:
+                            columns.append(w.annotation(folia.LemmaAnnotation).cls)
+                        except:
+                            columns.append('-')
                 elif c == 'sense':
-                    try:
-                        columns.append(w.annotation(folia.SenseAnnotation).cls)
-                    except:
-                        columns.append('-')
+                    if settings.unit == "paragraph" or settings.unit == "sentence":
+                        sensepar = []
+                        for j, word in enumerate(w.words()):
+                            try:
+                                sensepar.append(word.annotation(folia.LemmaAnnotation).cls)
+                            except:
+                                pass
+                        if sensepar:
+                            columns.append(' '.join(sensepar))
+                        else:
+                            columns.append('-')
+                    else:
+                        try:
+                            columns.append(w.annotation(folia.SenseAnnotation).cls)
+                        except:
+                            columns.append('-')
                 elif c == 'phon':
-                    try:
-                        columns.append(w.annotation(folia.PhonAnnotation).cls)
-                    except:
-                        columns.append('-')
+                    if settings.unit == "paragraph" or settings.unit == "sentence":
+                        phonpar = []
+                        for j, word in enumerate(w.words()):
+                            try:
+                                phonpar.append(word.annotation(folia.LemmaAnnotation).cls)
+                            except:
+                                pass
+                        if phonpar:
+                            columns.append(' '.join(phonpar))
+                        else:
+                            columns.append('-')
+                    else:
+                        try:
+                            columns.append(w.annotation(folia.PhonAnnotation).cls)
+                        except:
+                            columns.append('-')
                 elif c == 'senid' and settings.unit == "word":
                     columns.append(w.sentence().id)
                 elif c == 'parid' and (settings.unit == "word" or settings.unit == "sentence"):
