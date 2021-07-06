@@ -33,6 +33,7 @@ def usage():
     print("                               such information is explicitly available in the",file=sys.stderr)
     print("                               FoLiA document)",file=sys.stderr)
     print("  -c                           Text class to output (defaults to: current)",file=sys.stderr)
+    print("  --original                   When processing corrections, look in the original text rather than the new/current text",file=sys.stderr)
     print("  -w                           One word per line",file=sys.stderr)
     print("  -s                           One sentence per line",file=sys.stderr)
     print("  -p                           One paragraph per line",file=sys.stderr)
@@ -76,15 +77,15 @@ def process(filename, outputfile = None):
 
         if settings.wordperline:
             for word in doc.words():
-                out(word.text(settings.textclass, settings.retaintokenisation), outputfile)
+                out(word.text(settings.textclass, settings.retaintokenisation, correctionhandling=settings.correctionhandling), outputfile)
         elif settings.sentenceperline:
             for sentence in doc.sentences():
-                out(sentence.text(settings.textclass, settings.retaintokenisation) , outputfile)
+                out(sentence.text(settings.textclass, settings.retaintokenisation, correctionhandling=settings.correctionhandling) , outputfile)
         elif settings.paragraphperline:
             for paragraph in doc.paragraphs():
-                out(paragraph.text(settings.textclass, settings.retaintokenisation) , outputfile)
+                out(paragraph.text(settings.textclass, settings.retaintokenisation, correctionhandling=settings.correctionhandling) , outputfile)
         else:
-            out(doc.text(settings.textclass, settings.retaintokenisation) , outputfile)
+            out(doc.text(settings.textclass, settings.retaintokenisation, correctionhandling=settings.correctionhandling) , outputfile)
 
         if settings.autooutput:
             outputfile.close()
@@ -120,11 +121,12 @@ class settings:
     ignoreerrors = False
     encoding = 'utf-8'
     textclass = "current"
+    correctionhandling = folia.CorrectionHandling.CURRENT
 
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "o:OPE:htspwrqc:", ["help"])
+        opts, args = getopt.getopt(sys.argv[1:], "o:OPE:htspwrqc:", ["help","original"])
     except getopt.GetoptError as err:
         print(str(err), file=sys.stderr)
         usage()
@@ -163,6 +165,8 @@ def main():
             settings.recurse = True
         elif o == '-q':
             settings.ignoreerrors = True
+        elif o == '--original':
+            settings.correctionhandling = folia.CorrectionHandling.ORIGINAL
         else:
             raise Exception("No such option: " + o)
 
