@@ -19,8 +19,9 @@ import folia.main as folia
 def usage():
     print("folia2txt",file=sys.stderr)
     print("  by Maarten van Gompel (proycon)",file=sys.stderr)
+    print("  KNAW Humanities Cluster &",file=sys.stderr)
     print("  Centre for Language and Speech Technology, Radboud University Nijmegen",file=sys.stderr)
-    print("  2012-2019 - Licensed under GPLv3",file=sys.stderr)
+    print("  2012-2021 - Licensed under GPLv3",file=sys.stderr)
     print("",file=sys.stderr)
     print(__doc__,file=sys.stderr)
     print("",file=sys.stderr)

@@ -4,8 +4,8 @@
 #---------------------------------------------------------------
 # FoLiA to ReStructuredText Converter
 #   by Maarten van Gompel
-#   Centre for Language Studies
-#   Radboud University Nijmegen
+#   KNAW Humanities Cluster &
+#   Centre for Language and Speech Technology (Radboud University Nijmegen)
 #   proycon AT anaproy DOT nl
 #
 #   Licensed under GPLv3

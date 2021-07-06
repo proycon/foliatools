@@ -25,7 +25,7 @@ def usage():
     print("  by Maarten van Gompel (proycon)",file=sys.stderr)
     print("  Centre for Language and Speech Technology, Radboud University Nijmegen",file=sys.stderr)
     print("  & KNAW Humanities Cluster",file=sys.stderr)
-    print("  2015-2020 - Licensed under GPLv3",file=sys.stderr)
+    print("  2015-2021 - Licensed under GPLv3",file=sys.stderr)
     print("",file=sys.stderr)
     print("Description: " + __doc__,file=sys.stderr)
     print("",file=sys.stderr)
