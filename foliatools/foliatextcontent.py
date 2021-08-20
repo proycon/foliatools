@@ -38,6 +38,7 @@ def usage():
     print("  -d                           Add text content on division level",file=sys.stderr)
     print("  -t                           Add text content on global text level"    ,file=sys.stderr)
     print("  -T                           Add text content for the specified elements (comma separated list of folia xml tags)"    ,file=sys.stderr)
+    print("  -O                           Add offsets to existing elements of the specified types (comma separated list of folia xml tags). Example: -O w"    ,file=sys.stderr)
     print("  -X                           Do NOT add offset information"    ,file=sys.stderr)
     print("  -F                           Force offsets to refer to the specified structure only (only works if you specified a single element type for -T!!!)"    ,file=sys.stderr)
     print("  -M                           Add substring markup linking to string elements (if any, and when there is no overlap). This also supports strings inside corrections and adds correction markup in that case."    ,file=sys.stderr)
@@ -281,6 +282,36 @@ def processelement(element, settings):
                     else:
                         settext(element, cls, settings.offsets, settings.forceoffsetref, settings.debug)
 
+def addoffsets(element, textclass):
+    """Compute text offsets in existing child elements"""
+    if settings.forceoffsetref:
+        raise NotImplementedError("Unable to compute offsets against a fixed reference")
+    parent = element.parent
+    try:
+        elementtextcontent = element.textcontent(textclass)
+    except folia.NoSuchText:
+        print(f"No text for {element}",file=sys.stderr)
+        return False
+    try:
+        parenttextcontent = parent.textcontent(textclass)
+    except folia.NoSuchText:
+        print(f"No text for parent of {element}",file=sys.stderr)
+        return False
+    if not hasattr(parent, 'addoffsetcursor'):
+        parent.addoffsetcursor = 0
+    startoffset = parent.addoffsetcursor
+    elementtext = elementtextcontent.text()
+    parenttext = parenttextcontent.text()
+    while parenttext[parent.addoffsetcursor:parent.addoffsetcursor+len(elementtext)] != elementtext:
+        parent.addoffsetcursor += 1
+        if parent.addoffsetcursor >= len(parenttext):
+            raise folia.InconsistentText(f"Unable to find offset for {element} with text '{elementtext}' in parent text '{parenttext}', started at offset {startoffset}")
+    elementtextcontent.offset = parent.addoffsetcursor
+    if settings.debug:
+        print(f"Assigning offset {parent.addoffsetcursor} to {element}",file=sys.stderr)
+    parent.addoffsetcursor += len(elementtext)
+    return True
+
 
 def process(filename):
     print("Converting " + filename,file=sys.stderr)
@@ -294,6 +325,12 @@ def process(filename):
     if settings.Classes:
         for e in doc.data:
             processelement(e, settings)
+
+    if settings.OffsetClasses:
+        for Class in settings.OffsetClasses:
+            for e in doc.select(Class):
+                for cls in doc.textclasses:
+                    addoffsets(e, cls)
 
 
     if settings.inplaceedit:
@@ -311,9 +348,10 @@ def processdir(d):
 
 
 class settings:
-    Classes = []
+    Classes = [] #class to add text for
     inplaceedit = False
-    offsets = True
+    offsets = True #add offsets when adding text?
+    OffsetClasses = [] #classes to add offsets for
     forceoffsetref = False
     linkstrings = False
 
@@ -330,7 +368,7 @@ class settings:
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "E:hsSpPdDtT:XMe:wT:Fc", ["help"])
+        opts, args = getopt.getopt(sys.argv[1:], "E:hsSpPdDtT:O:XMe:wT:Fc", ["help"])
     except getopt.GetoptError as err:
         print(str(err),file=sys.stderr)
         usage()
@@ -355,6 +393,8 @@ def main():
             settings.Classes.append(folia.Paragraph)
         elif o == '-T':
             settings.Classes += [ folia.XML2CLASS[tag] for tag in a.split(',') if tag ]
+        elif o == '-O':
+            settings.OffsetClasses += [ folia.XML2CLASS[tag] for tag in a.split(',') if tag ]
         elif o == '-X':
             settings.offsets = False
         elif o == '-e':
@@ -377,7 +417,7 @@ def main():
 
 
 
-    if len(settings.Classes) > 1:
+    if len(settings.Classes) > 1 or len(settings.OffsetClasses) > 1:
         settings.forceoffsetref = False
 
     if args:
