@@ -86,7 +86,7 @@ def linkstrings(element, cls='current',debug=False):
                             print(" String refers to offset " + str(stringoffset) + ", but is not found there ! Found '" + subtext[reloffset:reloffset+length] + "' instead.",file=sys.stderr)
                         else:
                             #match!
-                            kwargs = {}
+                            kwargs = {'processor': element.doc.processor}
                             replaceindex = i
                             if string.id:
                                 kwargs['idref'] = string.id
@@ -300,8 +300,8 @@ def addoffsets(element, textclass):
     if not hasattr(parent, 'addoffsetcursor'):
         parent.addoffsetcursor = 0
     startoffset = parent.addoffsetcursor
-    elementtext = elementtextcontent.text()
-    parenttext = parenttextcontent.text()
+    elementtext = elementtextcontent.text().replace("\n", " ") #insensitive to newlines
+    parenttext = parenttextcontent.text().replace("\n", " ")
     while parenttext[parent.addoffsetcursor:parent.addoffsetcursor+len(elementtext)] != elementtext:
         parent.addoffsetcursor += 1
         if parent.addoffsetcursor >= len(parenttext):
