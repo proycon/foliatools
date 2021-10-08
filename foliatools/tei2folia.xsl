@@ -116,7 +116,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         </div>
     </xsl:when>
     <xsl:otherwise>
-        <xsl:apply-templates select="/text/tei:text/*" mode="structure"/>
+        <xsl:apply-templates select="//tei:text/*" mode="structure"/>
     </xsl:otherwise>
     </xsl:choose>
   </text>
