@@ -69,8 +69,7 @@ def main():
     elements.sort(key=lambda x: x['class'])
 
     print(\
-f"""
-@prefix folia: <{spec['namespace']}#> .
+f"""@prefix folia: <{spec['namespace']}#> .
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -80,18 +79,18 @@ f"""
 ### Concept Schemes ###
 
 folia:AnnotationTypes a skos:ConceptScheme ;
-                      dc:title "FoLiA Annotation Types" .
-                      dc:description "Defines the annotation types of FoLiA, this includes linguistic, structural and markup annotation types"
+                      dc:title "FoLiA Annotation Types" ;
+                      dc:description "Defines the annotation types of FoLiA, this includes linguistic, structural and markup annotation types" .
 folia:AnnotationType a rdfs:Class .
 
 folia:Attributes a skos:ConceptScheme ;
-                 dc:title "FoLiA Attributes" .
-                 dc:description "Defines common attributes on FoLiA elements."
+                 dc:title "FoLiA Attributes" ;
+                 dc:description "Defines common attributes on FoLiA elements." .
 folia:Attribute a rdfs:Class .
 
 folia:Elements a skos:ConceptScheme ;
-                 dc:title "FoLiA Elements" .
-                 dc:description "Defines FoLiA elements. These correspond to element in FoLiA XML"
+                 dc:title "FoLiA Elements" ;
+                 dc:description "Defines FoLiA elements. These correspond to element in FoLiA XML" .
 folia:Element  a rdfs:Class .
 
 ### Element Properties ###
@@ -198,6 +197,8 @@ folia:acceptedElement a rdf:Property ;
                         value = "false"
                     predicates.append(f"folia:{key} \"{value}\"")
                 elif key in STRINGPROPERTIES:
+                    if not value: value = ""
+                    value = value.replace("\n","\\n")
                     predicates.append(f"folia:{key} \"{value}\"")
                 elif key == 'required_attribs' and value:
                     assert isinstance(value, list)
