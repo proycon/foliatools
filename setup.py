@@ -58,6 +58,7 @@ setup(
             'foliaid = foliatools.foliaid:main',
             'foliaspec = foliatools.foliaspec:main',
             'foliaspec2json = foliatools.foliaspec2json:main',
+            'foliaspec2rdf = foliatools.foliaspec2rdf:main',
             'alpino2folia = foliatools.alpino2folia:main',
             'foliatree = foliatools.foliatree:main',
             'foliasetdefinition = foliatools.foliasetdefinition:main',
