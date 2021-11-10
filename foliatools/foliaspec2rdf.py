@@ -68,13 +68,17 @@ def main():
     elements, elementdict, parents = getelements(spec) #gathers all class names
     elements.sort(key=lambda x: x['class'])
 
+    majorversion = spec['version'].split(".")[0]
+
     print(\
-f"""@prefix folia: <{spec['namespace']}#> .
+f"""@prefix folia: <{spec['namespace']}/v{majorversion}#> .
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xs: <http://www.w3.org/2001/XMLSchema#> .
 @prefix dc: <http://purl.org/dc/elements/1.1/#> .
+
+##### FoLiA version v{spec['version']} Specification #######
 
 ### Concept Schemes ###
 
@@ -98,7 +102,7 @@ folia:Element  a rdfs:Class .
 folia:xmltag a rdf::Property ;
              rdfs:domain folia:Element ;
              rdfs:range xs:NCName .
-folia::annotationtype a rdf::Property ;
+folia:annotationtype a rdf::Property ;
                       rdfs:domain folia:Element ;
                       rdfs:range folia:AnnotationType .
 folia:occurrences a rdf:Property ;
