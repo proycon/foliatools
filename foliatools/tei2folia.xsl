@@ -116,7 +116,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         </div>
     </xsl:when>
     <xsl:otherwise>
-        <xsl:apply-templates select="/text/tei:text/*" mode="structure"/>
+        <xsl:apply-templates select="//tei:text/*" mode="structure"/>
     </xsl:otherwise>
     </xsl:choose>
   </text>
@@ -149,7 +149,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
          <annotator processor="proc.tei2folia.xsl"/>
     </sentence-annotation>
   </xsl:if>
-  <xsl:if test="//tei:w">
+  <xsl:if test="//tei:w|//tei:c">
     <token-annotation>
          <annotator processor="proc.tei2folia.xsl"/>
     </token-annotation>
@@ -269,8 +269,8 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 <!-- process underlying text and/or structure-->
 <xsl:template name="textandorstructure">
     <xsl:variable name="hastext"><xsl:choose><xsl:when test="normalize-space(translate(., '&#160;', ' ')) != ''">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
-    <xsl:variable name="hasmarkup"><xsl:choose><xsl:when test="tei:hi|tei:add|tei:name|tei:note|tei:corr|tei:supplied|tei:add|tei:l and number($hastext) = 1">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
-    <xsl:variable name="hasstructure"><xsl:choose><xsl:when test="tei:p|tei:div|tei:s|tei:w|tei:fw|tei:pc|tei:lg|tei:sp|tei:table|tei:row|tei:cell|tei:figure|tei:list|tei:item|tei:cell|tei:speaker|tei:head">1</xsl:when><xsl:when test="number($hasmarkup = 1) and .//tei:w[1]|.//tei:s[1]|.//tei:p[1]">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
+    <xsl:variable name="hasmarkup"><xsl:choose><xsl:when test="tei:hi|tei:add|tei:name|tei:rs|tei:note|tei:corr|tei:supplied|tei:add|tei:l and number($hastext) = 1">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
+    <xsl:variable name="hasstructure"><xsl:choose><xsl:when test="tei:p|tei:div|tei:s|tei:w|tei:c|tei:fw|tei:pc|tei:lg|tei:sp|tei:table|tei:row|tei:cell|tei:figure|tei:list|tei:item|tei:cell|tei:speaker|tei:head">1</xsl:when><xsl:when test="number($hasmarkup = 1) and .//tei:w[1]|.//tei:c[1]|.//tei:s[1]|.//tei:p[1]">1</xsl:when><xsl:otherwise>0</xsl:otherwise></xsl:choose></xsl:variable>
 
     <!--<xsl:comment>DEBUG:<xsl:value-of select="$hasstructure" /><xsl:value-of select="$hastext" /><xsl:value-of select="$hasmarkup" /></xsl:comment>-->
 
@@ -466,7 +466,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
     <xsl:call-template name="s"/>
 </xsl:template>
 
-<xsl:template match="tei:w|tei:fw|tei:pc" mode="structure">
+<xsl:template match="tei:w|tei:c|tei:fw|tei:pc" mode="structure">
     <xsl:call-template name="w"/>
 </xsl:template>
 
@@ -537,7 +537,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
         <item>
         <xsl:attribute name="n"><xsl:value-of select="string(preceding-sibling::*[1])" /></xsl:attribute>
         <xsl:choose>
-        <xsl:when test="tei:list|tei:table|tei:p|tei:s|tei:w|tei:fw">
+        <xsl:when test="tei:list|tei:table|tei:p|tei:s|tei:w|tei:c|tei:fw">
         <xsl:if test="normalize-space(translate(string(preceding-sibling::*[1]) ,'&#160;', ' '))">
         <gap class="label">
         <content><xsl:value-of select="string(preceding-sibling::*[1])" /></content>
@@ -654,7 +654,7 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 
 <xsl:template match="tei:hi" mode="structure">
     <xsl:choose>
-    <xsl:when test=".//tei:w[1]|.//tei:s[1]|.//tei:p[1]">
+    <xsl:when test=".//tei:w[1]|.//tei:c[1]|.//tei:s[1]|.//tei:p[1]">
     <!-- styling is wrapped around structural elements, FoLiA requires the reverse -->
     <xsl:if test="$quiet = 'false'">
     <xsl:message terminate="no">[tei2folia WARNING] styling wrapped around structural elements can not be converted yet (reduced to a comment)</xsl:message>
@@ -717,6 +717,12 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:if>
 </xsl:template>
 
+<xsl:template match="tei:rs" mode="structure">
+<xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
+<part class="temp-rs"><t><xsl:call-template name="rs" /></t></part>
+</xsl:if>
+</xsl:template>
+
 <xsl:template match="tei:seg" mode="structure">
 <xsl:if test="normalize-space(translate(string(.),'&#160;', ' '))">
 <part class="segment"><t><xsl:value-of select="." /></t></part>
@@ -744,8 +750,28 @@ Heavily adapted by Maarten van Gompel (Radboud University)
 </xsl:if>
 </xsl:template>
 
-<xsl:template match="name" mode="markup">
+<xsl:template match="tei:name" mode="markup">
 <xsl:call-template name="name" />
+</xsl:template>
+
+<xsl:template name="rs">
+<xsl:if test="normalize-space(string(.))">
+<t-str class="rs">
+<xsl:choose>
+<xsl:when test="@type">
+<xsl:attribute name="class"><xsl:value-of select="@type"/>-rs</xsl:attribute>
+</xsl:when>
+<xsl:otherwise>
+<xsl:attribute name="class">rs</xsl:attribute>
+</xsl:otherwise>
+</xsl:choose>
+<xsl:apply-templates mode="markup"/>
+</t-str>
+</xsl:if>
+</xsl:template>
+
+<xsl:template match="tei:rs" mode="markup">
+<xsl:call-template name="rs" />
 </xsl:template>
 
 
