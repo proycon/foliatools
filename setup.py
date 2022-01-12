@@ -16,7 +16,7 @@ setup(
     author_email = "proycon@anaproy.nl",
     description = ("FoLiA-tools contains various Python-based command line tools for working with FoLiA XML (Format for Linguistic Annotation)"),
     license = "GPL",
-    keywords = "nlp computational_linguistics search linguistics toolkit folia pynlpl format_for_linguistic_annotation",
+    keywords = ["nlp", "computational linguistics", "search", "folia", "annotation"],
     url = "https://proycon.github.io/folia",
     packages=['foliatools'],
     long_description=read('README.rst'),
