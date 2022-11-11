@@ -48,6 +48,7 @@ setup(
             'foliatextcontent = foliatools.foliatextcontent:main',
             'dcoi2folia = foliatools.dcoi2folia:main',
             'conllu2folia = foliatools.conllu2folia:main',
+            'transcribedspeech2folia = foliatools.transcribedspeech2folia:main',
             'rst2folia = foliatools.rst2folia:main',
             'txt2folia = foliatools.txt2folia:main',
             'tei2folia = foliatools.tei2folia:main',
