@@ -1045,7 +1045,7 @@ def main():
         sys.exit(0)
 
     #Load specification
-    spec = yaml.load(open(args.specification,'r'))
+    spec = yaml.load(open(args.specification,'r'), yaml.FullLoader)
 
     elements = getelements(spec) #gathers all class names
     elements.sort(key=lambda x: x['class'])
