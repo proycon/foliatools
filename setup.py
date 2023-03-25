@@ -26,6 +26,9 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Operating System :: POSIX",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
@@ -72,5 +75,5 @@ setup(
     },
     #include_package_data=True,
     package_data = {'foliatools': ['*.xsl']},
-    install_requires=['folia >= 2.5.4', 'lxml >= 2.2','docutils', 'pyyaml', 'langid','conllu', 'requests']
+    install_requires=['folia >= 2.5.4', 'lxml >= 2.2','docutils', 'pyyaml', 'langid','conllu', 'requests','stam']
 )
