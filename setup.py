@@ -71,6 +71,7 @@ setup(
             'folialangid = foliatools.folialangid:main',
             'foliabench = foliatools.foliabench:main',
             'foliasplit = foliatools.foliasplit:main',
+            'folia2stam = foliatools.folia2stam:main',
         ]
     },
     #include_package_data=True,
