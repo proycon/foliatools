@@ -393,12 +393,15 @@ def convert_span_annotation(doc: folia.Document, annotationstore: stam.Annotatio
 def convert_type_information(annotation: folia.AbstractElement) -> Generator[stam.AnnotationDataBuilder,None,None]:
      if annotation.XMLTAG:
         yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
+                                        id=f"{FOLIA_NAMESPACE}elementtype/{annotation.XMLTAG}",
                                         key="elementtype",
                                         value=annotation.XMLTAG)
      if annotation.ANNOTATIONTYPE:
+        value = folia.annotationtype2str(annotation.ANNOTATIONTYPE).lower()
         yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
+                                        id=f"{FOLIA_NAMESPACE}annotationtype/{value}",
                                         key="annotationtype",
-                                        value=folia.annotationtype2str(annotation.ANNOTATIONTYPE).lower())
+                                        value=value)
 
 def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[stam.AnnotationDataBuilder,None,None]:
     """Convert common FoLiA attributes"""
@@ -413,6 +416,7 @@ def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[st
 
     if annotation.confidence is not None:
         yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
+                                        id=f"{FOLIA_NAMESPACE}confidence/{annotation.confidence}",
                                         key="confidence",
                                         value=annotation.confidence)
 
@@ -427,9 +431,11 @@ def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[st
                                         value=annotation.href)
 
     if annotation.datetime is not None:
+        value = annotation.datetime.strftime("%Y-%m-%dT%H:%M:%S")
         yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
+                                        id=f"{FOLIA_NAMESPACE}datetime/{value}",
                                         key="datetime",
-                                        value=annotation.datetime.strftime("%Y-%m-%dT%H:%M:%S")) #MAYBE TODO: convert to STAM's internal datetime type?
+                                        value=value) #MAYBE TODO: convert to STAM's internal datetime type?
 
     if annotation.processor:
         yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
@@ -439,6 +445,7 @@ def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[st
                                         key="processor/name",
                                         value=annotation.processor.name)
         yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
+                                        id=f"{FOLIA_NAMESPACE}processor/type/{annotation.processor.type}",
                                         key="processor/type",
                                         value=annotation.processor.type)
 
