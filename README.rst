@@ -50,6 +50,7 @@ A number of command-line tools are readily available for working with FoLiA, to 
 - ``rst2folia`` -- Convert ReStructuredText, a lightweight non-intrusive text markup language, to FoLiA, using `docutils <http://docutils.sourceforge.net/>`_.
 - ``tei2folia`` -- Convert a subset of TEI to FoLiA. See the extra documentation in the section below.
 - ``folia2salt`` -- Convert FoLiA XML to `Salt <https://corpus-tools.org/salt/>`_, which in turn enables further conversions (annis, paula, TCF, TigerXML, and others) through `Pepper <https://corpus-tools.org/pepper/>`_. See the extra documentation in the dedicated section below.
+- ``folia2stam`` -- Convert FoLiA XML to `STAM <https://github.com/annotation/stam>`_, a standoff annotation model. Retains FoLiA vocabulary and enables further conversion to e.g. W3C Web Annotations.
 
 
 All of these tools are written in Python, and thus require a Python 3 installation to run. More tools are added as time progresses.
