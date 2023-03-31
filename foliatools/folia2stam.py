@@ -292,7 +292,7 @@ def convert_span_annotation(doc: folia.Document, annotationstore: stam.Annotatio
             for w in span.wrefs():
                 word_stam = annotationstore.annotation(w.id)
                 selectors.append(stam.Selector.annotationselector(word_stam, stam.Offset.whole()))
-        elif kwargs['span-annotations-mode'] == "textselector":
+        elif kwargs['span_annotations_mode'] == "textselector":
             #select the text directly, merge adjacent tokens into one selection
             firstword = None
             prevword = None
@@ -316,11 +316,18 @@ def convert_span_annotation(doc: folia.Document, annotationstore: stam.Annotatio
                 list(convert_features(span)) 
 
         if span.id:
-            annotationstore.annotate(id=span.id, 
-                                 target=stam.Selector.compositeselector(selectors), data=data) #type: ignore
+            if len(selectors) == 1:
+                annotationstore.annotate(id=span.id, 
+                                     target=selectors[0], data=data) #type: ignore
+            else:
+                annotationstore.annotate(id=span.id, 
+                                     target=stam.Selector.compositeselector(*selectors), data=data) #type: ignore
         else:
             #(nested span roles may not carry an independent ID in FoLiA)
-            annotationstore.annotate(target=stam.Selector.compositeselector(selectors), data=data) #type: ignore
+            if len(selectors) == 1:
+                annotationstore.annotate(target=selectors[0], data=data) #type: ignore
+            else:
+                annotationstore.annotate(target=stam.Selector.compositeselector(*selectors), data=data) #type: ignore
 
         #TODO: Build explicit tree structure for nested annotation (syntax) and span roles
 
@@ -492,7 +499,9 @@ def main():
     os.makedirs(os.path.realpath(args.outputdir), exist_ok=True)
     
     args.__dict__['inline_annotations_mode'] = args.__dict__['inline_annotations_mode'].lower()
-    assert args.__dict__['inline_annotations_mode'] in ("annotationSelector","textselector")
+    assert args.__dict__['inline_annotations_mode'] in ("annotationselector","textselector")
+    args.__dict__['span_annotations_mode'] = args.__dict__['span_annotations_mode'].lower()
+    assert args.__dict__['span_annotations_mode'] in ("annotationselector","textselector")
 
     annotationstore = stam.AnnotationStore(id=args.id)
     filename = os.path.join(args.outputdir, args.id + ".store.stam.json")
