@@ -41,7 +41,7 @@ def convert(f, annotationstore: stam.AnnotationStore,  **kwargs):
     selector = stam.Selector.resourceselector(resource)
     if doc.metadata:
         for key, value in doc.metadata.items():
-            annotationstore.annotate(target=selector, data=stam.AnnotationDataBuilder(key=key,value=value,set="metadata")) #TODO: make metadata set configurable
+            annotationstore.annotate(target=selector, data={"key":key,"value":value,"set":"metadata"}) #TODO: make metadata set configurable
 
 
 def convert_tokens(doc: folia.Document, annotationstore: stam.AnnotationStore, **kwargs) -> stam.TextResource:
@@ -397,71 +397,71 @@ def convert_span_annotation(doc: folia.Document, annotationstore: stam.Annotatio
 #    return (nested_nodes, nested_relations, nodes_seqnr)
 
 
-def convert_type_information(annotation: folia.AbstractElement) -> Generator[stam.AnnotationDataBuilder,None,None]:
+def convert_type_information(annotation: folia.AbstractElement) -> Generator[dict,None,None]:
      if annotation.XMLTAG:
-        yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
-                                        id=f"{FOLIA_NAMESPACE}elementtype/{annotation.XMLTAG}",
-                                        key="elementtype",
-                                        value=annotation.XMLTAG)
+        yield { "set":FOLIA_NAMESPACE,
+                "id": f"{FOLIA_NAMESPACE}elementtype/{annotation.XMLTAG}",
+                "key": "elementtype",
+                "value": annotation.XMLTAG}
      if annotation.ANNOTATIONTYPE:
         value = folia.annotationtype2str(annotation.ANNOTATIONTYPE).lower()
-        yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
-                                        id=f"{FOLIA_NAMESPACE}annotationtype/{value}",
-                                        key="annotationtype",
-                                        value=value)
+        yield {"set": FOLIA_NAMESPACE,
+               "id":f"{FOLIA_NAMESPACE}annotationtype/{value}",
+                "key":"annotationtype",
+                "value":value}
 
-def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[stam.AnnotationDataBuilder,None,None]:
+def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[dict,None,None]:
     """Convert common FoLiA attributes"""
 
     # Note: ID is handled separately (it's a common attribute in FoLiA but does not translate to AnnotationData in STAM)
 
     if annotation.cls is not None and annotation.set is not None:
-        yield stam.AnnotationDataBuilder(annotationset=annotation.set,
-                                         key="class",
-                                         value=annotation.cls)
+        yield { "set":annotation.set,
+             "key":"class",
+             "value":annotation.cls}
 
 
     if annotation.confidence is not None:
-        yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
-                                        id=f"{FOLIA_NAMESPACE}confidence/{annotation.confidence}",
-                                        key="confidence",
-                                        value=annotation.confidence)
+        yield {"set":FOLIA_NAMESPACE,
+            "id":f"{FOLIA_NAMESPACE}confidence/{annotation.confidence}",
+            "key":"confidence",
+            "value":annotation.confidence}
 
     if annotation.n is not None:
-        yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
-                                        key="n",
-                                        value=annotation.n)
+        yield {"set":FOLIA_NAMESPACE,
+            "key":"n",
+            "value":annotation.n}
 
     if annotation.href is not None:
-        yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
-                                        key="href",
-                                        value=annotation.href)
+        yield { "set":FOLIA_NAMESPACE,
+            "key":"href",
+            "value":annotation.href}
 
     if annotation.datetime is not None:
         value = annotation.datetime.strftime("%Y-%m-%dT%H:%M:%S")
-        yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
-                                        id=f"{FOLIA_NAMESPACE}datetime/{value}",
-                                        key="datetime",
-                                        value=value) #MAYBE TODO: convert to STAM's internal datetime type?
+        yield { "set":FOLIA_NAMESPACE,
+            "id":f"{FOLIA_NAMESPACE}datetime/{value}",
+            "key":"datetime",
+            "value":value} #MAYBE TODO: convert to STAM's internal datetime type?
 
     if annotation.processor:
-        yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
-                                        key="processor/id",
-                                        value=annotation.processor.id)
-        yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
-                                        key="processor/name",
-                                        value=annotation.processor.name)
-        yield stam.AnnotationDataBuilder(annotationset=FOLIA_NAMESPACE,
-                                        id=f"{FOLIA_NAMESPACE}processor/type/{annotation.processor.type}",
-                                        key="processor/type",
-                                        value=annotation.processor.type)
+        yield { "set":FOLIA_NAMESPACE,
+            "key":"processor/id",
+            "value":annotation.processor.id}
+        yield { "set":FOLIA_NAMESPACE,
+            "key":"processor/name",
+            "value":annotation.processor.name}
+        yield { "set":FOLIA_NAMESPACE,
+            "id":f"{FOLIA_NAMESPACE}processor/type/{annotation.processor.type}",
+            "key":"processor/type",
+            "value":annotation.processor.type}
 
 def convert_features(annotation: folia.AbstractElement):
     """Convert FoLiA features to STAM AnnotationData"""
     for feature in annotation.select(folia.Feature, recursive=False):
-        yield stam.AnnotationDataBuilder(annotationset=annotation.set,
-                                        key=feature.subset,
-                                        value=feature.cls)
+        yield { "set":annotation.set,
+            "key":feature.subset,
+            "value":feature.cls}
 
 #def convert_higher_order(annotation, namespace, **kwargs):
 #   """Convert certain FoLiA higher-order features to SAnnotation labels (on salt nodes)"""
