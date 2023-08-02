@@ -9,6 +9,7 @@ from __future__ import print_function, unicode_literals, division, absolute_impo
 import sys
 import datetime
 import os
+import re
 import argparse
 from collections import defaultdict, OrderedDict
 import yaml
@@ -288,19 +289,35 @@ blockhelp = {
         'wrefables': 'Elements that act as words and can be referable from span annotations',
 }
 
+def to_upper_props(name):
+    res_list = [s for s in re.split("([A-Z][^A-Z]*)", name) if s]
+    up_list = [s.upper() for s in res_list]
+    return '_'.join(up_list) + '_PROPERTIES'
+
 def setelementproperties_cpp(element,indent, defer,done):
     commentsign = "//"
     target = 'c++'
-    s = commentsign + "------ " + element['class'] + " -------\n"
-    if element['class'] in parents:
-        for parent in parents[element['class']]:
+    cls = element['class']
+    s = commentsign + "------ " + cls + " -------\n"
+    if cls in parents:
+        for parent in parents[cls]:
             if parent not in done:
                 defer[parent].append(element)
                 return None
             else:
-                s += indent + element['class'] + '::PROPS = ' + parent + '::PROPS;\n'
+                if 'Abstract' not in cls:
+                    if 'Abstract' not in parent:
+                        s += indent + cls + '::PROPS = ' + parent + '::PROPS;\n'
+                    else:
+                        s += indent + cls + '::PROPS = ' + to_upper_props(parent) + ';\n'
+                else:
+                    if 'Abstract' in parent:
+                        s += indent + to_upper_props(cls) + ' = ' + to_upper_props( parent ) + ';\n'
             break
-    s += indent + element['class'] + '::PROPS.ELEMENT_ID = ' + element['class'] + '_t;\n'
+    if 'Abstract' not in cls:
+        s += indent + cls + '::PROPS.ELEMENT_ID = ' + cls + '_t;\n'
+    else:
+        s += indent + to_upper_props(cls) + '.ELEMENT_ID = ' + cls + '_t;\n'
     if 'properties' in element:
         for prop, value in sorted(element['properties'].items()):
             if target not in skip_properties or prop not in skip_properties[target]:
@@ -313,9 +330,15 @@ def setelementproperties_cpp(element,indent, defer,done):
                         value += ('XmlText',)
                     if 'WordReference' in value:
                         value += tuple( e  for e in sorted(flattenclasses(spec['wrefables'])) )
-                s += indent + outputvar(element['class'] + '::PROPS.' + prop.upper(),  value, target) + '\n'
-    s += indent + 'element_props[' + element['class'] + '_t] = &' + element['class'] + '::PROPS;\n'
-    done[element['class']] = True
+                if 'Abstract' not in cls:
+                    s += indent + outputvar(cls + '::PROPS.' + prop.upper(),  value, target) + '\n'
+                else:
+                    s += indent + to_upper_props(cls) + "." + outputvar(prop.upper(), value,target) + '\n'
+    if 'Abstract' not in cls:
+        s += indent + 'element_props[' + cls + '_t] = &' + cls + '::PROPS;\n'
+    else:
+        s += indent + 'element_props[' + cls + '_t] = &' + to_upper_props(cls) + ';\n'
+    done[cls] = True
     return s
 
 def accepteddata_rust(elementname):
@@ -462,7 +485,9 @@ def outputblock(block, target, varname, args, indent = ""):
     elif block == 'instantiateelementproperties':
         if target == 'c++':
             for element in elements:
-                s += indent + "properties " + element['class'] + '::PROPS = DEFAULT_PROPERTIES;\n'
+                cls = element['class']
+                if 'Abstract' not in cls:
+                     s += indent + "properties " + cls + '::PROPS = DEFAULT_PROPERTIES;\n'
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'setelementproperties':
