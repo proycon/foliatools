@@ -443,7 +443,7 @@ def outputblock(block, target, varname, args, indent = ""):
     elif block == 'elementtype':
         if target == 'c++':
             s += indent + "enum ElementType : unsigned int { BASE=0,"
-            s += ", ".join([ e + '_t' for e in elementnames]) + ", PlaceHolder_t, XmlComment_t, XmlText_t,  LastElement };\n"
+            s += ", ".join([ e + '_t' for e in elementnames]) + ", XmlComment_t, XmlText_t,  LastElement };\n"
         elif target == 'rust':
             s += indent + "pub enum ElementType { " + ", ".join([ e for e in elementnames if not e.startswith('Abstract')]) + " }\n"
         else:
@@ -639,7 +639,6 @@ def outputblock(block, target, varname, args, indent = ""):
                         s += indent + "  { " + element['class'] + '_t,  "' + element['properties']['subset'] + '" },\n'
                 else:
                     s += indent + "  { " + element['class'] + '_t,  "_' + element['class'] + '" },\n'
-            s += indent + '  { PlaceHolder_t, "_PlaceHolder" },\n'
             s += indent + '  { XmlComment_t, "_XmlComment" },\n'
             s += indent + '  { XmlText_t, "_XmlText" }\n'
             s += indent + "};\n"
@@ -670,7 +669,6 @@ def outputblock(block, target, varname, args, indent = ""):
                         s += indent + '  { "' + element['properties']['subset'] + '", ' + element['class'] + '_t  },\n'
                 else:
                     s += indent + '  { "_' + element['class'] + '", ' + element['class'] + '_t  },\n'
-            s += indent + '  { "_PlaceHolder", PlaceHolder_t  },\n'
             s += indent + '  { "_XmlComment", XmlComment_t  },\n'
             s += indent + '  { "_XmlText", XmlText_t  }\n'
             s += indent + "};\n"
@@ -763,7 +761,6 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "static const map<ElementType, set<ElementType> > typeHierarchy = { "
             for child, parentset in sorted(parents.items()):
                 s += indent + "   { " + child + '_t' + ", { " + ",".join([p + '_t' for p in parentset ]) + " } },\n"
-            s += indent + "   { PlaceHolder_t , { Word_t, AbstractStructureElement_t } }\n"
             s += indent + "};\n";
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
