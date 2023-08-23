@@ -692,6 +692,8 @@ def outputblock(block, target, varname, args, indent = ""):
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
                     s += indent + '    "' + element['properties']['xmltag'] + '": ' + element['class'] + ',\n'
+                elif element['class'] == 'Feature':
+                    s += indent + '    "feat": ' + element['class'] + ",\n"
             s += indent + "}\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
@@ -875,7 +877,7 @@ def outputblock(block, target, varname, args, indent = ""):
             specdata["Valid Context"] = ", ".join([ "``<" + elementdict[cls]['properties']['xmltag'] + ">`` (:ref:`" + elementdict[cls]['properties']['annotationtype'].lower() + "_annotation`)" for cls in  valid_context if 'annotationtype' in elementdict[cls]['properties']])
             features = []
             for elementclass in accepted_data:
-                if elementclass.endswith("Feature") and elementclass != "Feature":
+                if elementclass.endswith("Feature"):
                     features.append("* ``" + elementdict[elementclass]['properties']['subset'] + "``")
             if features:
                 specdata["Feature subsets (extra attributes)"] = "\n                                   ".join( features )
@@ -1072,6 +1074,7 @@ def main():
     elements = getelements(spec) #gathers all class names
     elements.sort(key=lambda x: x['class'])
     elementnames = [ e['class'] for e in elements ]
+    #    print( "elements:", elementnames )
 
     for filename in args.filenames:
         print("Processing " + filename,file=sys.stderr)
