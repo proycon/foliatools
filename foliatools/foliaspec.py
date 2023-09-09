@@ -420,7 +420,7 @@ def outputblock(block, target, varname, args, indent = ""):
     elif block == 'elementtype':
         if target == 'c++':
             s += indent + "enum ElementType : unsigned int { BASE=0,"
-            s += ", ".join([ e + '_t' for e in elementnames]) + ", PlaceHolder_t, XmlComment_t, XmlText_t,  LastElement };\n"
+            s += ", ".join([ e + '_t' for e in elementnames]) + ", PlaceHolder_t, XmlComment_t, ProcessingInstruction_t, XmlText_t,  LastElement };\n"
         elif target == 'rust':
             s += indent + "pub enum ElementType { " + ", ".join([ e for e in elementnames if not e.startswith('Abstract')]) + " }\n"
         else:
@@ -451,6 +451,7 @@ def outputblock(block, target, varname, args, indent = ""):
         if target == 'c++':
             s += indent + "ELEMENT_ID = BASE;\n"
             s += indent + "ACCEPTED_DATA.insert(XmlComment_t);\n"
+            s += indent + "ACCEPTED_DATA.insert(ProcessingInstruction_t);\n"
             for prop, value in sorted(spec['defaultproperties'].items()):
                 if target not in skip_properties or prop not in skip_properties[target]:
                     s += indent + outputvar( prop.upper(),  value, target) + '\n'
@@ -616,6 +617,7 @@ def outputblock(block, target, varname, args, indent = ""):
                     s += indent + "  { " + element['class'] + '_t,  "_' + element['class'] + '" },\n'
             s += indent + '  { PlaceHolder_t, "_PlaceHolder" },\n'
             s += indent + '  { XmlComment_t, "_XmlComment" },\n'
+            s += indent + '  { ProcessingInstruction_t, "PI" },\n'
             s += indent + '  { XmlText_t, "_XmlText" }\n'
             s += indent + "};\n"
         elif target == 'rust':
@@ -647,6 +649,7 @@ def outputblock(block, target, varname, args, indent = ""):
                     s += indent + '  { "_' + element['class'] + '", ' + element['class'] + '_t  },\n'
             s += indent + '  { "_PlaceHolder", PlaceHolder_t  },\n'
             s += indent + '  { "_XmlComment", XmlComment_t  },\n'
+            s += indent + '  { "PI", ProcessingInstruction_t  },\n'
             s += indent + '  { "_XmlText", XmlText_t  }\n'
             s += indent + "};\n"
         elif target == 'rust':
