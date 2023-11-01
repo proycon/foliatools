@@ -43,6 +43,19 @@ def convert(f, annotationstore: stam.AnnotationStore,  **kwargs):
         for key, value in doc.metadata.items():
             annotationstore.annotate(target=selector, data={"key":key,"value":value,"set":"metadata"}) #TODO: make metadata set configurable
 
+    for annotationtype, foliaset in doc.annotations:
+        if foliaset:
+            try:
+                dataset = annotationstore.dataset(foliaset)
+            except stam.StamError:
+                dataset = annotationstore.add_dataset(foliaset)
+            selector = stam.Selector.datasetselector(dataset)
+            value = folia.annotationtype2str(annotationtype)
+            if value:
+                value = value.lower()
+                annotationstore.annotate(target=selector, data=[{"key":"declaration", "value": f"{value}-annotation", "set": FOLIA_NAMESPACE},{"key":"annotationtype", "value": value, "set": FOLIA_NAMESPACE}])
+
+
 
 def convert_tokens(doc: folia.Document, annotationstore: stam.AnnotationStore, **kwargs) -> stam.TextResource:
     """Convert FoLiA tokens (w) and text content to STAM. Returns a STAM resource"""
