@@ -97,7 +97,8 @@ def convert_tokens(doc: folia.Document, annotationstore: stam.AnnotationStore, *
                                              data=token["data"])
 
         word_folia = doc[token["id"]]
-        convert_inline_annotation(word_folia, word_stam, annotationstore, **kwargs )
+        if word_folia:
+            convert_inline_annotation(word_folia, word_stam, annotationstore, **kwargs )
 
     return resource
 
@@ -404,11 +405,13 @@ def convert_type_information(annotation: folia.AbstractElement) -> Generator[dic
                 "key": "elementtype",
                 "value": annotation.XMLTAG}
      if annotation.ANNOTATIONTYPE:
-        value = folia.annotationtype2str(annotation.ANNOTATIONTYPE).lower()
-        yield {"set": FOLIA_NAMESPACE,
-               "id":f"{FOLIA_NAMESPACE}annotationtype/{value}",
-                "key":"annotationtype",
-                "value":value}
+        value = folia.annotationtype2str(annotation.ANNOTATIONTYPE)
+        if value:
+            value = value.lower()
+            yield {"set": FOLIA_NAMESPACE,
+                   "id":f"{FOLIA_NAMESPACE}annotationtype/{value}",
+                    "key":"annotationtype",
+                    "value":value}
 
 def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[dict,None,None]:
     """Convert common FoLiA attributes"""
