@@ -401,7 +401,7 @@ def convert_span_annotation(doc: folia.Document, annotationstore: stam.Annotatio
 def convert_type_information(annotation: folia.AbstractElement) -> Generator[dict,None,None]:
      if annotation.XMLTAG:
         yield { "set":FOLIA_NAMESPACE,
-                "id": f"{FOLIA_NAMESPACE}elementtype/{annotation.XMLTAG}",
+                "id": f"elementtype/{annotation.XMLTAG}",
                 "key": "elementtype",
                 "value": annotation.XMLTAG}
      if annotation.ANNOTATIONTYPE:
@@ -409,7 +409,7 @@ def convert_type_information(annotation: folia.AbstractElement) -> Generator[dic
         if value:
             value = value.lower()
             yield {"set": FOLIA_NAMESPACE,
-                   "id":f"{FOLIA_NAMESPACE}annotationtype/{value}",
+                   "id":f"annotationtype/{value}",
                     "key":"annotationtype",
                     "value":value}
 
@@ -426,7 +426,7 @@ def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[di
 
     if annotation.confidence is not None:
         yield {"set":FOLIA_NAMESPACE,
-            "id":f"{FOLIA_NAMESPACE}confidence/{annotation.confidence}",
+            "id":f"confidence/{annotation.confidence}",
             "key":"confidence",
             "value":annotation.confidence}
 
@@ -443,7 +443,7 @@ def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[di
     if annotation.datetime is not None:
         value = annotation.datetime.strftime("%Y-%m-%dT%H:%M:%S")
         yield { "set":FOLIA_NAMESPACE,
-            "id":f"{FOLIA_NAMESPACE}datetime/{value}",
+            "id":f"datetime/{value}",
             "key":"datetime",
             "value":value} #MAYBE TODO: convert to STAM's internal datetime type?
 
@@ -455,7 +455,7 @@ def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[di
             "key":"processor/name",
             "value":annotation.processor.name}
         yield { "set":FOLIA_NAMESPACE,
-            "id":f"{FOLIA_NAMESPACE}processor/type/{annotation.processor.type}",
+            "id":f"processor/type/{annotation.processor.type}",
             "key":"processor/type",
             "value":annotation.processor.type}
 
