@@ -6,9 +6,8 @@ import sys
 import os
 import argparse
 import glob
-from collections import OrderedDict
 from foliatools import VERSION as TOOLVERSION
-from typing import Generator, Optional
+from typing import Generator
 import folia.main as folia
 import stam
 

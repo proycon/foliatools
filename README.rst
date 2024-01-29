@@ -163,6 +163,9 @@ Specifically not supported (yet), non-exhaustive list:
 * Contextual information
 * Feature structures (``<fs>``, ``<f>``)
 
+FoLiA to STAM
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 FoLiA to Salt
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -170,7 +173,8 @@ FoLiA to Salt
 `Salt <https://corpus-tools.org/salt/>`_ is a graph based annotation model that is designed to act as an intermediate
 format in the conversion between various annotation formats. It is used by the conversion tool `Pepper <https://corpus-tools.org/pepper/>`_. Our FoLiA to Salt converter, however, is a standalone tool as part of these FoLiA tools, rather than integrated into pepper. You can use ``folia2salt`` to convert FoLiA XML to Salt XML and subsequently use Pepper to do conversions to other formats such as TCF, PAULA, TigerXML, GraF, Annis, etc... (there is no guarantee though that everything can be preserved accurately in each conversion).
 
-The current state of this conversion is summarised below:
+The current state of this conversion is summarised below, it is however not
+likely that this particular tool will be developed any further:
 
 *  Conversion of FoLiA tokens to salt SToken nodes
    * The converter only supports tokenised FoLiA documents
@@ -204,4 +208,6 @@ The current state of this conversion is summarised below:
 Our Salt conversion tries to preserve as much of the FoLiA as possible, we extensively use salt's capacity for
 specifying namespaces to hold and group the annotation type and set of an annotation. SLabel elements with the same
 namespace should often be considered together.
+
+
 
