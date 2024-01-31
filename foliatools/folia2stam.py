@@ -52,7 +52,16 @@ def convert(f, annotationstore: stam.AnnotationStore,  **kwargs):
             value = folia.annotationtype2str(annotationtype)
             if value:
                 value = value.lower()
-                annotationstore.annotate(target=selector, data=[{"key":"declaration", "value": f"{value}-annotation", "set": FOLIA_NAMESPACE},{"key":"annotationtype", "value": value, "set": FOLIA_NAMESPACE}])
+                annotationstore.annotate(target=selector, data=[{
+                    "key":"declaration", 
+                    "value": f"{value}-annotation", 
+                    "set": FOLIA_NAMESPACE
+                    },
+                    {
+                    "key":"annotationtype",
+                    "value": value,
+                    "set": FOLIA_NAMESPACE
+                }])
 
 
 
@@ -413,7 +422,7 @@ def convert_span_annotation(doc: folia.Document, annotationstore: stam.Annotatio
 def convert_type_information(annotation: folia.AbstractElement) -> Generator[dict,None,None]:
      if annotation.XMLTAG:
         yield { "set":FOLIA_NAMESPACE,
-                "id": f"elementtype/{annotation.XMLTAG}",
+                "id": f"{annotation.__class__.__name__}",
                 "key": "elementtype",
                 "value": annotation.XMLTAG}
      if annotation.ANNOTATIONTYPE:
@@ -421,7 +430,7 @@ def convert_type_information(annotation: folia.AbstractElement) -> Generator[dic
         if value:
             value = value.lower()
             yield {"set": FOLIA_NAMESPACE,
-                   "id":f"annotationtype/{value}",
+                   "id":f"{value.capitalize()}AnnotationType",
                     "key":"annotationtype",
                     "value":value}
 
@@ -438,7 +447,6 @@ def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[di
 
     if annotation.confidence is not None:
         yield {"set":FOLIA_NAMESPACE,
-            "id":f"confidence/{annotation.confidence}",
             "key":"confidence",
             "value":annotation.confidence}
 
@@ -455,20 +463,19 @@ def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[di
     if annotation.datetime is not None:
         value = annotation.datetime.strftime("%Y-%m-%dT%H:%M:%S")
         yield { "set":FOLIA_NAMESPACE,
-            "id":f"datetime/{value}",
             "key":"datetime",
             "value":value} #MAYBE TODO: convert to STAM's internal datetime type?
 
     if annotation.processor:
         yield { "set":FOLIA_NAMESPACE,
-            "key":"processor/id",
+            "key":"processorId",
             "value":annotation.processor.id}
         yield { "set":FOLIA_NAMESPACE,
-            "key":"processor/name",
+            "key":"processorName",
             "value":annotation.processor.name}
         yield { "set":FOLIA_NAMESPACE,
-            "id":f"processor/type/{annotation.processor.type}",
-            "key":"processor/type",
+            "id":f"{annotation.processor.type.capitalize()}ProcessorType",
+            "key":"processorType",
             "value":annotation.processor.type}
 
 def convert_features(annotation: folia.AbstractElement):
