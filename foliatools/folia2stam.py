@@ -12,7 +12,7 @@ import folia.main as folia
 import stam
 
 #Namespace for STAM annotationset and for RDF, not the same as XML namepace because that one is very old and hard to resolve
-FOLIA_NAMESPACE = "https://w3id.org/folia/"
+FOLIA_NAMESPACE = "https://w3id.org/folia/v2/"
 
 
 def processdir(d, annotationstore: stam.AnnotationStore, **kwargs):
@@ -62,7 +62,7 @@ def convert(f, annotationstore: stam.AnnotationStore,  **kwargs):
                     "value": value,
                     "set": FOLIA_NAMESPACE
                     },
-                ])
+                ]
 
 
 

@@ -195,7 +195,7 @@ vocabulary, even the notion of a word or sentence, comes from a set, as nothing
 is predefined at all aside from the STAM model's primitives.
 
 We map most of the vocabulary of FoLiA itself to a STAM dataset with ID
-`https://w3id.org/folia/`. All of FoLiA's annotation types, element types, and
+`https://w3id.org/folia/v2/`. All of FoLiA's annotation types, element types, and
 common attributes are defined in this set.
 
 Each FoLiA set definition maps to a STAM dataset with the same set ID (URI. The
@@ -205,14 +205,14 @@ attribute. Any FoLiA subsets (for features) also translate to key identifiers.
 The declarations inside a FoLiA document will be explicitly expressed in STAM as well;
 each STAM dataset will have an annotation that points to it (with a
 DataSetSelector). This annotation has data with key `declaration`  (set
-`https://w3id.org/folia/`) that marks it as a declaration for a specific type,
+`https://w3id.org/folia/v2/`) that marks it as a declaration for a specific type,
 the value is something like `pos-annotation` and corresponds one-on-one to the declaration
 element used in FoLiA XML. Additionally, this annotation also has data with key
 `annotationtype` (same set as above) that where the value corresponds to the
 annotation type (lowercased, e.g. `pos`).
 
 The FoLiA to STAM conversion is RDF-ready. That is, all identifiers are valid
-IRIs and all FoLiA vocabulary (`https://w3id.org/folia/`) is backed by `a formal ontology <
+IRIs and all FoLiA vocabulary (`https://w3id.org/folia/v2/`) is backed by `a formal ontology <
 https://github.com/proycon/folia/blob/master/schemas/folia.ttl>`_ using RDF and SKOS.
 
 FoLiA set definitions, if defined, are already in SKOS (or in the legacy
