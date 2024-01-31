@@ -71,7 +71,7 @@ def main():
     majorversion = spec['version'].split(".")[0]
 
     print(\
-f"""@prefix folia: <{spec['rdfnamespace']}/v{majorversion}/> .
+f"""@prefix folia: <{spec['rdfnamespace']}> .
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
