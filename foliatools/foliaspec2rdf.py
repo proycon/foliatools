@@ -69,9 +69,10 @@ def main():
     elements.sort(key=lambda x: x['class'])
 
     majorversion = spec['version'].split(".")[0]
+    minorversion = spec['version'].split(".")[0]
 
     print(\
-f"""@prefix folia: <{spec['namespace']}/v{majorversion}#> .
+f"""@prefix folia: <{spec['rdfnamespace']}/{majorversion}.{minorversion}/#> .
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -94,7 +95,7 @@ folia:Attribute a rdfs:Class .
 
 folia:Elements a skos:ConceptScheme ;
                  dc:title "FoLiA Elements" ;
-                 dc:description "Defines FoLiA elements. These correspond to element in FoLiA XML" .
+                 dc:description "Defines FoLiA elements. These correspond to elements in FoLiA XML" .
 folia:Element  a rdfs:Class .
 
 ### Element Properties ###
@@ -125,6 +126,12 @@ folia:optionalAttribute a rdf::Property ;
 folia:acceptedElement a rdf:Property ;
                       rdfs:domain folia:Element ;
                       rdfs:range folia:Element .
+
+folia:processortype a rdf:Property ;
+                     rdfs:range folia:ProcessorType .
+
+folia:AutoProcessorType a folia:ProcessorType .
+folia:ManualProcessorType a folia:ProcessorType .
 
 """)
 
