@@ -162,7 +162,7 @@ Specifically not supported (yet), non-exhaustive list:
 FoLiA to STAM
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`STAM <https://annotation.github.io/stam>`_ is a stand-off model for text
+`STAM <https://annotation.github.io/stam>`__ is a stand-off model for text
 annotation that. It does not prescribe any vocabulary at all but allows one to
 reuse existing vocabularies. The `folia2stam` tool converts FoLiA documents to
 STAM, preserving the vocabulary that FoLiA predefines regarding annotation types, common attributes etc... 
@@ -208,8 +208,7 @@ element used in FoLiA XML. Additionally, this annotation also has data with key
 annotation type (lowercased, e.g. `pos`).
 
 The FoLiA to STAM conversion is RDF-ready. That is, all identifiers are valid
-IRIs and all FoLiA vocabulary (`https://w3id.org/folia/v2/`) is backed by `a formal ontology <
-https://github.com/proycon/folia/blob/master/schemas/folia.ttl>`_ using RDF and SKOS.
+IRIs and all FoLiA vocabulary (`https://w3id.org/folia/v2/`) is backed by `a formal ontology <https://github.com/proycon/folia/blob/master/schemas/folia.ttl>`_ using RDF and SKOS.
 
 FoLiA set definitions, if defined, are already in SKOS (or in the legacy
 format).
