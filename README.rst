@@ -1,10 +1,6 @@
 .. image:: https://github.com/proycon/foliatools/actions/workflows/foliatools.yml/badge.svg?branch=master
     :target: https://github.com/proycon/foliatools/actions/
 
-.. image:: http://readthedocs.org/projects/foliatools/badge/?version=latest
-	:target: http://foliatools.readthedocs.io/en/latest/?badge=latest
-	:alt: Documentation Status
-
 .. image:: http://applejack.science.ru.nl/lamabadge.php/foliatools
    :target: http://applejack.science.ru.nl/languagemachines/
 
