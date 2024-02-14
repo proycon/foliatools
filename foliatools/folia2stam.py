@@ -62,7 +62,7 @@ def convert(f, annotationstore: stam.AnnotationStore,  **kwargs):
                     "value": value,
                     "set": FOLIA_NAMESPACE
                     },
-                ]
+                ])
 
 
 
