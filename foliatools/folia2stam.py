@@ -81,6 +81,16 @@ def convert_tokens(doc: folia.Document, annotationstore: stam.AnnotationStore, *
 
 
         textstart = len(text)
+        if text:
+           if prevword:
+               ancestors = set(word.ancestors(folia.AbstractStructureElement))
+               prevancestors = set(prevword.ancestors(folia.AbstractStructureElement))
+               delimiters = [ ancestor.gettextdelimiter() for ancestor in prevancestors - ancestors ]
+               if delimiters:
+                   delimiters.sort(key= lambda x: len(x), reverse=True)
+                   text += delimiters[0]
+               elif prevword.space:
+                   text += " "
         try:
             text += word.text()
         except folia.NoSuchText:
@@ -98,19 +108,6 @@ def convert_tokens(doc: folia.Document, annotationstore: stam.AnnotationStore, *
         #associate offsets with the FoLiA element for convenience later
         word._begin = textstart
         word._end = textend
-
-        if text and textstart != textend:
-           if prevword:
-               ancestors = set(word.ancestors(folia.AbstractStructureElement))
-               prevancestors = set(prevword.ancestors(folia.AbstractStructureElement))
-               delimiters = [ ancestor.gettextdelimiter() for ancestor in prevancestors - ancestors ]
-               if delimiters:
-                   delimiters.sort(key= lambda x: len(x), reverse=True)
-                   text += delimiters[0]
-               elif word.space:
-                   text += " "
-           elif word.space:
-               text += " "
 
         prevword = word
 
