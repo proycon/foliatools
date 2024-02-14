@@ -76,6 +76,9 @@ def convert_tokens(doc: folia.Document, annotationstore: stam.AnnotationStore, *
     for word in doc.words():
         if not word.id:
             raise Exception("Only documents in which all words have IDs can be converted. Consider preprocessing with foliaid first.")
+        if kwargs.get('debug'):
+            print(f"Processing FoLiA word {word.id}...",file=sys.stderr)
+
 
         textstart = len(text)
         try:
@@ -97,23 +100,39 @@ def convert_tokens(doc: folia.Document, annotationstore: stam.AnnotationStore, *
         word._end = textend
 
         if text and textstart != textend:
-           if word.space or (prevword and word.parent != prevword.parent):
+           if prevword:
+               ancestors = set(word.ancestors(folia.AbstractStructureElement))
+               prevancestors = set(prevword.ancestors(folia.AbstractStructureElement))
+               delimiters = [ ancestor.gettextdelimiter() for ancestor in prevancestors - ancestors ]
+               if delimiters:
+                   delimiters.sort(key= lambda x: len(x), reverse=True)
+                   text += delimiters[0]
+               elif word.space:
+                   text += " "
+           elif word.space:
                text += " "
+
+        prevword = word
 
     if not text:
         raise Exception(f"Document {doc.filename} has no text!")
 
     if kwargs['external_resources']: 
-        #write text as standoff document
+        if kwargs.get('debug'):
+            print(f"Writing text as stand-off document and adding it as a resource in the STAM model",file=sys.stderr)
         filename = os.path.join(kwargs['outputdir'], doc.id + ".txt")
         with open(filename,'w',encoding='utf-8') as f:
             f.write(text)
-        #reads it again and associates it with the store:
+        #reads it again and associate it with the store:
         resource = annotationstore.add_resource(id=doc.id, filename=filename)
     else:
+        if kwargs.get('debug'):
+            print(f"Adding resource to STAM model",file=sys.stderr)
         resource = annotationstore.add_resource(id=doc.id, text=text)
 
     for token in tokens:
+        if kwargs.get('debug'):
+            print(f"Adding token to STAM: {token}",file=sys.stderr)
         word_stam = annotationstore.annotate(id=token["id"], 
                                              target=stam.Selector.textselector(resource, stam.Offset.simple(token["begin"], token["end"])),
                                              data=token["data"])
@@ -266,8 +285,10 @@ def convert_inline_annotation(word: folia.Word, word_stam: stam.Annotation, anno
                list(convert_common_attributes(annotation_folia)) + \
                list(convert_features(annotation_folia)) 
         if annotation_folia.id:
+            if kwargs.get('debug'): print(f"Adding inline annotation with Data ID {annotation_folia.id}, data: {data}",file=sys.stderr)
             annotationstore.annotate(id=annotation_folia.id, target=selector, data=data)
         else:
+            if kwargs.get('debug'): print(f"Adding inline annotation: {data}",file=sys.stderr)
             annotationstore.annotate(target=selector, data=data)
 
         #TODO: list(convert_higher_order(annotation_folia))
@@ -516,6 +537,7 @@ def main():
     parser.add_argument('--inline-annotations-mode',type=str, help="What STAM selector to use to translate FoLiA's inline annotations? Can be set to AnnotationSelector (reference the tokens) or TextSelector (directly reference the text)", action='store', default="TextSelector", required=False)
     parser.add_argument('--span-annotations-mode',type=str, help="What STAM selector to use to translate FoLiA's span annotations? Can be set to AnnotationSelector (reference the tokens) or TextSelector (directly reference the text)", action='store', default="TextSelector", required=False)
     parser.add_argument('--external-resources',"-X",help="Serialize text to external/stand-off text files rather than including them in the JSON", action='store_true')
+    parser.add_argument('--debug',"-D",help="Enable debug mode, produces extra output to stderr", action='store_true')
     parser.add_argument('files', nargs='*', help='Files (and/or directories) to convert. All will be added to a single STAM annotation store.')
     args = parser.parse_args()
 
