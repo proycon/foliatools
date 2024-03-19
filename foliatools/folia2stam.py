@@ -89,8 +89,10 @@ def convert_tokens(doc: folia.Document, annotationstore: stam.AnnotationStore, *
                if delimiters:
                    delimiters.sort(key= lambda x: len(x), reverse=True)
                    text += delimiters[0]
+                   textstart += len(delimiters[0])
                elif prevword.space:
                    text += " "
+                   textstart += 1
         try:
             text += word.text()
         except folia.NoSuchText:
