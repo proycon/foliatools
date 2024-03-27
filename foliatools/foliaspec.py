@@ -299,6 +299,7 @@ def setelementproperties_cpp(element,indent, defer,done):
                 return None
             else:
                 s += indent + element['class'] + '::PROPS = ' + parent + '::PROPS;\n'
+            s +=  indent + 'abstract_parents[' + element['class'] + '_t] = ' + parent + '_t;\n'
             break
     s += indent + element['class'] + '::PROPS.ELEMENT_ID = ' + element['class'] + '_t;\n'
     if 'properties' in element:
