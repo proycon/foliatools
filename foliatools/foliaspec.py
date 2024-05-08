@@ -310,9 +310,12 @@ def setelementproperties_cpp(element,indent, defer,done):
                         s += indent + cls + '::PROPS = ' + parent + '::PROPS;\n'
                     else:
                         s += indent + cls + '::PROPS = ' + to_upper_props(parent) + ';\n'
+                        s += indent + 'abstract_parents[' + cls + '_t] = ' + parent + '_t;\n'
+
                 else:
                     if 'Abstract' in parent:
                         s += indent + to_upper_props(cls) + ' = ' + to_upper_props( parent ) + ';\n'
+
             break
     if 'Abstract' not in cls:
         s += indent + cls + '::PROPS.ELEMENT_ID = ' + cls + '_t;\n'
