@@ -299,12 +299,16 @@ def setelementproperties_cpp(element,indent, defer,done):
     target = 'c++'
     cls = element['class']
     s = commentsign + "------ " + cls + " -------\n"
+    if cls == 'AbstractFeature':
+        s += indent + to_upper_props(cls) + ' = ABSTRACT_HIGHER_ORDER_ANNOTATION_PROPERTIES;\n'
     if cls in parents:
         for parent in parents[cls]:
             if parent not in done:
                 defer[parent].append(element)
                 return None
             else:
+                if parent == 'Feature' or cls == 'Feature':
+                   parent = 'AbstractFeature'
                 if 'Abstract' not in cls:
                     if 'Abstract' not in parent:
                         s += indent + cls + '::PROPS = ' + parent + '::PROPS;\n'
@@ -327,8 +331,14 @@ def setelementproperties_cpp(element,indent, defer,done):
                 if prop == 'xmltag':
                     if 'Feature' in cls and 'subset' in element['properties'] and element['properties']['subset']:
                         value = element['properties']['subset']
+                elif prop == 'label':
+                    if 'Feature' == cls:
+                        value = 'feat'
+                        prop = 'subset'
                 elif prop == 'accepted_data':
                     value = tuple(sorted(addfromparents(element['class'],'accepted_data')))
+                    if 'Feature' in value:
+                        value += ('AbstractFeature',)
                     if ('textcontainer' in element['properties'] and element['properties']['textcontainer']) or ('phoncontainer' in element['properties'] and element['properties']['phoncontainer']):
                         value += ('XmlText',)
                     if 'WordReference' in value:
@@ -445,7 +455,7 @@ def outputblock(block, target, varname, args, indent = ""):
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'elementtype':
         if target == 'c++':
-            s += indent + "enum ElementType : unsigned int { BASE=0,"
+            s += indent + "enum ElementType : unsigned int { BASE=0, AbstractFeature_t, "
             s += ", ".join([ e + '_t' for e in elementnames]) + ", ProcessingInstruction_t, XmlComment_t, XmlText_t,  LastElement };\n"
         elif target == 'rust':
             s += indent + "pub enum ElementType { " + ", ".join([ e for e in elementnames if not e.startswith('Abstract')]) + " }\n"
@@ -507,6 +517,13 @@ def outputblock(block, target, varname, args, indent = ""):
         elif target == 'c++':
             done = {}
             defer = defaultdict(list) #defer output of some elements until parent elements are processed:  hook => deferred_elements
+            af_element = {}
+            af_element["class"] = "AbstractFeature"
+            af_element["properties"] = {}
+            af_element["properties"]["label"] = "AbstractFeature"
+            s = setelementproperties_cpp(af_element,indent,defer,done)
+            if ( s == None ):
+                s = ""
             for element in elements:
                 output = setelementproperties_cpp(element,indent, defer,done)
                 if output:
@@ -633,6 +650,7 @@ def outputblock(block, target, varname, args, indent = ""):
         if target == 'c++':
             s += indent + "const map<ElementType,string> et_s_map = {\n"
             s += indent + "  { BASE, \"FoLiA\" },\n"
+            s += indent + "  { AbstractFeature_t, \"_AbstractFeature\" },\n"
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
                     s += indent + "  { " + element['class'] + '_t,  "' + element['properties']['xmltag'] + '" },\n'
@@ -664,6 +682,7 @@ def outputblock(block, target, varname, args, indent = ""):
         if target == 'c++':
             s += indent + "const map<string,ElementType> s_et_map = {\n"
             s += indent + "  { \"FoLiA\", BASE },\n"
+            s += indent + "  { \"_AbstractFeature\", AbstractFeature_t },\n"
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
                     s += indent + '  { "' + element['properties']['xmltag'] + '", ' + element['class'] + '_t  },\n'
@@ -768,6 +787,11 @@ def outputblock(block, target, varname, args, indent = ""):
         if target == 'c++':
             s += indent + "static const map<ElementType, set<ElementType> > typeHierarchy = { "
             for child, parentset in sorted(parents.items()):
+                if child == "Feature":
+                    parentset.append("AbstractFeature")
+                if "Feature" in parentset:
+                    parentset.remove("Feature")
+                    parentset.append("AbstractFeature")
                 s += indent + "   { " + child + '_t' + ", { " + ",".join([p + '_t' for p in parentset ]) + " } },\n"
             s += indent + "};\n";
         else:
@@ -781,6 +805,9 @@ def outputblock(block, target, varname, args, indent = ""):
                         l.append("headfeature")
                     else:
                         l.append(element['properties']['subset'])
+                if element['class'] == 'Feature':
+                    l.append("feat")
+
             l.sort()
             s += indent + "const set<string> AttributeFeatures = { " + ", ".join([ '"' + x + '"' for x in l ]) + " };\n"
         else:
@@ -883,7 +910,7 @@ def outputblock(block, target, varname, args, indent = ""):
             specdata["Valid Context"] = ", ".join([ "``<" + elementdict[cls]['properties']['xmltag'] + ">`` (:ref:`" + elementdict[cls]['properties']['annotationtype'].lower() + "_annotation`)" for cls in  valid_context if 'annotationtype' in elementdict[cls]['properties']])
             features = []
             for elementclass in accepted_data:
-                if elementclass.endswith("Feature"):
+                if elementclass.endswith("Feature") and elementclass != "Feature":
                     features.append("* ``" + elementdict[elementclass]['properties']['subset'] + "``")
             if features:
                 specdata["Feature subsets (extra attributes)"] = "\n                                   ".join( features )
@@ -1080,7 +1107,6 @@ def main():
     elements = getelements(spec) #gathers all class names
     elements.sort(key=lambda x: x['class'])
     elementnames = [ e['class'] for e in elements ]
-    #    print( "elements:", elementnames )
 
     for filename in args.filenames:
         print("Processing " + filename,file=sys.stderr)
