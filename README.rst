@@ -1,10 +1,6 @@
 .. image:: https://github.com/proycon/foliatools/actions/workflows/foliatools.yml/badge.svg?branch=master
     :target: https://github.com/proycon/foliatools/actions/
 
-.. image:: http://readthedocs.org/projects/foliatools/badge/?version=latest
-	:target: http://foliatools.readthedocs.io/en/latest/?badge=latest
-	:alt: Documentation Status
-
 .. image:: http://applejack.science.ru.nl/lamabadge.php/foliatools
    :target: http://applejack.science.ru.nl/languagemachines/
 
@@ -149,7 +145,7 @@ TEI P5 documents can be processed. Some notable things that are supported:
 * Gaps
 * Text markup (highlighting, ``<hi>``), emphasis, foreign, term, mentioned, names and places
     * Limited corrections
-* Conversion of `lightweigth linguistic annotation <https://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-att.linguistic.html>`_.
+* Conversion of `lightweight linguistic annotation <https://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-att.linguistic.html>`_.
 * Linguistic segments: sentences (``<s>``) & words (``w``), but **not** ``<cl>`` nor ``<phr>``.
     * Basic tokenisation (spacing) information (TEI's ``@join`` attribute)
 * Limited metadata
@@ -163,6 +159,65 @@ Specifically not supported (yet), non-exhaustive list:
 * Contextual information
 * Feature structures (``<fs>``, ``<f>``)
 
+FoLiA to STAM
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`STAM <https://annotation.github.io/stam>`__ is a stand-off model for text
+annotation that. It does not prescribe any vocabulary at all but allows one to
+reuse existing vocabularies. The `folia2stam` tool converts FoLiA documents to
+STAM, preserving the vocabulary that FoLiA predefines regarding annotation types, common attributes etc... 
+
+**Supported:**
+
+* Conversion of text structure including divisions, paragraphs, headers & titles, lists, figures, tables (limited), front matter, back
+  matter.
+* Conversion of inline and span annotation
+
+**Not supported yet:**
+
+* Only tokenised documents (i.e. with word elements) are implemented currently
+* Conversion of text markup annotation
+* Certain higher-order annotation is not converted yet
+* No explicit tree structure is built yet for hierarchical annotations like syntax annotation
+* Do note that there is no conversion back from STAM to FoLiA XML currently (that would be complicated for multiple reasons, so might never be realized).
+
+**Vocabulary conversion:**
+
+Both FoLiA and STAM have the notion of a *set* or *annotation dataset*. In
+FoLiA the scope of such a set is to define the vocabulary used for a particular
+annotation type (e.g. a tagset). FoLiA itself already defines what annotation
+types exist. In STAM an annotation dataset is a broader notion and all
+vocabulary, even the notion of a word or sentence, comes from a set, as nothing
+is predefined at all aside from the STAM model's primitives.
+
+We map most of the vocabulary of FoLiA itself to a STAM dataset with ID
+`https://w3id.org/folia/v2/`. All of FoLiA's annotation types, element types, and
+common attributes are defined in this set.
+
+Each FoLiA set definition maps to a STAM dataset with the same set ID (URI. The
+STAM set defines `class` key in that set, that corresponds to FoLiA's *class*
+attribute. Any FoLiA subsets (for features) also translate to key identifiers.
+
+The declarations inside a FoLiA document will be explicitly expressed in STAM as well;
+each STAM dataset will have an annotation that points to it (with a
+DataSetSelector). This annotation has data with key `declaration`  (set
+`https://w3id.org/folia/v2/`) that marks it as a declaration for a specific type,
+the value is something like `pos-annotation` and corresponds one-on-one to the declaration
+element used in FoLiA XML. Additionally, this annotation also has data with key
+`annotationtype` (same set as above) that where the value corresponds to the
+annotation type (lowercased, e.g. `pos`).
+
+The FoLiA to STAM conversion is RDF-ready. That is, all identifiers are valid
+IRIs and all FoLiA vocabulary (`https://w3id.org/folia/v2/`) is backed by `a formal ontology <https://github.com/proycon/folia/blob/master/schemas/folia.ttl>`_ using RDF and SKOS.
+
+FoLiA set definitions, if defined, are already in SKOS (or in the legacy
+format).
+
+Being RDF-ready means that the STAM model produced by `folia2stam` can in turn
+be easily be exported to W3C Web Annotations. Tooling for that conversion will
+be provided in `Stam Tools <https://github.com/annotation/stam-tools>`_.
+
+
 
 FoLiA to Salt
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -170,7 +225,8 @@ FoLiA to Salt
 `Salt <https://corpus-tools.org/salt/>`_ is a graph based annotation model that is designed to act as an intermediate
 format in the conversion between various annotation formats. It is used by the conversion tool `Pepper <https://corpus-tools.org/pepper/>`_. Our FoLiA to Salt converter, however, is a standalone tool as part of these FoLiA tools, rather than integrated into pepper. You can use ``folia2salt`` to convert FoLiA XML to Salt XML and subsequently use Pepper to do conversions to other formats such as TCF, PAULA, TigerXML, GraF, Annis, etc... (there is no guarantee though that everything can be preserved accurately in each conversion).
 
-The current state of this conversion is summarised below:
+The current state of this conversion is summarised below, it is however not
+likely that this particular tool will be developed any further:
 
 *  Conversion of FoLiA tokens to salt SToken nodes
    * The converter only supports tokenised FoLiA documents
@@ -204,4 +260,6 @@ The current state of this conversion is summarised below:
 Our Salt conversion tries to preserve as much of the FoLiA as possible, we extensively use salt's capacity for
 specifying namespaces to hold and group the annotation type and set of an annotation. SLabel elements with the same
 namespace should often be considered together.
+
+
 

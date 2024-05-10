@@ -79,7 +79,10 @@ def convert(filename, transformer, parser=None, **kwargs):
     else:
         with open(filename,'rb') as f:
             parsedsource = lxml.etree.parse(f, parser)
-    transformed = transformer(parsedsource,quiet="true")
+    transform_kwargs = {"quiet":"true"}
+    if kwargs.get('docid'):
+        transform_kwargs['docid'] = f"'{kwargs['docid']}'"
+    transformed = transformer(parsedsource,**transform_kwargs)
     if 'intermediate' in kwargs and kwargs['intermediate']:
         print(str(lxml.etree.tostring(transformed,encoding='utf-8'),'utf-8'))
     try:
@@ -257,6 +260,7 @@ def main():
     parser.add_argument('-P','--leaveparts',help="Do *NOT* resolve temporary parts", action='store_true', default=False)
     parser.add_argument('-N','--leavenotes',help="Do *NOT* resolve inline notes (t-gap)", action='store_true', default=False)
     parser.add_argument('-i','--ids',help="Generate IDs for all structural elements", action='store_true', default=False)
+    parser.add_argument('--docid',type=str, help="Set FoLiA document ID", action='store', default=False)
     parser.add_argument('-f','--forcenamespace',help="Force a TEI namespace even if the input document has none", action='store_true', default=False)
     parser.add_argument('files', nargs='+', help='TEI Files to process')
     args = parser.parse_args()

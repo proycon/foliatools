@@ -6,14 +6,13 @@ import sys
 import os
 import argparse
 import glob
-from collections import OrderedDict
 from foliatools import VERSION as TOOLVERSION
-from typing import Generator, Optional
+from typing import Generator
 import folia.main as folia
 import stam
 
 #Namespace for STAM annotationset and for RDF, not the same as XML namepace because that one is very old and hard to resolve
-FOLIA_NAMESPACE = "https://w3id.org/folia/"
+FOLIA_NAMESPACE = "https://w3id.org/folia/v2/"
 
 
 def processdir(d, annotationstore: stam.AnnotationStore, **kwargs):
@@ -43,6 +42,29 @@ def convert(f, annotationstore: stam.AnnotationStore,  **kwargs):
         for key, value in doc.metadata.items():
             annotationstore.annotate(target=selector, data={"key":key,"value":value,"set":"metadata"}) #TODO: make metadata set configurable
 
+    for annotationtype, foliaset in doc.annotations:
+        if foliaset:
+            try:
+                dataset = annotationstore.dataset(foliaset)
+            except stam.StamError:
+                dataset = annotationstore.add_dataset(foliaset)
+            selector = stam.Selector.datasetselector(dataset)
+            value = folia.annotationtype2str(annotationtype)
+            if value:
+                value = value.lower()
+                annotationstore.annotate(target=selector, data=[{
+                    "key":"declaration", 
+                    "value": f"{value}-annotation", 
+                    "set": FOLIA_NAMESPACE
+                    },
+                    {
+                    "key":"annotationtype",
+                    "value": value,
+                    "set": FOLIA_NAMESPACE
+                    },
+                ])
+
+
 
 def convert_tokens(doc: folia.Document, annotationstore: stam.AnnotationStore, **kwargs) -> stam.TextResource:
     """Convert FoLiA tokens (w) and text content to STAM. Returns a STAM resource"""
@@ -54,8 +76,23 @@ def convert_tokens(doc: folia.Document, annotationstore: stam.AnnotationStore, *
     for word in doc.words():
         if not word.id:
             raise Exception("Only documents in which all words have IDs can be converted. Consider preprocessing with foliaid first.")
+        if kwargs.get('debug'):
+            print(f"Processing FoLiA word {word.id}...",file=sys.stderr)
+
 
         textstart = len(text)
+        if text:
+           if prevword:
+               ancestors = set(word.ancestors(folia.AbstractStructureElement))
+               prevancestors = set(prevword.ancestors(folia.AbstractStructureElement))
+               delimiters = [ ancestor.gettextdelimiter() for ancestor in prevancestors - ancestors ]
+               if delimiters:
+                   delimiters.sort(key= lambda x: len(x), reverse=True)
+                   text += delimiters[0]
+                   textstart += len(delimiters[0])
+               elif prevword.space:
+                   text += " "
+                   textstart += 1
         try:
             text += word.text()
         except folia.NoSuchText:
@@ -74,30 +111,34 @@ def convert_tokens(doc: folia.Document, annotationstore: stam.AnnotationStore, *
         word._begin = textstart
         word._end = textend
 
-        if text and textstart != textend:
-           if word.space or (prevword and word.parent != prevword.parent):
-               text += " "
+        prevword = word
 
     if not text:
         raise Exception(f"Document {doc.filename} has no text!")
 
     if kwargs['external_resources']: 
-        #write text as standoff document
+        if kwargs.get('debug'):
+            print(f"Writing text as stand-off document and adding it as a resource in the STAM model",file=sys.stderr)
         filename = os.path.join(kwargs['outputdir'], doc.id + ".txt")
         with open(filename,'w',encoding='utf-8') as f:
             f.write(text)
-        #reads it again and associates it with the store:
+        #reads it again and associate it with the store:
         resource = annotationstore.add_resource(id=doc.id, filename=filename)
     else:
+        if kwargs.get('debug'):
+            print(f"Adding resource to STAM model",file=sys.stderr)
         resource = annotationstore.add_resource(id=doc.id, text=text)
 
     for token in tokens:
+        if kwargs.get('debug'):
+            print(f"Adding token to STAM: {token}",file=sys.stderr)
         word_stam = annotationstore.annotate(id=token["id"], 
                                              target=stam.Selector.textselector(resource, stam.Offset.simple(token["begin"], token["end"])),
                                              data=token["data"])
 
         word_folia = doc[token["id"]]
-        convert_inline_annotation(word_folia, word_stam, annotationstore, **kwargs )
+        if word_folia:
+            convert_inline_annotation(word_folia, word_stam, annotationstore, **kwargs )
 
     return resource
 
@@ -243,8 +284,10 @@ def convert_inline_annotation(word: folia.Word, word_stam: stam.Annotation, anno
                list(convert_common_attributes(annotation_folia)) + \
                list(convert_features(annotation_folia)) 
         if annotation_folia.id:
+            if kwargs.get('debug'): print(f"Adding inline annotation with Data ID {annotation_folia.id}, data: {data}",file=sys.stderr)
             annotationstore.annotate(id=annotation_folia.id, target=selector, data=data)
         else:
+            if kwargs.get('debug'): print(f"Adding inline annotation: {data}",file=sys.stderr)
             annotationstore.annotate(target=selector, data=data)
 
         #TODO: list(convert_higher_order(annotation_folia))
@@ -400,15 +443,17 @@ def convert_span_annotation(doc: folia.Document, annotationstore: stam.Annotatio
 def convert_type_information(annotation: folia.AbstractElement) -> Generator[dict,None,None]:
      if annotation.XMLTAG:
         yield { "set":FOLIA_NAMESPACE,
-                "id": f"{FOLIA_NAMESPACE}elementtype/{annotation.XMLTAG}",
+                "id": f"{annotation.__class__.__name__}",
                 "key": "elementtype",
                 "value": annotation.XMLTAG}
      if annotation.ANNOTATIONTYPE:
-        value = folia.annotationtype2str(annotation.ANNOTATIONTYPE).lower()
-        yield {"set": FOLIA_NAMESPACE,
-               "id":f"{FOLIA_NAMESPACE}annotationtype/{value}",
-                "key":"annotationtype",
-                "value":value}
+        value = folia.annotationtype2str(annotation.ANNOTATIONTYPE)
+        if value:
+            value = value.lower()
+            yield {"set": FOLIA_NAMESPACE,
+                   "id":f"{value.capitalize()}AnnotationType",
+                    "key":"annotationtype",
+                    "value":value}
 
 def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[dict,None,None]:
     """Convert common FoLiA attributes"""
@@ -423,7 +468,6 @@ def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[di
 
     if annotation.confidence is not None:
         yield {"set":FOLIA_NAMESPACE,
-            "id":f"{FOLIA_NAMESPACE}confidence/{annotation.confidence}",
             "key":"confidence",
             "value":annotation.confidence}
 
@@ -440,20 +484,19 @@ def convert_common_attributes(annotation: folia.AbstractElement) -> Generator[di
     if annotation.datetime is not None:
         value = annotation.datetime.strftime("%Y-%m-%dT%H:%M:%S")
         yield { "set":FOLIA_NAMESPACE,
-            "id":f"{FOLIA_NAMESPACE}datetime/{value}",
             "key":"datetime",
             "value":value} #MAYBE TODO: convert to STAM's internal datetime type?
 
     if annotation.processor:
         yield { "set":FOLIA_NAMESPACE,
-            "key":"processor/id",
+            "key":"processorId",
             "value":annotation.processor.id}
         yield { "set":FOLIA_NAMESPACE,
-            "key":"processor/name",
+            "key":"processorName",
             "value":annotation.processor.name}
         yield { "set":FOLIA_NAMESPACE,
-            "id":f"{FOLIA_NAMESPACE}processor/type/{annotation.processor.type}",
-            "key":"processor/type",
+            "id":f"{annotation.processor.type.capitalize()}ProcessorType",
+            "key":"processorType",
             "value":annotation.processor.type}
 
 def convert_features(annotation: folia.AbstractElement):
@@ -493,6 +536,7 @@ def main():
     parser.add_argument('--inline-annotations-mode',type=str, help="What STAM selector to use to translate FoLiA's inline annotations? Can be set to AnnotationSelector (reference the tokens) or TextSelector (directly reference the text)", action='store', default="TextSelector", required=False)
     parser.add_argument('--span-annotations-mode',type=str, help="What STAM selector to use to translate FoLiA's span annotations? Can be set to AnnotationSelector (reference the tokens) or TextSelector (directly reference the text)", action='store', default="TextSelector", required=False)
     parser.add_argument('--external-resources',"-X",help="Serialize text to external/stand-off text files rather than including them in the JSON", action='store_true')
+    parser.add_argument('--debug',"-D",help="Enable debug mode, produces extra output to stderr", action='store_true')
     parser.add_argument('files', nargs='*', help='Files (and/or directories) to convert. All will be added to a single STAM annotation store.')
     args = parser.parse_args()
 
