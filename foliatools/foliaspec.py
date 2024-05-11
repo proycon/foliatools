@@ -290,6 +290,7 @@ blockhelp = {
 }
 
 def to_upper_props(name):
+    # helper function to construct an uppercase PROPERTIES name from name
     res_list = [s for s in re.split("([A-Z][^A-Z]*)", name) if s]
     up_list = [s.upper() for s in res_list]
     return '_'.join(up_list) + '_PROPERTIES'
@@ -300,6 +301,10 @@ def setelementproperties_cpp(element,indent, defer,done):
     cls = element['class']
     s = commentsign + "------ " + cls + " -------\n"
     if cls == 'AbstractFeature':
+        # this is from a pseudo AbstractFeature element created special for C++
+        # the specification has Feature both as an abstract base AND as an
+        # element.
+        # for C++ we split them
         s += indent + to_upper_props(cls) + ' = ABSTRACT_HIGHER_ORDER_ANNOTATION_PROPERTIES;\n'
     if cls in parents:
         for parent in parents[cls]:
@@ -308,6 +313,7 @@ def setelementproperties_cpp(element,indent, defer,done):
                 return None
             else:
                 if parent == 'Feature' or cls == 'Feature':
+                    # another trci needed to split Feature
                    parent = 'AbstractFeature'
                 if 'Abstract' not in cls:
                     if 'Abstract' not in parent:
@@ -332,12 +338,14 @@ def setelementproperties_cpp(element,indent, defer,done):
                     if 'Feature' in cls and 'subset' in element['properties'] and element['properties']['subset']:
                         value = element['properties']['subset']
                 elif prop == 'label':
-                    if 'Feature' == cls:
+                    # our self created Feature lacks some info yet
+                    if cls == 'Feature':
                         value = 'feat'
                         prop = 'subset'
                 elif prop == 'accepted_data':
                     value = tuple(sorted(addfromparents(element['class'],'accepted_data')))
                     if 'Feature' in value:
+                        # if Feature is acceptable, ANY feature will be
                         value += ('AbstractFeature',)
                     if ('textcontainer' in element['properties'] and element['properties']['textcontainer']) or ('phoncontainer' in element['properties'] and element['properties']['phoncontainer']):
                         value += ('XmlText',)
@@ -455,6 +463,7 @@ def outputblock(block, target, varname, args, indent = ""):
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'elementtype':
         if target == 'c++':
+            # C++ has some extra element-types not in the specification
             s += indent + "enum ElementType : unsigned int { BASE=0, AbstractFeature_t, "
             s += ", ".join([ e + '_t' for e in elementnames]) + ", ProcessingInstruction_t, XmlComment_t, XmlText_t,  LastElement };\n"
         elif target == 'rust':
@@ -517,13 +526,15 @@ def outputblock(block, target, varname, args, indent = ""):
         elif target == 'c++':
             done = {}
             defer = defaultdict(list) #defer output of some elements until parent elements are processed:  hook => deferred_elements
+            #
+            # we have to smuggle in a AbstractFeature element, which will be
+            # the parent of all *Feature elements
+            #
             af_element = {}
             af_element["class"] = "AbstractFeature"
             af_element["properties"] = {}
             af_element["properties"]["label"] = "AbstractFeature"
             s = setelementproperties_cpp(af_element,indent,defer,done)
-            if ( s == None ):
-                s = ""
             for element in elements:
                 output = setelementproperties_cpp(element,indent, defer,done)
                 if output:
@@ -649,8 +660,10 @@ def outputblock(block, target, varname, args, indent = ""):
     elif block == 'elementtype_string_map':
         if target == 'c++':
             s += indent + "const map<ElementType,string> et_s_map = {\n"
+            # first some types local to C++
             s += indent + "  { BASE, \"FoLiA\" },\n"
             s += indent + "  { AbstractFeature_t, \"_AbstractFeature\" },\n"
+            # and then the rest
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
                     s += indent + "  { " + element['class'] + '_t,  "' + element['properties']['xmltag'] + '" },\n'
@@ -681,8 +694,10 @@ def outputblock(block, target, varname, args, indent = ""):
     elif block == 'string_elementtype_map':
         if target == 'c++':
             s += indent + "const map<string,ElementType> s_et_map = {\n"
+            # first some types local to C++
             s += indent + "  { \"FoLiA\", BASE },\n"
             s += indent + "  { \"_AbstractFeature\", AbstractFeature_t },\n"
+            # and then the rest
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
                     s += indent + '  { "' + element['properties']['xmltag'] + '", ' + element['class'] + '_t  },\n'
@@ -787,6 +802,8 @@ def outputblock(block, target, varname, args, indent = ""):
         if target == 'c++':
             s += indent + "static const map<ElementType, set<ElementType> > typeHierarchy = { "
             for child, parentset in sorted(parents.items()):
+                # Feature is special, as we are splitting this in Feature
+                # and AbstractFeature, which is the parent of every *Feature
                 if child == "Feature":
                     parentset.append("AbstractFeature")
                 if "Feature" in parentset:
