@@ -822,9 +822,6 @@ def outputblock(block, target, varname, args, indent = ""):
                         l.append("headfeature")
                     else:
                         l.append(element['properties']['subset'])
-                if element['class'] == 'Feature':
-                    l.append("feat")
-
             l.sort()
             s += indent + "const set<string> AttributeFeatures = { " + ", ".join([ '"' + x + '"' for x in l ]) + " };\n"
         else:
