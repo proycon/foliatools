@@ -51,6 +51,8 @@ def extract_dependencies(alpinonode, deplayer, foliasentence):
 
 def makefoliadoc(outputfile):
     baseid = os.path.basename(outputfile).replace('.folia.xml','').replace('.xml','')
+    if not folia.isncname(baseid):
+        baseid = folia.makencname(baseid)
     processor = folia.Processor.create("alpino2folia", version=TOOLVERSION)
     foliadoc = folia.Document(id=baseid, processor=processor)
     foliadoc.append(folia.Text(foliadoc, id=baseid+'.text'))
