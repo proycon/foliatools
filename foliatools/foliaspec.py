@@ -480,7 +480,7 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "class AnnotationType:\n"
             s += indent + "    " +  ", ".join(spec['annotationtype']) + " = range(" + str(len(spec['annotationtype'])) + ")"
         elif target == 'c++':
-            s += indent + "enum AnnotationType : int { NO_ANN, ///<No type dummy\n"
+            s += indent + "enum class AnnotationType : int { NO_ANN, ///<No type dummy\n"
             for t in spec['annotationtype']:
                 s += "    " + t + ","
                 if t.lower() in spec['annotationtype_doc']:
