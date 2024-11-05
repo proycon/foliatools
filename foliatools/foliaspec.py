@@ -144,7 +144,7 @@ def outputvar(var, value, target, declare = False):
         if value is None:
             if declare: raise NotImplementedError("Declare not supported for None values")
             if varname in ('REQUIRED_ATTRIBS','OPTIONAL_ATTRIBS'):
-                return var + ' = NO_ATT;'
+                return var + ' = Attrib::NO_ATT;'
             elif varname == 'ANNOTATIONTYPE':
                 return var + ' = AnnotationType::NO_ANN;'
             elif varname in ('XMLTAG','TEXTDELIMITER'):
@@ -179,7 +179,7 @@ def outputvar(var, value, target, declare = False):
                 value = [ x + '_t' for x in value ]
                 return typedeclaration + var + ' ' + operator + ' {' + ', '.join(value) + '};'
             elif all([ x in spec['attributes'] for x in value ]):
-                return var + ' = ' + '|'.join(value) + ';'
+                return var + ' = Attrib::' + '|Attrib::'.join(value) + ';'
             else:
                 return typedeclaration + var + ' = { ' + ', '.join([ '"' + x + '"' for x in value if x]) + ', };'
         else:
@@ -449,7 +449,7 @@ def outputblock(block, target, varname, args, indent = ""):
             s += indent + "class Attrib:\n"
             s += indent + "    " +  ", ".join(spec['attributes']) + " = range(" + str(len(spec['attributes'])) + ")"
         elif target == 'c++':
-            s += indent + "enum Attrib : int { NO_ATT=0, ///<No attribute\n"
+            s += indent + "enum class Attrib : int { NO_ATT=0, ///<No attribute\n"
             value = 1
             for attrib in spec['attributes']:
                 s +=  attrib + '=' + str(value) + ', '
