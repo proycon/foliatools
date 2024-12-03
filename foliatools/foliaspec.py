@@ -306,6 +306,12 @@ def setelementproperties_cpp(element,indent, defer,done):
         # element.
         # for C++ we split them
         s += indent + to_upper_props(cls) + ' = ABSTRACT_HIGHER_ORDER_ANNOTATION_PROPERTIES;\n'
+    if cls == 'AbstractWord':
+        # this is from a pseudo AbstractWord element created special for C++
+        # the specification has Word both as an abstract base AND as an
+        # element.
+        # for C++ we split them
+        s += indent + to_upper_props(cls) + ' = ABSTRACT_STRUCTURE_ELEMENT_PROPERTIES;\n'
     if cls in parents:
         for parent in parents[cls]:
             if parent not in done:
@@ -313,8 +319,14 @@ def setelementproperties_cpp(element,indent, defer,done):
                 return None
             else:
                 if parent == 'Feature' or cls == 'Feature':
-                    # another trci needed to split Feature
+                    # another trick needed to split Feature
                    parent = 'AbstractFeature'
+                if cls == 'Word':
+                    # another trick needed to split Word
+                   parent = 'AbstractWord'
+                if cls == 'Hiddenword':
+                    # another trick needed to split Word
+                   parent = 'AbstractWord'
                 if 'Abstract' not in cls:
                     if 'Abstract' not in parent:
                         s += indent + cls + '::PROPS = ' + parent + '::PROPS;\n'
@@ -343,10 +355,20 @@ def setelementproperties_cpp(element,indent, defer,done):
                         value = 'feat'
                         prop = 'subset'
                 elif prop == 'accepted_data':
-                    value = tuple(sorted(addfromparents(element['class'],'accepted_data')))
-                    if 'Feature' in value:
+                    values = addfromparents(element['class'],'accepted_data')
+                    if 'Feature' in values:
                         # if Feature is acceptable, ANY feature will be
-                        value += ('AbstractFeature',)
+                        values.add('AbstractFeature')
+                        values.remove('Feature')
+                    if 'Hiddenword' in values:
+                        # if Hiddenword is acceptable, ANY AbstractWord will be
+                        values.add('AbstractWord')
+                        values.remove('Hiddenword')
+                    if 'Word' in values:
+                        # if Word is acceptable, ANY AbstractWord will be
+                        values.add('AbstractWord')
+                        values.remove('Word')
+                    value = tuple(sorted(values))
                     if ('textcontainer' in element['properties'] and element['properties']['textcontainer']) or ('phoncontainer' in element['properties'] and element['properties']['phoncontainer']):
                         value += ('XmlText',)
                     if 'WordReference' in value:
@@ -464,7 +486,7 @@ def outputblock(block, target, varname, args, indent = ""):
     elif block == 'elementtype':
         if target == 'c++':
             # C++ has some extra element-types not in the specification
-            s += indent + "enum ElementType : unsigned int { BASE=0, AbstractFeature_t, "
+            s += indent + "enum ElementType : unsigned int { BASE=0, AbstractFeature_t, AbstractWord_t, "
             s += ", ".join([ e + '_t' for e in elementnames]) + ", ProcessingInstruction_t, XmlComment_t, XmlText_t,  LastElement };\n"
         elif target == 'rust':
             s += indent + "pub enum ElementType { " + ", ".join([ e for e in elementnames if not e.startswith('Abstract')]) + " }\n"
@@ -535,6 +557,17 @@ def outputblock(block, target, varname, args, indent = ""):
             af_element["properties"] = {}
             af_element["properties"]["label"] = "AbstractFeature"
             s = setelementproperties_cpp(af_element,indent,defer,done)
+            #
+            # also we smuggle in a AbstractWord element, which will be
+            # the parent of all *Word elements
+            #
+            af_element = {}
+            af_element["class"] = "AbstractWord"
+            af_element["properties"] = {}
+            af_element["properties"]["label"] = "AbstractWord"
+            af_element["properties"]["printable"] = True
+            af_element["properties"]["speakable"] = True
+            s += setelementproperties_cpp(af_element,indent,defer,done)
             for element in elements:
                 output = setelementproperties_cpp(element,indent, defer,done)
                 if output:
@@ -663,6 +696,7 @@ def outputblock(block, target, varname, args, indent = ""):
             # first some types local to C++
             s += indent + "  { BASE, \"FoLiA\" },\n"
             s += indent + "  { AbstractFeature_t, \"_AbstractFeature\" },\n"
+            s += indent + "  { AbstractWord_t, \"_AbstractWord\" },\n"
             # and then the rest
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
@@ -697,6 +731,7 @@ def outputblock(block, target, varname, args, indent = ""):
             # first some types local to C++
             s += indent + "  { \"FoLiA\", BASE },\n"
             s += indent + "  { \"_AbstractFeature\", AbstractFeature_t },\n"
+            s += indent + "  { \"_AbstractWord\", AbstractWord_t },\n"
             # and then the rest
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
@@ -809,6 +844,13 @@ def outputblock(block, target, varname, args, indent = ""):
                 if "Feature" in parentset:
                     parentset.remove("Feature")
                     parentset.append("AbstractFeature")
+                # Word is special too, as we are splitting this in Word
+                # and AbstractWord, which is the parent of every *Word
+                if child == "Word" or child == "Hiddenword":
+                    parentset.append("AbstractWord")
+                if "Word" in parentset:
+                    parentset.remove("Word")
+                    parentset.append("AbstractWord")
                 s += indent + "   { " + child + '_t' + ", { " + ",".join([p + '_t' for p in parentset ]) + " } },\n"
             s += indent + "};\n";
         else:
