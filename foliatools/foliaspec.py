@@ -360,6 +360,9 @@ def setelementproperties_cpp(element,indent, defer,done):
                         # if Feature is acceptable, ANY feature will be
                         values.add('AbstractFeature')
                         values.remove('Feature')
+                    if 'WordReference' in values:
+                        for e in sorted(flattenclasses(spec['wrefables'])):
+                            values.add(e)
                     if 'Hiddenword' in values:
                         # if Hiddenword is acceptable, ANY AbstractWord will be
                         values.add('AbstractWord')
@@ -371,8 +374,6 @@ def setelementproperties_cpp(element,indent, defer,done):
                     value = tuple(sorted(values))
                     if ('textcontainer' in element['properties'] and element['properties']['textcontainer']) or ('phoncontainer' in element['properties'] and element['properties']['phoncontainer']):
                         value += ('XmlText',)
-                    if 'WordReference' in value:
-                        value += tuple( e  for e in sorted(flattenclasses(spec['wrefables'])) )
                 if 'Abstract' not in cls:
                     s += indent + outputvar(cls + '::PROPS.' + prop.upper(),  value, target) + '\n'
                 else:
