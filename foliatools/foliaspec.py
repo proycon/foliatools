@@ -176,7 +176,7 @@ def outputvar(var, value, target, declare = False):
                 else:
                     typedeclaration = ''
                     operator = '+='
-                value = [ x + '_t' for x in value ]
+                value = [ 'ElementType::' + x + '_t' for x in value ]
                 return typedeclaration + var + ' ' + operator + ' {' + ', '.join(value) + '};'
             elif all([ x in spec['attributes'] for x in value ]):
                 return var + ' = Attrib::' + '|Attrib::'.join(value) + ';'
@@ -332,7 +332,7 @@ def setelementproperties_cpp(element,indent, defer,done):
                         s += indent + cls + '::PROPS = ' + parent + '::PROPS;\n'
                     else:
                         s += indent + cls + '::PROPS = ' + to_upper_props(parent) + ';\n'
-                        s += indent + 'abstract_parents[' + cls + '_t] = ' + parent + '_t;\n'
+                        s += indent + 'abstract_parents[ElementType::' + cls + '_t] = ElementType::' + parent + '_t;\n'
 
                 else:
                     if 'Abstract' in parent:
@@ -340,9 +340,9 @@ def setelementproperties_cpp(element,indent, defer,done):
 
             break
     if 'Abstract' not in cls:
-        s += indent + cls + '::PROPS.ELEMENT_ID = ' + cls + '_t;\n'
+        s += indent + cls + '::PROPS.ELEMENT_ID = ElementType::' + cls + '_t;\n'
     else:
-        s += indent + to_upper_props(cls) + '.ELEMENT_ID = ' + cls + '_t;\n'
+        s += indent + to_upper_props(cls) + '.ELEMENT_ID = ElementType::' + cls + '_t;\n'
     if 'properties' in element:
         for prop, value in sorted(element['properties'].items()):
             if target not in skip_properties or prop not in skip_properties[target]:
@@ -379,9 +379,9 @@ def setelementproperties_cpp(element,indent, defer,done):
                 else:
                     s += indent + to_upper_props(cls) + "." + outputvar(prop.upper(), value,target) + '\n'
     if 'Abstract' not in cls:
-        s += indent + 'element_props[' + cls + '_t] = &' + cls + '::PROPS;\n'
+        s += indent + 'element_props[ElementType::' + cls + '_t] = &' + cls + '::PROPS;\n'
     else:
-        s += indent + 'element_props[' + cls + '_t] = &' + to_upper_props(cls) + ';\n'
+        s += indent + 'element_props[ElementType::' + cls + '_t] = &' + to_upper_props(cls) + ';\n'
     done[cls] = True
     return s
 
@@ -487,7 +487,7 @@ def outputblock(block, target, varname, args, indent = ""):
     elif block == 'elementtype':
         if target == 'c++':
             # C++ has some extra element-types not in the specification
-            s += indent + "enum ElementType : unsigned int { BASE=0, AbstractFeature_t, AbstractWord_t, "
+            s += indent + "enum class ElementType : unsigned int { BASE=0, AbstractFeature_t, AbstractWord_t, "
             s += ", ".join([ e + '_t' for e in elementnames]) + ", ProcessingInstruction_t, XmlComment_t, XmlText_t,  LastElement };\n"
         elif target == 'rust':
             s += indent + "pub enum ElementType { " + ", ".join([ e for e in elementnames if not e.startswith('Abstract')]) + " }\n"
@@ -517,9 +517,9 @@ def outputblock(block, target, varname, args, indent = ""):
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'defaultproperties':
         if target == 'c++':
-            s += indent + "ELEMENT_ID = BASE;\n"
-            s += indent + "ACCEPTED_DATA.insert(XmlComment_t);\n"
-            s += indent + "ACCEPTED_DATA.insert(ProcessingInstruction_t);\n"
+            s += indent + "ELEMENT_ID = ElementType::BASE;\n"
+            s += indent + "ACCEPTED_DATA.insert(ElementType::XmlComment_t);\n"
+            s += indent + "ACCEPTED_DATA.insert(ElementType::ProcessingInstruction_t);\n"
             for prop, value in sorted(spec['defaultproperties'].items()):
                 if target not in skip_properties or prop not in skip_properties[target]:
                     s += indent + outputvar( prop.upper(),  value, target) + '\n'
@@ -659,7 +659,7 @@ def outputblock(block, target, varname, args, indent = ""):
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag'] and 'annotationtype' in element['properties']:
                     if 'primaryelement' in element['properties'] and not element['properties']['primaryelement']: continue #not primary, skip
-                    s += indent + "  {  AnnotationType::" + element['properties']['annotationtype'] + ', ' + element['class'] + '_t },\n'
+                    s += indent + "  {  AnnotationType::" + element['properties']['annotationtype'] + ', ' + 'ElementType::' + element['class'] + '_t },\n'
             s += indent + "};\n"
         elif target == 'rust':
             s += indent + "match " + args[0] + " {\n"
@@ -695,23 +695,23 @@ def outputblock(block, target, varname, args, indent = ""):
         if target == 'c++':
             s += indent + "const map<ElementType,string> et_s_map = {\n"
             # first some types local to C++
-            s += indent + "  { BASE, \"FoLiA\" },\n"
-            s += indent + "  { AbstractFeature_t, \"_AbstractFeature\" },\n"
-            s += indent + "  { AbstractWord_t, \"_AbstractWord\" },\n"
+            s += indent + "  { ElementType::BASE, \"FoLiA\" },\n"
+            s += indent + "  { ElementType::AbstractFeature_t, \"_AbstractFeature\" },\n"
+            s += indent + "  { ElementType::AbstractWord_t, \"_AbstractWord\" },\n"
             # and then the rest
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
-                    s += indent + "  { " + element['class'] + '_t,  "' + element['properties']['xmltag'] + '" },\n'
+                    s += indent + "  { ElementType::" + element['class'] + '_t,  "' + element['properties']['xmltag'] + '" },\n'
                 elif 'properties' in element and 'subset' in element['properties'] and element['properties']['subset']:
                     if element['class'] == 'HeadFeature':
-                        s += indent + "  { HeadFeature_t,  \"headfeature\" },\n"
+                        s += indent + "  { ElementType::HeadFeature_t,  \"headfeature\" },\n"
                     else:
-                        s += indent + "  { " + element['class'] + '_t,  "' + element['properties']['subset'] + '" },\n'
+                        s += indent + "  { ElementType::" + element['class'] + '_t,  "' + element['properties']['subset'] + '" },\n'
                 else:
-                    s += indent + "  { " + element['class'] + '_t,  "_' + element['class'] + '" },\n'
-            s += indent + '  { XmlComment_t, "_XmlComment" },\n'
-            s += indent + '  { ProcessingInstruction_t, "PI" },\n'
-            s += indent + '  { XmlText_t, "_XmlText" }\n'
+                    s += indent + "  { ElementType::" + element['class'] + '_t,  "_' + element['class'] + '" },\n'
+            s += indent + '  { ElementType::XmlComment_t, "_XmlComment" },\n'
+            s += indent + '  { ElementType::ProcessingInstruction_t, "PI" },\n'
+            s += indent + '  { ElementType::XmlText_t, "_XmlText" }\n'
             s += indent + "};\n"
         elif target == 'rust':
             s += indent + "match " + args[0] + " {\n"
@@ -730,23 +730,23 @@ def outputblock(block, target, varname, args, indent = ""):
         if target == 'c++':
             s += indent + "const map<string,ElementType> s_et_map = {\n"
             # first some types local to C++
-            s += indent + "  { \"FoLiA\", BASE },\n"
-            s += indent + "  { \"_AbstractFeature\", AbstractFeature_t },\n"
-            s += indent + "  { \"_AbstractWord\", AbstractWord_t },\n"
+            s += indent + "  { \"FoLiA\", ElementType::BASE },\n"
+            s += indent + "  { \"_AbstractFeature\", ElementType::AbstractFeature_t },\n"
+            s += indent + "  { \"_AbstractWord\", ElementType::AbstractWord_t },\n"
             # and then the rest
             for element in elements:
                 if 'properties' in element and 'xmltag' in element['properties'] and element['properties']['xmltag']:
-                    s += indent + '  { "' + element['properties']['xmltag'] + '", ' + element['class'] + '_t  },\n'
+                    s += indent + '  { "' + element['properties']['xmltag'] + '", ElementType::' + element['class'] + '_t  },\n'
                 elif 'properties' in element and 'subset' in element['properties'] and element['properties']['subset']:
                     if element['class'] == 'HeadFeature':
-                        s += indent + "  { \"headfeature\", HeadFeature_t },\n"
+                        s += indent + "  { \"headfeature\", ElementType::HeadFeature_t },\n"
                     else:
-                        s += indent + '  { "' + element['properties']['subset'] + '", ' + element['class'] + '_t  },\n'
+                        s += indent + '  { "' + element['properties']['subset'] + '", ElementType::' + element['class'] + '_t  },\n'
                 else:
-                    s += indent + '  { "_' + element['class'] + '", ' + element['class'] + '_t  },\n'
-            s += indent + '  { "_XmlComment", XmlComment_t  },\n'
-            s += indent + '  { "PI", ProcessingInstruction_t  },\n'
-            s += indent + '  { "_XmlText", XmlText_t  }\n'
+                    s += indent + '  { "_' + element['class'] + '", ElementType::' + element['class'] + '_t  },\n'
+            s += indent + '  { "_XmlComment", ElementType::XmlComment_t  },\n'
+            s += indent + '  { "PI", ElementType::ProcessingInstruction_t  },\n'
+            s += indent + '  { "_XmlText", ElementType::XmlText_t  }\n'
             s += indent + "};\n"
         elif target == 'rust':
             s += indent + "match " + args[0] + " {\n"
@@ -808,28 +808,28 @@ def outputblock(block, target, varname, args, indent = ""):
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'wrefables':
         if target == 'c++':
-            s += indent + "const set<ElementType> wrefables = { " + ", ".join([ e + '_t' for e in sorted(flattenclasses(spec['wrefables'])) ]) + " };\n"
+            s += indent + "const set<ElementType> wrefables = { " + ", ".join([ 'ElementType::' + e + '_t' for e in sorted(flattenclasses(spec['wrefables'])) ]) + " };\n"
         elif target == 'python':
             s += indent + "wrefables = ( " + ", ".join(spec['wrefables']) + ",)\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'default_ignore':
         if target == 'c++':
-            s += indent + "const set<ElementType> default_ignore = { " + ", ".join([ e + '_t' for e in sorted(flattenclasses(spec['default_ignore'])) ]) + " };\n"
+            s += indent + "const set<ElementType> default_ignore = { " + ", ".join([ 'ElementType::'+ e + '_t' for e in sorted(flattenclasses(spec['default_ignore'])) ]) + " };\n"
         elif target == 'python':
             s += indent + "default_ignore = ( " + ", ".join(spec['default_ignore']) + ",)\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'default_ignore_annotations':
         if target == 'c++':
-            s += indent + "const set<ElementType> default_ignore_annotations = { " + ", ".join([ e + '_t' for e in sorted(flattenclasses(spec['default_ignore_annotations'])) ]) + " };\n"
+            s += indent + "const set<ElementType> default_ignore_annotations = { " + ", ".join([ 'ElementType::'+ e + '_t' for e in sorted(flattenclasses(spec['default_ignore_annotations'])) ]) + " };\n"
         elif target == 'python':
             s += indent + "default_ignore_annotations = ( " + ", ".join(spec['default_ignore_annotations']) + ",)\n"
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
     elif block == 'default_ignore_structure':
         if target == 'c++':
-            s += indent + "const set<ElementType> default_ignore_structure = { " + ", ".join([ e + '_t' for e in sorted(flattenclasses(spec['default_ignore_structure'])) ]) + " };\n"
+            s += indent + "const set<ElementType> default_ignore_structure = { " + ", ".join([ 'ElementType::' + e + '_t' for e in sorted(flattenclasses(spec['default_ignore_structure'])) ]) + " };\n"
         elif target == 'python':
             s += indent + "default_ignore_structure = ( " + ", ".join(spec['default_ignore_structure']) + ",)\n"
         else:
@@ -852,7 +852,7 @@ def outputblock(block, target, varname, args, indent = ""):
                 if "Word" in parentset:
                     parentset.remove("Word")
                     parentset.append("AbstractWord")
-                s += indent + "   { " + child + '_t' + ", { " + ",".join([p + '_t' for p in parentset ]) + " } },\n"
+                s += indent + "   { " + 'ElementType::' + child + '_t' + ", { " + ",".join(['ElementType::' + p + '_t' for p in parentset ]) + " } },\n"
             s += indent + "};\n";
         else:
             raise NotImplementedError("Block " + block + " not implemented for " + target)
