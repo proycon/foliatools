@@ -52,7 +52,7 @@ def extract_dependencies(alpinonode, deplayer, foliasentence):
 def makefoliadoc(outputfile):
     baseid = os.path.basename(outputfile).replace('.folia.xml','').replace('.xml','')
     try:
-        folia.isncname(baseid):
+        folia.isncname(baseid)
     except ValueError:
         baseid = folia.makencname(baseid)
     processor = folia.Processor.create("alpino2folia", version=TOOLVERSION)
